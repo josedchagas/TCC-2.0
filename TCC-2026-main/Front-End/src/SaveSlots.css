@@ -1,0 +1,85 @@
+@reference "tailwindcss";
+
+.save-slots-overlay {
+  @apply fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-6;
+}
+
+.save-slots {
+  @apply w-full max-w-md bg-[#2c2015] border-2 border-[#b8923f] rounded-lg shadow-2xl p-5 font-[Spectral,serif] text-[#e9dcc0] flex flex-col;
+}
+
+.save-slots__header {
+  @apply flex items-center justify-between mb-5 shrink-0;
+}
+
+.save-slots__title {
+  @apply text-xl font-[Cinzel,serif] tracking-wide text-[#e8c25a];
+}
+
+.save-slots__close {
+  @apply w-8 h-8 flex items-center justify-center rounded border border-[#6b4f30] hover:bg-[#6b4f30] transition-colors cursor-pointer;
+}
+
+.save-slots__scroll-wrap {
+  @apply relative flex-1 min-h-0;
+}
+
+.save-slots__grid {
+  @apply flex flex-col gap-2 overflow-y-auto max-h-64 h-full pr-3;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.save-slots__grid::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.save-slots__scrollbar-track {
+  @apply absolute top-0 right-0 w-1.5 h-full rounded-full bg-[#241a10] border border-[#4a3f30];
+}
+
+.save-slots__scrollbar-thumb {
+  @apply absolute left-0 w-full rounded-full bg-[#b8923f] ;
+}
+
+.save-slot {
+  @apply relative flex items-center rounded-md border px-3 py-2 min-h-[3rem];
+}
+
+.save-slot--filled {
+  @apply bg-[#3a2a1d] border-[#6b4f30] pr-9;
+}
+
+.save-slot--empty {
+  @apply bg-[#241a10] border-dashed border-[#5a4a37];
+}
+
+.save-slot__delete {
+  @apply absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded-full border border-[#8a2c2c] text-[#c94f4f] text-xs leading-none cursor-pointer transition-colors hover:bg-[#8a2c2c] hover:text-[#e9dcc0];
+}
+
+.save-slot__body {
+  @apply flex-1 flex items-center gap-3 text-left cursor-pointer bg-transparent min-w-0;
+}
+
+.save-slot__index {
+  @apply text-[10px] uppercase tracking-wide text-[#8a7455] w-10 shrink-0;
+}
+
+.save-slot__character {
+  @apply font-[Cinzel,serif] text-sm text-[#e8c25a] w-16 shrink-0 truncate;
+}
+
+.save-slot__chapter {
+  @apply flex-1 text-xs text-[#c7b48d] truncate;
+}
+
+.save-slot__time {
+  @apply text-[10px] text-[#8a7455] shrink-0;
+}
+
+.save-slot__empty-label {
+  @apply text-xs text-[#5a4a37] italic ml-3;
+}

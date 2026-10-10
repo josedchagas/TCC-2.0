@@ -1,0 +1,106 @@
+@reference "tailwindcss";
+
+.char-select-overlay {
+  @apply fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-6;
+}
+
+.char-select {
+  @apply w-full max-w-2xl bg-[#2c2015] border-2 border-[#b8923f] rounded-lg shadow-2xl p-5 font-[Spectral,serif] text-[#e9dcc0];
+}
+
+.char-select__header {
+  @apply flex items-center justify-between mb-5;
+}
+
+.char-select__title {
+  @apply text-lg font-[Cinzel,serif] tracking-wide text-[#e8c25a];
+}
+
+.char-select__close {
+  @apply w-7 h-7 flex items-center justify-center rounded border border-[#6b4f30] hover:bg-[#6b4f30] transition-colors cursor-pointer;
+}
+
+.char-select__body {
+  @apply flex gap-5;
+}
+
+.char-select__avatars {
+  @apply flex flex-col gap-3 shrink-0;
+}
+
+.char-select__avatar-btn {
+  @apply flex items-center gap-3 rounded-md border border-transparent p-1.5 cursor-pointer transition-colors hover:bg-[#3a2a1d];
+}
+
+.char-select__avatar-btn--selected {
+  @apply border-[#e8c25a] bg-[#3a2a1d];
+}
+
+.char-select__avatar-circle {
+  @apply w-14 h-14 rounded-full flex items-center justify-center shrink-0 bg-[#443121] border-2 border-[#b8923f] font-[Cinzel,serif] text-xl text-[#e8c25a] transition-shadow;
+}
+
+.char-select__avatar-btn:hover .char-select__avatar-circle,
+.char-select__avatar-btn--selected .char-select__avatar-circle {
+  box-shadow: 0 0 10px rgba(232, 194, 90, 0.5);
+}
+
+.char-select__avatar-name {
+  @apply text-sm text-[#d9c69a];
+}
+
+.char-select__sheet {
+  @apply flex-1 min-w-0 bg-[#241a10] border border-[#6b4f30] rounded-md p-4;
+}
+
+.char-select__sheet-empty {
+  @apply h-full flex items-center justify-center text-center text-sm text-[#7c6a4e] italic;
+}
+
+.char-select__sheet-header {
+  @apply flex items-center gap-3 mb-3;
+}
+
+.char-select__sheet-avatar {
+  @apply w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-[#443121] border-2 border-[#b8923f] font-[Cinzel,serif] text-lg text-[#e8c25a];
+}
+
+.char-select__sheet-name {
+  @apply font-[Cinzel,serif] text-base text-[#e8c25a];
+}
+
+.char-select__sheet-role {
+  @apply text-xs text-[#8a7455];
+}
+
+.char-select__sheet-desc {
+  @apply text-xs text-[#c7b48d] italic mb-4;
+}
+
+.char-select__stats {
+  @apply flex flex-col gap-2;
+}
+
+.char-select__stat-row {
+  @apply flex items-center gap-2;
+}
+
+.char-select__stat-label {
+  @apply text-[11px] text-[#d9c69a] w-20 shrink-0;
+}
+
+.char-select__stat-track {
+  @apply flex-1 h-1.5 rounded-full bg-[#1c140d] border border-[#6b4f30] overflow-hidden;
+}
+
+.char-select__stat-fill {
+  @apply h-full bg-gradient-to-r from-[#8a6a2e] to-[#e8c25a];
+}
+
+.char-select__actions {
+  @apply mt-5 flex justify-end;
+}
+
+.char-select__confirm-btn {
+  @apply font-[Cinzel,serif] tracking-wide px-8 py-2 rounded-md text-sm border-2 border-[#e8c25a] bg-gradient-to-b from-[#c9a44c] to-[#8a6a2e] text-[#241a10] cursor-pointer transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100;
+}

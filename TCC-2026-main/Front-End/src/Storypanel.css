@@ -1,0 +1,49 @@
+@reference "tailwindcss";
+
+.story-panel {
+  @apply flex-1 min-h-0 bg-[#c9b183] flex flex-col p-6 gap-4 font-[Spectral,serif] text-[#2b1d12];
+}
+
+.story-panel__header {
+  @apply bg-[#5a4a37] text-[#e9dcc0] rounded-md px-4 py-2 flex items-center justify-between;
+}
+
+.story-panel__chapter {
+  @apply font-[Cinzel,serif] text-sm tracking-wide;
+}
+
+.story-panel__progress {
+  @apply flex items-center gap-2 w-40;
+}
+
+.story-panel__progress-track {
+  @apply h-1.5 flex-1 rounded-full bg-[#241a10] overflow-hidden;
+}
+
+.story-panel__progress-fill {
+  @apply h-full bg-[#e8c25a];
+}
+
+.story-panel__progress-label {
+  @apply text-xs text-[#c7b48d];
+}
+
+.story-panel__text {
+  @apply flex-1 min-h-0 bg-[#e8dcc0] rounded-md p-6 overflow-y-auto shadow-inner border border-[#a8926c] leading-relaxed;
+}
+
+.story-panel__text-empty {
+  @apply text-[#7c6a4e] italic;
+}
+
+.story-panel__actions {
+  @apply bg-[#e8dcc0] rounded-md p-4 border border-[#a8926c] flex flex-wrap gap-3 min-h-[4.5rem] items-start;
+}
+
+.story-panel__actions-empty {
+  @apply text-sm text-[#7c6a4e] italic;
+}
+
+.story-panel__action-btn {
+  @apply px-4 py-2 rounded border border-[#6b4f30] bg-[#3a2a1d] text-[#e9dcc0] hover:bg-[#4a3520] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm cursor-pointer;
+}

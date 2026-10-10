@@ -1,0 +1,37 @@
+@reference "tailwindcss";
+
+.game-menu-btn {
+  @apply fixed top-4 left-4 z-30 w-10 h-10 flex flex-col items-center justify-center gap-1.5 rounded-md border border-[#6b4f30] bg-[#2c2015]/90 cursor-pointer transition-colors hover:border-[#b8923f] hover:bg-[#3a2a1d];
+}
+
+.game-menu-btn__bar {
+  @apply block w-5 h-0.5 rounded-full bg-[#e9dcc0];
+}
+
+.game-menu-overlay {
+  @apply fixed inset-0 z-40 flex items-center justify-center bg-black/50;
+}
+
+.game-menu {
+  @apply w-64 bg-[#2c2015] border-2 border-[#b8923f] rounded-lg shadow-2xl p-5 font-[Spectral,serif] text-[#e9dcc0];
+}
+
+.game-menu__title {
+  @apply text-lg font-[Cinzel,serif] tracking-wide text-[#e8c25a] text-center mb-4;
+}
+
+.game-menu__options {
+  @apply flex flex-col gap-2.5;
+}
+
+.game-menu__option {
+  @apply font-[Cinzel,serif] tracking-wide text-sm px-4 py-2.5 rounded-md border border-[#6b4f30] bg-[#3a2a1d] text-[#e9dcc0] cursor-pointer transition-colors hover:border-[#b8923f] hover:bg-[#4a3520];
+}
+
+.game-menu__option--secondary {
+  @apply bg-transparent text-[#d9c69a];
+}
+
+.game-menu__option--danger {
+  @apply border-[#8a2c2c] text-[#e0a0a0] hover:bg-[#3a1a1a] hover:border-[#c94f4f];
+}

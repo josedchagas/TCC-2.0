@@ -1,0 +1,130 @@
+@reference "tailwindcss";
+
+.char-panel {
+  @apply relative w-72 h-screen shrink-0 bg-[#2c2015] border-r-2 border-[#6b4f30] font-[Spectral,serif] text-[#e9dcc0] box-border overflow-hidden;
+}
+
+.char-panel__scroll {
+  @apply h-full flex flex-col gap-4 p-4 pr-6 overflow-y-auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.char-panel__scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.char-panel__scrollbar-track {
+  @apply absolute top-2 bottom-2 right-1.5 w-1.5 rounded-full bg-[#241a10] border border-[#4a3f30];
+}
+
+.char-panel__scrollbar-thumb {
+  @apply absolute left-0 w-full rounded-full bg-[#b8923f];
+}
+
+.char-panel__avatar-block {
+  @apply flex flex-col items-center gap-2;
+}
+
+.char-panel__avatar {
+  @apply relative w-[5.5rem] h-[5.5rem] rounded-full overflow-hidden bg-[#443121] ring-2 ring-[#2c2015] ring-offset-2 ring-offset-[#b8923f];
+  box-shadow: 0 0 0 2px #2c2015, 0 0 0 6px #b8923f;
+}
+
+.char-panel__avatar-img {
+  @apply w-full h-full object-cover;
+}
+
+.char-panel__avatar-empty {
+  @apply w-full h-full flex items-center justify-center text-xs text-[#a8926c];
+}
+
+.char-panel__xp-wrap {
+  @apply w-full;
+}
+
+.char-panel__xp-track {
+  @apply h-2.5 rounded-full bg-[#1c140d] border border-[#6b4f30] overflow-hidden;
+}
+
+.char-panel__xp-fill {
+  @apply h-full bg-gradient-to-r from-[#7c9c4a] to-[#a9c96a] transition-[width] duration-500;
+}
+
+.char-panel__xp-label {
+  @apply text-[11px] text-center mt-1 text-[#c7b48d];
+}
+
+.char-panel__status-btn {
+  @apply mt-1 text-sm px-4 py-1.5 rounded border border-[#b8923f] text-[#e9dcc0] hover:bg-[#b8923f] hover:text-[#241a10] transition-colors cursor-pointer;
+}
+
+.stat-row {
+  @apply flex flex-col items-center;
+}
+
+.stat-row__label {
+  @apply text-sm tracking-wide mb-1.5 text-[#d9c69a] text-center;
+}
+
+.stat-row__icons {
+  @apply flex justify-center gap-1.5;
+}
+
+.char-panel__section-title {
+  @apply text-sm tracking-wide mb-2 text-[#d9c69a];
+}
+
+.char-panel__grid {
+  @apply grid grid-cols-4 gap-2 bg-[#241a10] p-2 rounded-md border border-[#6b4f30];
+}
+
+.char-panel__grid--equipment {
+  @apply grid-cols-3;
+}
+
+.char-panel__money {
+  @apply mt-auto flex items-center justify-between bg-[#3f2f1c] border border-[#b8923f] rounded px-3 py-1.5;
+}
+
+.char-panel__money-label {
+  @apply text-sm text-[#d9c69a];
+}
+
+.char-panel__money-value {
+  @apply font-semibold text-[#e8c25a];
+}
+
+.slot {
+  @apply aspect-square rounded bg-[#4a3520] border border-[#6b4f30] shadow-inner flex items-center justify-center relative;
+}
+
+.slot__icon {
+  @apply w-3/4 h-3/4 object-contain;
+}
+
+.slot__qty {
+  @apply absolute bottom-0.5 right-1 text-[10px] text-[#e9dcc0];
+}
+
+.slot__placeholder {
+  @apply text-[9px] text-[#7c6a4e] uppercase tracking-wide;
+}
+
+.icon-heart--filled {
+  @apply fill-[#a33636];
+}
+
+.icon-heart--empty {
+  @apply fill-[#4a3020];
+}
+
+.icon-drop--filled {
+  @apply fill-[#5c7a44];
+}
+
+.icon-drop--empty {
+  @apply fill-[#3a3320];
+}

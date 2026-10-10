@@ -1,0 +1,19 @@
+@reference "tailwindcss";
+
+.app-shell {
+  @apply min-h-screen bg-[#15100c];
+  animation: app-fade-in 0.5s ease;
+}
+
+@keyframes app-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.app-stage {
+  @apply flex w-full h-screen;
+}

@@ -1,0 +1,57 @@
+@reference "tailwindcss";
+
+.status-modal-overlay {
+  @apply fixed inset-0 z-40 flex items-center justify-center bg-black/50;
+}
+
+.status-modal {
+  @apply w-80 bg-[#2c2015] border-2 border-[#b8923f] rounded-lg shadow-2xl p-5 font-[Spectral,serif] text-[#e9dcc0];
+}
+
+.status-modal__header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.status-modal__title {
+  @apply text-lg font-[Cinzel,serif] tracking-wide;
+}
+
+.status-modal__close {
+  @apply w-7 h-7 flex items-center justify-center rounded border border-[#6b4f30] hover:bg-[#6b4f30] transition-colors cursor-pointer;
+}
+
+.status-modal__list {
+  @apply flex flex-col gap-3;
+}
+
+.status-modal__row-head {
+  @apply flex justify-between text-sm mb-1;
+}
+
+.status-modal__row-value {
+  @apply text-[#c7b48d];
+}
+
+.status-modal__row-bar-line {
+  @apply flex items-center gap-2;
+}
+
+.status-modal__bar-track {
+  @apply flex-1 h-2 rounded-full bg-[#1c140d] border border-[#6b4f30] overflow-hidden;
+}
+
+.status-modal__add-btn {
+  @apply shrink-0 w-5 h-5 flex items-center justify-center rounded-full border border-[#b8923f] bg-transparent text-[#e8c25a] text-sm leading-none hover:bg-[#b8923f] hover:text-[#241a10] transition-colors cursor-pointer;
+}
+
+.status-modal__bar-fill {
+  @apply h-full bg-gradient-to-r from-[#8a6a2e] to-[#e8c25a];
+}
+
+.status-modal__points {
+  @apply mt-6 w-fit px-3 py-1.5 rounded-md border border-[#b8923f] bg-[#241a10] flex items-center gap-2 text-sm;
+}
+
+.status-modal__points-value {
+  @apply font-semibold text-[#e8c25a];
+}

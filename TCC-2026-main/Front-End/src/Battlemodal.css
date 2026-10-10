@@ -1,0 +1,89 @@
+@reference "tailwindcss";
+
+.battle-modal-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center bg-black/60;
+}
+
+.battle-modal {
+  @apply w-[420px] bg-[#3a2a1d] border-2 border-[#8a2c2c] rounded-lg shadow-2xl overflow-hidden font-[Spectral,serif] text-[#e9dcc0];
+}
+
+.battle-modal__header {
+  @apply flex items-center justify-between px-4 py-2 bg-[#241a10] border-b border-[#6b4f30];
+}
+
+.battle-modal__title {
+  @apply text-base font-[Cinzel,serif] tracking-wide;
+}
+
+.battle-modal__close {
+  @apply w-6 h-6 flex items-center justify-center rounded border border-[#6b4f30] hover:bg-[#6b4f30] transition-colors cursor-pointer;
+}
+
+.battle-modal__scene {
+  @apply h-56 bg-[#1c140d] border-b border-[#6b4f30] flex items-center justify-center;
+}
+
+.battle-modal__scene-img {
+  @apply w-full h-full object-cover;
+}
+
+.battle-modal__scene-empty {
+  @apply text-[#7c6a4e] text-sm;
+}
+
+.battle-modal__healthbars {
+  @apply grid grid-cols-2 gap-4 px-4 py-3;
+}
+
+.battle-modal__drops-section {
+  @apply px-4 pb-4;
+}
+
+.battle-modal__drops-title {
+  @apply text-sm tracking-wide mb-2 text-[#d9c69a];
+}
+
+.battle-modal__drops-box {
+  @apply min-h-[3.5rem] bg-[#1c140d] border border-[#6b4f30] rounded-md flex items-center gap-2 px-3;
+}
+
+.battle-modal__drops-empty {
+  @apply text-xs text-[#7c6a4e];
+}
+
+.battle-modal__drop-item {
+  @apply flex flex-col items-center text-[10px] text-[#c7b48d];
+}
+
+.battle-modal__drop-icon {
+  @apply w-8 h-8 object-contain;
+}
+
+.health-bar--right {
+  @apply text-right;
+}
+
+.health-bar__track {
+  @apply h-2.5 rounded-full bg-[#1c140d] border border-[#6b4f30] overflow-hidden;
+}
+
+.health-bar__fill {
+  @apply h-full bg-gradient-to-r from-[#8a2c2c] to-[#c94f4f];
+}
+
+.health-bar__fill--right {
+  @apply ml-auto;
+}
+
+.health-bar__label {
+  @apply text-[11px] mt-[1px] leading-none text-[#c7b48d];
+}
+
+.health-bar__label--player {
+  margin-left: 6px;
+}
+
+.health-bar__label--enemy {
+  margin-right: 5px;
+}
