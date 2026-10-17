@@ -45,7 +45,7 @@
 }
 
 .status-modal__bar-fill {
-  @apply h-full bg-gradient-to-r from-[#8a6a2e] to-[#e8c25a];
+  @apply h-full bg-linear-to-r from-[#8a6a2e] to-[#e8c25a];
 }
 
 .status-modal__points {
