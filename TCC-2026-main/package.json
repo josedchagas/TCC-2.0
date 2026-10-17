@@ -1,0 +1,14 @@
+{
+  "name": "tcc-2026-rpg",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Inicializa o front-end e o back-end do RPG em um único comando",
+  "scripts": {
+    "dev": "concurrently -k -n BACKEND,FRONTEND -c blue,green \"npm --prefix Back-End run dev\" \"npm --prefix Front-End run dev\"",
+    "dev:backend": "npm --prefix Back-End run dev",
+    "dev:frontend": "npm --prefix Front-End run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

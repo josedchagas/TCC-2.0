@@ -25,6 +25,7 @@ export default function CharacterPanel({
   equipment = [],
   statusOpen = false,
   onToggleStatus,
+  onUseItem,
 }) {
   const scrollRef = useRef(null);
   const trackRef = useRef(null);
@@ -161,17 +162,13 @@ export default function CharacterPanel({
         </div>
 
         {/* Vida */}
-        <StatRow label="Vida">
-          {Array.from({ length: hp.max }, (_, i) => (
-            <Heart key={i} filled={i < hp.current} />
-          ))}
+        <StatRow label={`Vida ${hp.current}/${hp.max}`}>
+          {hp.max <= 10 ? Array.from({ length: hp.max }, (_, i) => <Heart key={i} filled={i < hp.current} />) : <Meter current={hp.current} max={hp.max} kind="hp" />}
         </StatRow>
 
         {/* Energia */}
-        <StatRow label="Energia">
-          {Array.from({ length: energy.max }, (_, i) => (
-            <Drop key={i} filled={i < energy.current} />
-          ))}
+        <StatRow label={`Energia ${energy.current}/${energy.max}`}>
+          {energy.max <= 10 ? Array.from({ length: energy.max }, (_, i) => <Drop key={i} filled={i < energy.current} />) : <Meter current={energy.current} max={energy.max} kind="energy" />}
         </StatRow>
 
         {/* Inventário */}
@@ -179,7 +176,7 @@ export default function CharacterPanel({
           <h3 className="char-panel__section-title">Inventário</h3>
           <div className="char-panel__grid">
             {inventorySlots.map((item, i) => (
-              <Slot key={i} item={item} />
+              <Slot key={i} item={item} onUseItem={onUseItem} />
             ))}
           </div>
         </div>
@@ -227,24 +224,23 @@ function StatRow({ label, children }) {
   );
 }
 
-function Slot({ item, placeholderLabel }) {
+function Slot({ item, placeholderLabel, onUseItem }) {
+  const contents = <>
+    {item?.icon ? <img src={item.icon} alt={item.name ?? item.id} className="slot__icon" /> : item && <span className="slot__fallback">{(item.name ?? item.id ?? "?").slice(0, 2).toUpperCase()}</span>}
+    {item?.qty > 1 && <span className="slot__qty">{item.qty}</span>}
+    {!item && placeholderLabel && <span className="slot__placeholder">{placeholderLabel === "helmet" && "elmo"}{placeholderLabel === "weapon" && "arma"}{placeholderLabel === "chest" && "peito"}{placeholderLabel === "pants" && "calça"}{placeholderLabel === "shield" && "escudo"}{placeholderLabel === "boots" && "botas"}{placeholderLabel === "ring" && "anel"}</span>}
+  </>;
+  if (item?.type === "consumable" && onUseItem) return <button type="button" className="slot" title={`Usar ${item.name}`} onClick={() => onUseItem(item)}>{contents}</button>;
   return (
-    <div className="slot" title={item?.id ?? placeholderLabel ?? ""}>
-      {item?.icon && <img src={item.icon} alt={item.id} className="slot__icon" />}
-      {item?.qty > 1 && <span className="slot__qty">{item.qty}</span>}
-      {!item && placeholderLabel && (
-        <span className="slot__placeholder">
-          {placeholderLabel === "helmet" && "elmo"}
-          {placeholderLabel === "weapon" && "arma"}
-          {placeholderLabel === "chest" && "peito"}
-          {placeholderLabel === "pants" && "calça"}
-          {placeholderLabel === "shield" && "escudo"}
-          {placeholderLabel === "boots" && "botas"}
-          {placeholderLabel === "ring" && "anel"}
-        </span>
-      )}
+    <div className="slot" title={item?.name ?? item?.id ?? placeholderLabel ?? ""}>
+      {contents}
     </div>
   );
+}
+
+function Meter({ current, max, kind }) {
+  const pct = Math.max(0, Math.min(100, (current / max) * 100));
+  return <div className={`char-panel__meter char-panel__meter--${kind}`}><div style={{ width: `${pct}%` }} /></div>;
 }
 
 function Heart({ filled }) {

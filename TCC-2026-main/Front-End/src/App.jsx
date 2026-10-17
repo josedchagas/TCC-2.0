@@ -5,13 +5,14 @@ import StatusModal from "./Statusmodal";
 import BattleModal from "./Battlemodal";
 import StoryPanel from "./Storypanel";
 import GameMenu from "./GameMenu";
+import ShopModal from "./ShopModal";
 import { apiFetch, ensureGuestSession } from "./api";
 import "./App.css";
 
 const STAT_KEYS = ["forca", "destreza", "inteligencia", "resistencia", "agilidade"];
 
-function chapterLabel(save) {
-  return `Capítulo ${save.chapterCurrent} — A Vila Esquecida`;
+function chapterLabel(save, chapterData) {
+  return `Capítulo ${save.chapterCurrent} — ${chapterData?.title ?? "A Vila Esquecida"}`;
 }
 
 function relativeTime(value) {
@@ -34,11 +35,34 @@ export default function App() {
   const [notice, setNotice] = useState("Conectando ao jogo...");
   const [saves, setSaves] = useState([]);
   const [activeSave, setActiveSave] = useState(null);
+  const [chapterData, setChapterData] = useState(null);
+  const [inventory, setInventory] = useState([]);
+  const [equipment, setEquipment] = useState([]);
+  const [defeatedEnemies, setDefeatedEnemies] = useState([]);
+  const [battleResult, setBattleResult] = useState(null);
+  const [battleBusy, setBattleBusy] = useState(false);
+  const [shop, setShop] = useState(null);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [shopBusy, setShopBusy] = useState(false);
 
   const refreshSaves = useCallback(async () => {
     const rows = await apiFetch("/saves");
     setSaves(rows);
     return rows;
+  }, []);
+
+  const refreshGameData = useCallback(async (save) => {
+    if (!save?.id) return;
+    const [chapter, inv, eqp, defeated] = await Promise.all([
+      apiFetch(`/game/chapters/${save.chapterCurrent}`),
+      apiFetch(`/saves/${save.id}/inventory`),
+      apiFetch(`/saves/${save.id}/equipment`),
+      apiFetch(`/saves/${save.id}/encounters/defeated`),
+    ]);
+    setChapterData(chapter);
+    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, qty: item.quantity })));
+    setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, slot: item.slot })));
+    setDefeatedEnemies(defeated);
   }, []);
 
   useEffect(() => {
@@ -59,15 +83,23 @@ export default function App() {
     return () => { alive = false; };
   }, []);
 
+  useEffect(() => {
+    let alive = true;
+    if (!activeSave?.id) return undefined;
+    refreshGameData(activeSave).catch((error) => { if (alive) setNotice(`Erro ao carregar os dados do jogo: ${error.message}`); });
+    return () => { alive = false; };
+  }, [activeSave?.id, activeSave?.chapterCurrent, refreshGameData]);
+
   const slots = useMemo(() => Array.from({ length: 8 }, (_, index) => {
     const save = saves.find((row) => row.slotNumber === index + 1);
     if (!save) return null;
-    return {
-      ...save,
-      chapterLabel: chapterLabel(save),
-      lastPlayed: relativeTime(save.lastPlayedAt),
-    };
+    return { ...save, chapterLabel: `Capítulo ${save.chapterCurrent}`, lastPlayed: relativeTime(save.lastPlayedAt) };
   }), [saves]);
+
+  const updateSaveInLists = (updated) => {
+    setActiveSave(updated);
+    setSaves((current) => current.map((row) => row.id === updated.id ? updated : row));
+  };
 
   const openSave = async (save) => {
     try {
@@ -75,9 +107,7 @@ export default function App() {
       setActiveSave(fullSave);
       setScreen("game");
       setNotice("");
-    } catch (error) {
-      setNotice(error.message);
-    }
+    } catch (error) { setNotice(error.message); }
   };
 
   const startMostRecent = async () => {
@@ -91,18 +121,12 @@ export default function App() {
       const occupied = new Set(saves.map((save) => save.slotNumber));
       const slotNumber = Array.from({ length: 8 }, (_, index) => index + 1).find((n) => !occupied.has(n));
       if (!slotNumber) throw new Error("Todos os 8 slots estão ocupados. Exclua um save antes de criar outro.");
-      const created = await apiFetch("/saves", {
-        method: "POST",
-        body: JSON.stringify({ slotNumber, characterId }),
-      });
+      const created = await apiFetch("/saves", { method: "POST", body: JSON.stringify({ slotNumber, characterId }) });
       setSaves((current) => [...current, created].sort((a, b) => a.slotNumber - b.slotNumber));
       setActiveSave(created);
       setScreen("game");
       setNotice("");
-    } catch (error) {
-      setNotice(error.message);
-      throw error;
-    }
+    } catch (error) { setNotice(error.message); throw error; }
   };
 
   const deleteSave = async (save) => {
@@ -110,61 +134,92 @@ export default function App() {
     try {
       await apiFetch(`/saves/${save.id}`, { method: "DELETE" });
       setSaves((current) => current.filter((row) => row.id !== save.id));
-      if (activeSave?.id === save.id) {
-        setActiveSave(null);
-        setScreen("menu");
-      }
+      if (activeSave?.id === save.id) { setActiveSave(null); setScreen("menu"); }
       setNotice("");
-    } catch (error) {
-      setNotice(error.message);
-    }
+    } catch (error) { setNotice(error.message); }
   };
 
   const saveCurrentGame = async () => {
     if (!activeSave) return;
     try {
-      const updated = await apiFetch(`/saves/${activeSave.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ characterName: activeSave.characterName }),
-      });
-      setActiveSave(updated);
+      const updated = await apiFetch(`/saves/${activeSave.id}`, { method: "PUT", body: JSON.stringify({ characterName: activeSave.characterName }) });
+      updateSaveInLists(updated);
       await refreshSaves();
-      setNotice("Save atualizado.");
-    } catch (error) {
-      setNotice(error.message);
-    }
+      setNotice("Progresso salvo.");
+    } catch (error) { setNotice(error.message); }
   };
 
   const addStatusPoint = async (stat) => {
     if (!activeSave) return;
     try {
-      const updated = await apiFetch(`/saves/${activeSave.id}/actions/spend-point`, {
-        method: "POST",
-        body: JSON.stringify({ stat }),
-      });
-      setActiveSave(updated);
+      const updated = await apiFetch(`/saves/${activeSave.id}/actions/spend-point`, { method: "POST", body: JSON.stringify({ stat }) });
+      updateSaveInLists(updated);
       await refreshSaves();
-    } catch (error) {
-      setNotice(error.message);
-    }
+    } catch (error) { setNotice(error.message); }
+  };
+
+  const fightEnemy = async (enemy) => {
+    if (!activeSave || battleBusy) return;
+    setBattleBusy(true);
+    try {
+      const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(enemy.id)}/resolve`, { method: "POST", body: JSON.stringify({}) });
+      setBattleResult(result);
+      updateSaveInLists(result.save);
+      setBattleOpen(true);
+      await refreshSaves();
+      await refreshGameData(result.save);
+      setNotice(result.message);
+    } catch (error) { setNotice(error.message); }
+    finally { setBattleBusy(false); }
+  };
+
+  const openShop = async () => {
+    if (!activeSave || !chapterData?.shopAvailable) return;
+    try {
+      const shopData = await apiFetch(`/game/shops/${activeSave.chapterCurrent}`);
+      setShop(shopData);
+      setShopOpen(true);
+    } catch (error) { setNotice(error.message); }
+  };
+
+  const buyItem = async (item) => {
+    if (!activeSave || shopBusy) return;
+    setShopBusy(true);
+    try {
+      const result = await apiFetch(`/saves/${activeSave.id}/shop/purchase`, { method: "POST", body: JSON.stringify({ itemCode: item.code, quantity: 1 }) });
+      updateSaveInLists(result.save);
+      await refreshSaves();
+      await refreshGameData(result.save);
+      setNotice(result.message);
+    } catch (error) { setNotice(error.message); }
+    finally { setShopBusy(false); }
+  };
+
+  const useItem = async (item) => {
+    if (!activeSave) return;
+    try {
+      const result = await apiFetch(`/saves/${activeSave.id}/inventory/${item.id}/use`, { method: "POST", body: JSON.stringify({}) });
+      updateSaveInLists(result.save);
+      await refreshGameData(result.save);
+      setNotice(result.message);
+    } catch (error) { setNotice(error.message); }
   };
 
   if (screen === "menu") {
-    return (
-      <Menu
-        title="A Vila Esquecida"
-        subtitle="Uma jornada por terras abandonadas"
-        slots={slots}
-        notice={booting ? "Conectando ao jogo..." : notice}
-        onPlay={startMostRecent}
-        onSelectCharacter={createCharacterSave}
-        onSelectSlot={openSave}
-        onDeleteSlot={deleteSave}
-      />
-    );
+    return <Menu title="A Vila Esquecida" subtitle="Uma jornada por terras abandonadas" slots={slots} notice={booting ? "Conectando ao jogo..." : notice} onPlay={startMostRecent} onSelectCharacter={createCharacterSave} onSelectSlot={openSave} onDeleteSlot={deleteSave} />;
   }
 
   const stats = Object.fromEntries(STAT_KEYS.map((key) => [key, activeSave?.[key] ?? 0]));
+  const storyText = activeSave?.completed
+    ? <><p>A Fenda foi encerrada e a aurora voltou a Valedouro. O futuro do reino agora depende das escolhas que você fez durante a jornada.</p><p><strong>Campanha concluída.</strong> Você ainda pode revisar seu personagem e os itens encontrados.</p></>
+    : <><p>{chapterData?.story ?? "Carregando narrativa..."}</p><p><strong>Objetivo:</strong> {chapterData?.objective ?? ""}</p><p>{chapterData?.encounterText ?? ""}</p></>;
+  const actions = activeSave?.completed ? [] : [
+    ...(chapterData?.enemies ?? []).map((enemy) => {
+      const bossBlocked = enemy.kind === "boss" && chapterData.enemies.some((other) => other.kind !== "boss" && !defeatedEnemies.includes(other.id));
+      return { id: enemy.id, label: defeatedEnemies.includes(enemy.id) ? `Derrotado: ${enemy.name}` : bossBlocked ? `Bloqueado: ${enemy.name} (derrote os outros)` : `Enfrentar: ${enemy.name} (+${enemy.gold} moedas)`, disabled: defeatedEnemies.includes(enemy.id) || bossBlocked || battleBusy, onClick: () => fightEnemy(enemy) };
+    }),
+    ...(chapterData?.shopAvailable ? [{ id: "shop", label: `Visitar loja: ${chapterData.title}`, onClick: openShop }] : []),
+  ];
 
   return (
     <div className="app-shell">
@@ -172,47 +227,37 @@ export default function App() {
       <div className="app-stage">
         <CharacterPanel
           xp={{ current: activeSave?.xpCurrent ?? 0, max: activeSave?.xpMax ?? 100 }}
-          hp={{ current: activeSave?.hpCurrent ?? 5, max: activeSave?.hpMax ?? 5 }}
-          energy={{ current: activeSave?.energyCurrent ?? 5, max: activeSave?.energyMax ?? 5 }}
+          hp={{ current: activeSave?.hpCurrent ?? 0, max: activeSave?.hpMax ?? 100 }}
+          energy={{ current: activeSave?.energyCurrent ?? 0, max: activeSave?.energyMax ?? 50 }}
           money={activeSave?.money ?? 0}
-          inventory={[]}
-          equipment={[]}
+          inventory={inventory}
+          equipment={equipment}
           statusOpen={statusOpen}
           onToggleStatus={() => setStatusOpen((value) => !value)}
+          onUseItem={useItem}
         />
-
         <StoryPanel
-          chapterLabel={activeSave ? chapterLabel(activeSave) : "Capítulo 1 — A Vila Esquecida"}
-          progress={{ current: activeSave?.chapterCurrent ?? 1, max: activeSave?.chapterMax ?? 1 }}
-          storyText={<p>Você chega à entrada da vila abandonada. O vento carrega um cheiro de fumaça antiga, e ao longe, algo se move entre as ruínas.</p>}
-          actions={[
-            { id: "explore", label: "Explorar a vila", onClick: () => setNotice("As ações narrativas ainda precisam ser implementadas no servidor.") },
-            { id: "fight", label: "Investigar o movimento", onClick: () => setBattleOpen(true) },
-          ]}
+          chapterLabel={activeSave ? chapterLabel(activeSave, chapterData) : "Capítulo 1 — A Vila Esquecida"}
+          progress={{ current: activeSave?.chapterCurrent ?? 1, max: activeSave?.chapterMax ?? 20 }}
+          storyText={storyText}
+          actions={actions}
         />
       </div>
 
-      <StatusModal
-        open={statusOpen}
-        onClose={() => setStatusOpen(false)}
-        stats={stats}
-        availablePoints={activeSave?.availablePoints ?? 0}
-        onAddPoint={addStatusPoint}
-      />
-
+      <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
       <BattleModal
         open={battleOpen}
         onClose={() => setBattleOpen(false)}
-        enemyName="Lobo das Sombras"
-        playerHp={{ current: activeSave?.hpCurrent ?? 5, max: activeSave?.hpMax ?? 5 }}
-        enemyHp={{ current: 45, max: 100 }}
-        drops={[]}
+        enemyName={battleResult?.enemy?.name ?? "Inimigo"}
+        playerHp={{ current: activeSave?.hpCurrent ?? 0, max: activeSave?.hpMax ?? 100 }}
+        enemyHp={{ current: battleResult?.enemy?.hpCurrent ?? battleResult?.enemy?.hp ?? 100, max: battleResult?.enemy?.hp ?? 100 }}
+        drops={(battleResult?.drops ?? []).filter((drop) => drop.granted).map((drop) => ({ id: drop.code, name: drop.name }))}
+        resultText={battleResult?.message ?? ""}
+        rewards={battleResult?.rewards ?? null}
+        victory={battleResult?.victory ?? null}
       />
-
-      <GameMenu
-        onSave={saveCurrentGame}
-        onExitToMenu={() => { setScreen("menu"); setNotice(""); }}
-      />
+      <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} busy={shopBusy} />
+      <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
   );
 }

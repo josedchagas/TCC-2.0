@@ -35,7 +35,8 @@ export const saves = pgTable(
   classRole: varchar("class_role", { length: 32 }).notNull(), // ex: "Arqueira"
 
   chapterCurrent: integer("chapter_current").default(1).notNull(),
-  chapterMax: integer("chapter_max").default(1).notNull(),
+  chapterMax: integer("chapter_max").default(20).notNull(),
+  completed: boolean("completed").default(false).notNull(),
 
   xpCurrent: integer("xp_current").default(0).notNull(),
   xpMax: integer("xp_max").default(100).notNull(),
@@ -91,6 +92,17 @@ export const inventoryItems = pgTable(
 );
 
 // Itens equipados de um save (elmo, arma, peito, calça, escudo, botas, anéis).
+export const defeatedEncounters = pgTable(
+  "defeated_encounters",
+  {
+    id: serial("id").primaryKey(),
+    saveId: integer("save_id").notNull().references(() => saves.id, { onDelete: "cascade" }),
+    enemyCode: varchar("enemy_code", { length: 64 }).notNull(),
+    defeatedAt: timestamp("defeated_at").defaultNow().notNull(),
+  },
+  (table) => ({ uniqueSaveEnemy: unique("defeated_encounters_save_enemy_unique").on(table.saveId, table.enemyCode) })
+);
+
 export const equippedItems = pgTable("equipped_items", {
   id: serial("id").primaryKey(),
   saveId: integer("save_id")

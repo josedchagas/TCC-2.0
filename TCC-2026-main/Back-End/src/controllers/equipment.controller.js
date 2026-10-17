@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { equippedItems, items } from "../db/schema.js";
+import { equippedItems, inventoryItems, items } from "../db/schema.js";
 import { parseId } from "../utils/params.js";
 
 // Quantos itens cabem em cada slot (anel tem 2, o resto só 1).
@@ -24,6 +24,45 @@ function limitFor(slot) {
 function typeProblem(slot, itemType) {
   if (ALLOWED_TYPES[slot].includes(itemType)) return null;
   return `O slot "${slot}" só aceita itens do tipo: ${ALLOWED_TYPES[slot].join(", ")}.`;
+}
+
+
+async function inventoryRows(saveId) {
+  return db.select().from(inventoryItems).where(eq(inventoryItems.saveId, saveId));
+}
+
+async function hasItem(saveId, itemId) {
+  const rows = await inventoryRows(saveId);
+  return rows.some((row) => row.itemId === itemId && row.quantity > 0);
+}
+
+async function removeOneFromInventory(saveId, itemId) {
+  const rows = await inventoryRows(saveId);
+  const row = rows.find((entry) => entry.itemId === itemId);
+  if (!row) return false;
+  if (row.quantity <= 1) await db.delete(inventoryItems).where(eq(inventoryItems.id, row.id));
+  else await db.update(inventoryItems).set({ quantity: row.quantity - 1 }).where(eq(inventoryItems.id, row.id));
+  return true;
+}
+
+async function canStoreItem(saveId, itemId, removingItemId = null) {
+  const rows = await inventoryRows(saveId);
+  const oldStack = rows.find((row) => row.itemId === itemId);
+  if (oldStack) return oldStack.quantity < 99;
+  const slotsAfterRemoval = rows.length - (removingItemId && rows.some((row) => row.itemId === removingItemId && row.quantity === 1) ? 1 : 0);
+  return slotsAfterRemoval < 8;
+}
+
+async function addOneToInventory(saveId, itemId) {
+  const rows = await inventoryRows(saveId);
+  const existing = rows.find((row) => row.itemId === itemId);
+  if (existing) {
+    if (existing.quantity >= 99) throw new Error("Pilha de inventário cheia.");
+    await db.update(inventoryItems).set({ quantity: existing.quantity + 1 }).where(eq(inventoryItems.id, existing.id));
+    return;
+  }
+  if (rows.length >= 8) throw new Error("Inventário cheio.");
+  await db.insert(inventoryItems).values({ saveId, itemId, quantity: 1 });
 }
 
 // GET /saves/:saveId/equipment
@@ -60,6 +99,10 @@ export async function equipItem(req, res) {
     return res.status(400).json({ error: problem });
   }
 
+  if (!await hasItem(req.save.id, itemId)) {
+    return res.status(409).json({ error: "Você precisa possuir o item no inventário para equipá-lo." });
+  }
+
   const inSlot = await db
     .select({ id: equippedItems.id })
     .from(equippedItems)
@@ -76,6 +119,7 @@ export async function equipItem(req, res) {
     .values({ saveId: req.save.id, itemId, slot })
     .returning();
 
+  await removeOneFromInventory(req.save.id, itemId);
   res.status(201).json(created);
 }
 
@@ -105,12 +149,17 @@ export async function swapEquippedItem(req, res) {
   if (problem) {
     return res.status(400).json({ error: problem });
   }
+  if (item.id === equipped.itemId) return res.status(400).json({ error: "Este item já está equipado." });
+  if (!await hasItem(req.save.id, item.id)) return res.status(409).json({ error: "Você precisa possuir o novo item no inventário." });
+  if (!await canStoreItem(req.save.id, equipped.itemId, item.id)) return res.status(409).json({ error: "O inventário está cheio; libere um espaço antes de trocar o equipamento." });
 
   const [updated] = await db
     .update(equippedItems)
     .set({ itemId: item.id })
     .where(eq(equippedItems.id, equipped.id))
     .returning();
+  await removeOneFromInventory(req.save.id, item.id);
+  await addOneToInventory(req.save.id, equipped.itemId);
 
   res.json(updated);
 }
@@ -122,6 +171,11 @@ export async function unequipItem(req, res) {
     return res.status(400).json({ error: "ID inválido." });
   }
 
+  const [existing] = await db.select().from(equippedItems)
+    .where(and(eq(equippedItems.id, id), eq(equippedItems.saveId, req.save.id)));
+  if (!existing) return res.status(404).json({ error: "Equipamento não encontrado." });
+  if (!await canStoreItem(req.save.id, existing.itemId)) return res.status(409).json({ error: "Inventário cheio; libere um espaço antes de desequipar." });
+
   const [removed] = await db
     .delete(equippedItems)
     .where(and(eq(equippedItems.id, id), eq(equippedItems.saveId, req.save.id)))
@@ -131,5 +185,6 @@ export async function unequipItem(req, res) {
     return res.status(404).json({ error: "Equipamento não encontrado." });
   }
 
+  await addOneToInventory(req.save.id, removed.itemId);
   res.status(204).send();
 }

@@ -1,0 +1,11 @@
+import { Router } from "express";
+import { buyItem, resolveEncounter, useItem, listDefeatedEncounters } from "../controllers/game.controller.js";
+import { buyItemSchema } from "../controllers/game.schemas.js";
+import { validate } from "../middlewares/validate.js";
+import { asyncHandler } from "../middlewares/errorHandler.js";
+const router = Router({ mergeParams: true });
+router.get("/encounters/defeated", asyncHandler(listDefeatedEncounters));
+router.post("/shop/purchase", validate(buyItemSchema), asyncHandler(buyItem));
+router.post("/battle/:enemyId/resolve", asyncHandler(resolveEncounter));
+router.post("/inventory/:inventoryId/use", asyncHandler(useItem));
+export default router;

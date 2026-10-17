@@ -1,4 +1,4 @@
-import "./BattleModal.css";
+import "./Battlemodal.css";
 
 /**
  * Tela de batalha, sobreposta ao centro da tela.
@@ -19,6 +19,9 @@ export default function BattleModal({
   enemyHp = { current: 0, max: 100 },
   drops = [],
   sceneUrl,
+  resultText = "",
+  rewards = null,
+  victory = null,
 }) {
   if (!open) return null;
 
@@ -44,6 +47,12 @@ export default function BattleModal({
           <HealthBar label="Jogador" hp={playerHp} />
           <HealthBar label={enemyName} hp={enemyHp} align="right" />
         </div>
+
+        {resultText && <div className="battle-modal__drops-section">
+          <h3 className="battle-modal__drops-title">{victory ? "Vitória" : "Resultado"}</h3>
+          <p>{resultText}</p>
+          {rewards && <p>Recompensas: +{rewards.xp} XP · +{rewards.gold} moedas{rewards.levelsGained ? ` · ${rewards.levelsGained} nível(is)` : ""}</p>}
+        </div>}
 
         <div className="battle-modal__drops-section">
           <h3 className="battle-modal__drops-title">Drops</h3>
