@@ -241,14 +241,23 @@ export default function App() {
     setBattleBusy(true);
     try {
       const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(enemy.id)}/resolve`, { method: "POST", body: JSON.stringify({}) });
-      setBattleResult(result);
       updateSaveInLists(result.save);
-      setBattleOpen(true);
+      const stamp = Date.now();
+      const lines = [{ id: `battle-${enemy.id}-${stamp}`, type: "outcome", text: result.message }];
+      if (result.victory && result.rewards) {
+        lines.push({ id: `battle-reward-${enemy.id}-${stamp}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
+      }
+      const drops = (result.drops ?? []).filter((drop) => drop.granted).map((drop) => drop.name);
+      if (drops.length) lines.push({ id: `battle-drops-${enemy.id}-${stamp}`, type: "outcome", text: `Você encontrou: ${drops.join(", ")}.` });
+      setStoryEntries((entries) => [...entries, ...lines]);
       await refreshSaves();
       await refreshGameData(result.save);
-      setNotice(result.message);
-    } catch (error) { setNotice(error.message); }
-    finally { setBattleBusy(false); }
+      setNotice("");
+    } catch (error) {
+      setStoryEntries((entries) => [...entries, { id: "battle-error-" + Date.now(), type: "outcome", text: error.message }]);
+    } finally {
+      setBattleBusy(false);
+    }
   };
 
   const openShop = async () => {
@@ -256,6 +265,8 @@ export default function App() {
     try {
       const shopData = await apiFetch(`/game/shops/${activeSave.chapterCurrent}`);
       setShop(shopData);
+      setVisitedShopChapters((chapters) => chapters.includes(activeSave.chapterCurrent) ? chapters : [...chapters, activeSave.chapterCurrent]);
+      setStoryEntries((entries) => [...entries, { id: "shop-" + activeSave.chapterCurrent + "-" + Date.now(), type: "outcome", text: "Você decide examinar os suprimentos antes de seguir viagem." }]);
       setShopOpen(true);
     } catch (error) { setNotice(error.message); }
   };
@@ -317,9 +328,15 @@ export default function App() {
         body: JSON.stringify({ action }),
       });
       if (result.save) updateSaveInLists(result.save);
+      const stamp = Date.now();
+      setStoryEntries((entries) => [...entries, { id: `quest-result-${quest.id}-${stamp}`, type: "outcome", text: result.message }]);
+      if (result.reward) {
+        const details = `Recompensas: +${result.reward.xp} XP e +${result.reward.gold} moedas${result.reward.itemGranted ? `; item recebido: ${result.reward.item}` : ""}.`;
+        setStoryEntries((entries) => [...entries, { id: `quest-reward-${quest.id}-${stamp}`, type: "outcome", text: details }]);
+      }
       await refreshGameData(result.save ?? activeSave);
       if (result.save) await refreshSaves();
-      setNotice(result.message);
+      setNotice("");
     } catch (error) {
       setNotice(error.message);
     } finally {
@@ -400,17 +417,6 @@ export default function App() {
       </div>
 
       <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
-      <BattleModal
-        open={battleOpen}
-        onClose={() => setBattleOpen(false)}
-        enemyName={battleResult?.enemy?.name ?? "Inimigo"}
-        playerHp={{ current: activeSave?.hpCurrent ?? 0, max: activeSave?.hpMax ?? 100 }}
-        enemyHp={{ current: battleResult?.enemy?.hpCurrent ?? battleResult?.enemy?.hp ?? 100, max: battleResult?.enemy?.hp ?? 100 }}
-        drops={(battleResult?.drops ?? []).filter((drop) => drop.granted).map((drop) => ({ id: drop.code, name: drop.name }))}
-        resultText={battleResult?.message ?? ""}
-        rewards={battleResult?.rewards ?? null}
-        victory={battleResult?.victory ?? null}
-      />
       <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} busy={shopBusy} />
       <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
