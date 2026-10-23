@@ -273,8 +273,11 @@ export default function App() {
     : <><p>{chapterData?.story ?? "Carregando narrativa..."}</p><p><strong>Objetivo:</strong> {chapterData?.objective ?? ""}</p><p>{chapterData?.encounterText ?? ""}</p></>;
   const actions = activeSave?.completed ? [] : [
     ...(chapterData?.enemies ?? []).map((enemy) => {
-      const bossBlocked = enemy.kind === "boss" && chapterData.enemies.some((other) => other.kind !== "boss" && !defeatedEnemies.includes(other.id));
-      return { id: enemy.id, label: defeatedEnemies.includes(enemy.id) ? `Derrotado: ${enemy.name}` : bossBlocked ? `Bloqueado: ${enemy.name} (derrote os outros)` : `Enfrentar: ${enemy.name} (+${enemy.gold} moedas)`, disabled: defeatedEnemies.includes(enemy.id) || bossBlocked || battleBusy, onClick: () => fightEnemy(enemy) };
+      const enemiesBlocked = enemy.kind === "boss" && chapterData.enemies.some((other) => other.kind !== "boss" && !defeatedEnemies.includes(other.id));
+      const questsBlocked = enemy.kind === "boss" && sideQuests.some((quest) => quest.status === "available");
+      const bossBlocked = enemiesBlocked || questsBlocked;
+      const blockedReason = questsBlocked ? "resolva ou recuse as missões" : "derrote os outros";
+      return { id: enemy.id, label: defeatedEnemies.includes(enemy.id) ? `Derrotado: ${enemy.name}` : bossBlocked ? `Bloqueado: ${enemy.name} (${blockedReason})` : `Enfrentar: ${enemy.name} (+${enemy.gold} moedas)`, disabled: defeatedEnemies.includes(enemy.id) || bossBlocked || battleBusy, onClick: () => fightEnemy(enemy) };
     }),
     ...sideQuests.map((quest) => {
       if (quest.status !== "available") {
