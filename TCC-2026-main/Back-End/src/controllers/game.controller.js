@@ -2,6 +2,7 @@ import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { defeatedEncounters, equippedItems, inventoryItems, items, saves } from "../db/schema.js";
 import { CHAPTERS, ITEMS, SHOPS, getEnemyById, getItemByCode } from "../game/content.js";
+import { SIDE_QUESTS, getChapterSideQuests, getSideQuest } from "../game/SideQuests.js";
 
 const MAX_INVENTORY_SLOTS = 8;
 const MAX_STACK = 99;
@@ -98,6 +99,10 @@ export async function resolveEncounter(req, res) {
     const defeatedSet = new Set(defeatedRows.map((row) => row.enemyCode));
     if (requiredEnemies.some((code) => !defeatedSet.has(code))) {
       return res.status(409).json({ error: "Derrote os outros inimigos deste capítulo antes de enfrentar o chefe." });
+    }
+    const questCodes = getChapterSideQuests(enemy.chapter).map((quest) => `sidequest:${quest.id}:`);
+    if (questCodes.some((prefix) => ![...defeatedSet].some((code) => code.startsWith(prefix)))) {
+      return res.status(409).json({ error: "Decida o destino das duas missões opcionais deste capítulo antes do chefe (você pode recusá-las)." });
     }
   }
   if (save.hpCurrent <= 0) return res.status(409).json({ error: "Você está sem vida. Use um item de cura antes de lutar." });
@@ -205,4 +210,97 @@ export async function useItem(req, res) {
   else await db.update(inventoryItems).set({ quantity: row.quantity - 1 }).where(eq(inventoryItems.id, row.inventoryId));
   const [updatedSave] = await db.select().from(saves).where(eq(saves.id, req.save.id));
   res.json({ message: `${definition.name} utilizado.`, save: updatedSave });
+}
+
+
+function sideQuestStatusCode(questId, status) {
+  return `sidequest:${questId}:${status}`;
+}
+
+export async function listSideQuests(req, res) {
+  const chapter = Number(req.params.chapterNumber ?? req.save.chapterCurrent);
+  if (!Number.isInteger(chapter) || chapter < 1 || chapter > CHAPTERS.length) {
+    return res.status(400).json({ error: "Capítulo inválido." });
+  }
+  const rows = await db.select({ enemyCode: defeatedEncounters.enemyCode })
+    .from(defeatedEncounters).where(eq(defeatedEncounters.saveId, req.save.id));
+  const statuses = new Map();
+  for (const row of rows) {
+    const match = /^sidequest:(c\\d{2}_q[12]):(success|failed|declined)$/.exec(row.enemyCode);
+    if (match) statuses.set(match[1], match[2]);
+  }
+  res.json(getChapterSideQuests(chapter).map(({ id, chapter: chapterNumber, chapterTitle, title, description, attribute, difficulty, successText, failureText, xp, gold, rewardItem }) => ({
+    id, chapter: chapterNumber, chapterTitle, title, description, attribute, difficulty,
+    successText, failureText, xp, gold, rewardItem, status: statuses.get(id) ?? "available",
+  })));
+}
+
+export async function resolveSideQuest(req, res) {
+  const save = req.save;
+  const quest = getSideQuest(req.params.questId);
+  if (!quest) return res.status(404).json({ error: "Missão opcional não encontrada." });
+  if (quest.chapter !== save.chapterCurrent) return res.status(409).json({ error: "Essa missão não pertence ao capítulo atual." });
+  const action = req.body?.action;
+  if (!["accept", "decline"].includes(action)) return res.status(400).json({ error: "Ação inválida. Use accept ou decline." });
+
+  const existingRows = await db.select({ enemyCode: defeatedEncounters.enemyCode })
+    .from(defeatedEncounters).where(eq(defeatedEncounters.saveId, save.id));
+  const prefix = `sidequest:${quest.id}:`;
+  if (existingRows.some((row) => row.enemyCode.startsWith(prefix))) {
+    return res.status(409).json({ error: "Esta missão já foi resolvida ou recusada." });
+  }
+
+  if (action === "decline") {
+    await db.insert(defeatedEncounters).values({ saveId: save.id, enemyCode: sideQuestStatusCode(quest.id, "declined") }).onConflictDoNothing();
+    return res.json({ questId: quest.id, status: "declined", message: "Missão recusada. Você pode continuar a campanha sem penalidade." });
+  }
+
+  const attributeValue = Number(save[quest.attribute] ?? 0);
+  const chance = Math.max(10, Math.min(95, 30 + 6 * attributeValue - quest.difficulty));
+  const success = Math.random() * 100 < chance;
+  const status = success ? "success" : "failed";
+  const [registered] = await db.insert(defeatedEncounters)
+    .values({ saveId: save.id, enemyCode: sideQuestStatusCode(quest.id, status) })
+    .onConflictDoNothing().returning();
+  if (!registered) return res.status(409).json({ error: "Esta missão já foi resolvida." });
+
+  let updatedSave = save;
+  let reward = null;
+  if (success) {
+    let xpCurrent = save.xpCurrent + quest.xp;
+    let xpMax = save.xpMax;
+    let availablePoints = save.availablePoints;
+    let levelsGained = 0;
+    while (xpCurrent >= xpMax && levelsGained < 10) {
+      xpCurrent -= xpMax;
+      xpMax += 50;
+      availablePoints += 3;
+      levelsGained += 1;
+    }
+    await db.update(saves).set({
+      xpCurrent, xpMax, availablePoints,
+      hpMax: save.hpMax + levelsGained * 12,
+      hpCurrent: Math.min(save.hpMax + levelsGained * 12, save.hpCurrent + levelsGained * 12),
+      energyMax: save.energyMax + levelsGained * 5,
+      energyCurrent: Math.min(save.energyMax + levelsGained * 5, save.energyCurrent + levelsGained * 5),
+      money: sql`${saves.money} + ${quest.gold}`,
+      updatedAt: new Date(), lastPlayedAt: new Date(),
+    }).where(eq(saves.id, save.id));
+    const itemDef = getItemByCode(quest.rewardItem);
+    if (itemDef) {
+      try {
+        const granted = await grantItem(save.id, itemDef, 1);
+        reward = { xp: quest.xp, gold: quest.gold, item: itemDef.name, itemGranted: granted.granted, itemReason: granted.reason ?? null, levelsGained };
+      } catch {
+        reward = { xp: quest.xp, gold: quest.gold, item: itemDef.name, itemGranted: false, itemReason: "grant_failed", levelsGained };
+      }
+    }
+    const [freshSave] = await db.select().from(saves).where(eq(saves.id, save.id));
+    updatedSave = freshSave;
+  }
+  res.json({
+    questId: quest.id, status, chance,
+    message: success ? quest.successText : quest.failureText,
+    reward, save: updatedSave,
+  });
 }
