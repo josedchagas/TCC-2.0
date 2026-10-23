@@ -1,7 +1,7 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { defeatedEncounters, equippedItems, inventoryItems, items, saves } from "../db/schema.js";
-import { CHAPTERS, ITEMS, SHOPS, getEnemyById, getItemByCode } from "../game/content.js";
+import { CHAPTERS, ITEMS, SHOPS, getEnemyById, getItemByCode } from "../game/Content.js";
 import { SIDE_QUESTS, getChapterSideQuests, getSideQuest } from "../game/SideQuests.js";
 
 const MAX_INVENTORY_SLOTS = 8;
