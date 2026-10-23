@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Menu from "./Menu";
 import CharacterPanel from "./Characterpanel";
 import StatusModal from "./Statusmodal";
-import BattleModal from "./Battlemodal";
 import StoryPanel from "./Storypanel";
 import GameMenu from "./GameMenu";
 import ShopModal from "./ShopModal";
@@ -30,7 +29,6 @@ function relativeTime(value) {
 export default function App() {
   const [screen, setScreen] = useState("menu");
   const [statusOpen, setStatusOpen] = useState(false);
-  const [battleOpen, setBattleOpen] = useState(false);
   const [booting, setBooting] = useState(true);
   const [notice, setNotice] = useState("Conectando ao jogo...");
   const [saves, setSaves] = useState([]);
@@ -40,12 +38,63 @@ export default function App() {
   const [equipment, setEquipment] = useState([]);
   const [defeatedEnemies, setDefeatedEnemies] = useState([]);
   const [sideQuests, setSideQuests] = useState([]);
+  const [storyEntries, setStoryEntries] = useState([]);
+  const [storyStarted, setStoryStarted] = useState(false);
+  const [visitedShopChapters, setVisitedShopChapters] = useState([]);
   const [questBusy, setQuestBusy] = useState(false);
-  const [battleResult, setBattleResult] = useState(null);
   const [battleBusy, setBattleBusy] = useState(false);
   const [shop, setShop] = useState(null);
   const [shopOpen, setShopOpen] = useState(false);
   const [shopBusy, setShopBusy] = useState(false);
+
+
+  const currentEvent = useMemo(() => {
+    if (!activeSave || activeSave.completed || !chapterData || chapterData.number !== activeSave.chapterCurrent || !storyStarted) return null;
+    if (chapterData.shopAvailable && !visitedShopChapters.includes(chapterData.number)) {
+      return {
+        key: "c" + String(chapterData.number).padStart(2, "0") + ":shop",
+        type: "shop",
+        intro: "A trilha desemboca em um pequeno ponto de comércio. Suprimentos podem fazer a diferença entre sobreviver e cair no próximo confronto.",
+        dialogue: "— Tenho provisões para quem ainda pretende seguir viagem — diz a comerciante. — Quer olhar meus produtos ou prefere continuar?",
+      };
+    }
+    const quests = [...sideQuests].sort((a, b) => a.id.localeCompare(b.id));
+    const enemies = chapterData.enemies ?? [];
+    const ordinaryEnemies = enemies.filter((enemy) => enemy.kind !== "boss");
+    const boss = enemies.find((enemy) => enemy.kind === "boss");
+    const sequence = [
+      quests[0] && {
+        key: quests[0].id, type: "quest", quest: quests[0],
+        intro: "Mais adiante, você encontra alguém que precisa de ajuda. " + quests[0].description,
+        dialogue: "— Não sei se conseguirei resolver isso sozinho — diz a pessoa. — Você vai me ajudar ou seguirá seu caminho?",
+      },
+      ordinaryEnemies[0] && {
+        key: ordinaryEnemies[0].id, type: "enemy", enemy: ordinaryEnemies[0],
+        intro: (ordinaryEnemies[0].description || chapterData.encounterText || "Um ruído interrompe sua caminhada.") + " " + ordinaryEnemies[0].name + " aparece à sua frente e bloqueia o caminho.",
+        dialogue: "A criatura se prepara para atacar. Você precisa decidir se enfrenta o perigo ou recua.",
+      },
+      quests[1] && {
+        key: quests[1].id, type: "quest", quest: quests[1],
+        intro: "O caminho revela outro problema que não pode ser ignorado. " + quests[1].description,
+        dialogue: "— Cada minuto importa — explica quem pediu ajuda. — Posso contar com você ou devo procurar outra pessoa?",
+      },
+      ordinaryEnemies[1] && {
+        key: ordinaryEnemies[1].id, type: "enemy", enemy: ordinaryEnemies[1],
+        intro: (ordinaryEnemies[1].description || chapterData.encounterText || "Uma presença hostil se aproxima.") + " " + ordinaryEnemies[1].name + " surge e fecha a passagem.",
+        dialogue: "O confronto parece inevitável para quem deseja continuar pela trilha. O que você faz?",
+      },
+      boss && {
+        key: boss.id, type: "enemy", enemy: boss,
+        intro: "Ao fim do caminho, a verdadeira ameaça deste capítulo se revela: " + boss.name + ". " + (boss.description || chapterData.encounterText || ""),
+        dialogue: "— Você chegou longe demais para voltar agora — declara o inimigo, preparando-se para o confronto decisivo.",
+      },
+    ].filter(Boolean);
+    return sequence.find((event) => {
+      if (event.type === "quest") return event.quest.status === "available";
+      if (event.type === "enemy") return !defeatedEnemies.includes(event.enemy.id);
+      return false;
+    }) ?? null;
+  }, [activeSave, chapterData, storyStarted, visitedShopChapters, sideQuests, defeatedEnemies]);
 
   const refreshSaves = useCallback(async () => {
     const rows = await apiFetch("/saves");
@@ -86,6 +135,31 @@ export default function App() {
     })();
     return () => { alive = false; };
   }, []);
+
+  useEffect(() => {
+    setStoryEntries([]);
+    setStoryStarted(false);
+  }, [activeSave?.id, activeSave?.chapterCurrent]);
+
+  useEffect(() => {
+    if (!activeSave?.id || !chapterData || chapterData.number !== activeSave.chapterCurrent || storyEntries.length > 0) return;
+    setStoryEntries([
+      { id: "chapter-" + chapterData.number + "-story", type: "narration", text: chapterData.story },
+      { id: "chapter-" + chapterData.number + "-objective", type: "objective", text: "Objetivo: " + chapterData.objective },
+    ]);
+  }, [activeSave?.id, activeSave?.chapterCurrent, chapterData, storyEntries.length]);
+
+  useEffect(() => {
+    if (!storyStarted || !currentEvent) return;
+    setStoryEntries((entries) => {
+      if (entries.some((entry) => entry.id === "event-" + currentEvent.key)) return entries;
+      return [
+        ...entries,
+        { id: "event-" + currentEvent.key, type: "narration", text: currentEvent.intro },
+        ...(currentEvent.dialogue ? [{ id: "dialogue-" + currentEvent.key, type: "dialogue", text: currentEvent.dialogue }] : []),
+      ];
+    });
+  }, [storyStarted, currentEvent]);
 
   useEffect(() => {
     let alive = true;
@@ -269,33 +343,36 @@ export default function App() {
 
   const stats = Object.fromEntries(STAT_KEYS.map((key) => [key, activeSave?.[key] ?? 0]));
   const storyText = activeSave?.completed
-    ? <><p>A Fenda foi encerrada e a aurora voltou a Valedouro. O futuro do reino agora depende das escolhas que você fez durante a jornada.</p><p><strong>Campanha concluída.</strong> Você ainda pode revisar seu personagem e os itens encontrados.</p></>
-    : <><p>{chapterData?.story ?? "Carregando narrativa..."}</p><p><strong>Objetivo:</strong> {chapterData?.objective ?? ""}</p><p>{chapterData?.encounterText ?? ""}</p></>;
-  const actions = activeSave?.completed ? [] : [
-    ...(chapterData?.enemies ?? []).map((enemy) => {
-      const enemiesBlocked = enemy.kind === "boss" && chapterData.enemies.some((other) => other.kind !== "boss" && !defeatedEnemies.includes(other.id));
-      const questsBlocked = enemy.kind === "boss" && sideQuests.some((quest) => quest.status === "available");
-      const bossBlocked = enemiesBlocked || questsBlocked;
-      const blockedReason = questsBlocked ? "resolva ou recuse as missões" : "derrote os outros";
-      return { id: enemy.id, label: defeatedEnemies.includes(enemy.id) ? `Derrotado: ${enemy.name}` : bossBlocked ? `Bloqueado: ${enemy.name} (${blockedReason})` : `Enfrentar: ${enemy.name} (+${enemy.gold} moedas)`, disabled: defeatedEnemies.includes(enemy.id) || bossBlocked || battleBusy, onClick: () => fightEnemy(enemy) };
-    }),
-    ...sideQuests.map((quest) => {
-      if (quest.status !== "available") {
-        const statusLabel = quest.status === "success" ? "Concluída" : quest.status === "failed" ? "Tentativa encerrada" : "Recusada";
-        return { id: quest.id, label: `Missão: ${quest.title} — ${statusLabel}`, disabled: true, onClick: () => {} };
-      }
-      return {
-        id: quest.id,
-        label: `Missão opcional: ${quest.title} (atributo: ${quest.attribute}, chance base variável)`,
-        disabled: questBusy || battleBusy,
-        onClick: () => {
-          const accepted = window.confirm(`${quest.title}\\n\\n${quest.description}\\n\\nOK: tentar missão. Cancelar: recusar sem penalidade.`);
-          resolveQuest(quest, accepted ? "accept" : "decline");
-        },
-      };
-    }),
-    ...(chapterData?.shopAvailable ? [{ id: "shop", label: `Visitar loja: ${chapterData.title}`, onClick: openShop }] : []),
-  ];
+    ? [
+        { id: "ending", type: "narration", text: "A Fenda foi encerrada e a aurora voltou a Valedouro. O futuro do reino agora depende das escolhas que você fez durante a jornada." },
+        { id: "ending-note", type: "outcome", text: "Campanha concluída. Você ainda pode revisar seu personagem e os itens encontrados." },
+      ]
+    : storyEntries;
+
+  const actions = activeSave?.completed ? [] : !storyStarted
+    ? [{ id: "continue-intro", label: "Continuar a história", onClick: () => {
+        setStoryStarted(true);
+        setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: chapterData?.encounterText || "Você segue pela trilha, atento ao que pode surgir adiante." }]);
+      } }]
+    : currentEvent?.type === "quest"
+      ? [
+          { id: currentEvent.key + "-accept", label: "Aceitar missão", disabled: questBusy, onClick: () => resolveQuest(currentEvent.quest, "accept") },
+          { id: currentEvent.key + "-decline", label: "Recusar e seguir caminho", disabled: questBusy, onClick: () => resolveQuest(currentEvent.quest, "decline") },
+        ]
+      : currentEvent?.type === "enemy"
+        ? [
+            { id: currentEvent.key + "-fight", label: "Enfrentar " + currentEvent.enemy.name, disabled: battleBusy || (activeSave?.hpCurrent ?? 0) <= 0, onClick: () => fightEnemy(currentEvent.enemy) },
+            { id: currentEvent.key + "-flee", label: "Recuar por enquanto", disabled: battleBusy, onClick: () => setStoryEntries((entries) => [...entries, { id: "flee-" + currentEvent.key + "-" + Date.now(), type: "outcome", text: "Você recua para manter distância de " + currentEvent.enemy.name + ". O caminho continua bloqueado; será preciso voltar e enfrentar o perigo para avançar." }]) },
+          ]
+        : currentEvent?.type === "shop"
+          ? [
+              { id: "open-shop", label: "Visitar a loja", onClick: openShop },
+              { id: "skip-shop", label: "Seguir sem comprar", onClick: () => {
+                  setVisitedShopChapters((chapters) => chapters.includes(activeSave.chapterCurrent) ? chapters : [...chapters, activeSave.chapterCurrent]);
+                  setStoryEntries((entries) => [...entries, { id: "skip-shop-" + activeSave.chapterCurrent + "-" + Date.now(), type: "outcome", text: "Você agradece pela oferta e continua a viagem sem comprar suprimentos." }]);
+                } },
+            ]
+          : [];
 
   return (
     <div className="app-shell">
