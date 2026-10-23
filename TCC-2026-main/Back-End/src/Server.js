@@ -4,7 +4,7 @@ import cors from "cors";
 import { sql, eq, lt, or } from "drizzle-orm";
 import { db } from "./db/index.js";
 import { items, saves } from "./db/schema.js";
-import { ITEMS } from "./game/content.js";
+import { ITEMS } from "./game/Content.js";
 import authRoutes from "./routes/auth.routes.js";
 import itemsRoutes from "./routes/items.routes.js";
 import savesRoutes from "./routes/saves.routes.js";
