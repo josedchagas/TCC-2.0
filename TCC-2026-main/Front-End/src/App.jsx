@@ -65,7 +65,7 @@ export default function App() {
     const sequence = [
       quests[0] && {
         key: quests[0].id, type: "quest", quest: quests[0],
-        intro: "Mais adiante, você encontra alguém que precisa de ajuda. " + quests[0].description,
+        intro: "Durante a travessia de " + quests[0].chapterTitle + ", uma cena chama sua atenção: " + quests[0].title + ". " + quests[0].description,
         dialogue: "— Não sei se conseguirei resolver isso sozinho — diz a pessoa. — Você vai me ajudar ou seguirá seu caminho?",
       },
       ordinaryEnemies[0] && {
@@ -75,7 +75,7 @@ export default function App() {
       },
       quests[1] && {
         key: quests[1].id, type: "quest", quest: quests[1],
-        intro: "O caminho revela outro problema que não pode ser ignorado. " + quests[1].description,
+        intro: "Mais adiante, um novo acontecimento interrompe a viagem: " + quests[1].title + ". " + quests[1].description,
         dialogue: "— Cada minuto importa — explica quem pediu ajuda. — Posso contar com você ou devo procurar outra pessoa?",
       },
       ordinaryEnemies[1] && {
@@ -376,7 +376,7 @@ export default function App() {
     : currentEvent?.type === "quest"
       ? [
           { id: currentEvent.key + "-accept", label: "Aceitar missão", disabled: questBusy, onClick: () => resolveQuest(currentEvent.quest, "accept") },
-          { id: currentEvent.key + "-decline", label: "Recusar e seguir caminho", disabled: questBusy, onClick: () => resolveQuest(currentEvent.quest, "decline") },
+          { id: currentEvent.key + "-decline", label: "Fugir e seguir caminho", disabled: questBusy, onClick: () => resolveQuest(currentEvent.quest, "decline") },
         ]
       : currentEvent?.type === "enemy"
         ? [
