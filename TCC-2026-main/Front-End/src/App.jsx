@@ -34,6 +34,7 @@ export default function App() {
   const [saves, setSaves] = useState([]);
   const [activeSave, setActiveSave] = useState(null);
   const [chapterData, setChapterData] = useState(null);
+  const [chapterLoadedForSaveId, setChapterLoadedForSaveId] = useState(null);
   const [inventory, setInventory] = useState([]);
   const [equipment, setEquipment] = useState([]);
   const [defeatedEnemies, setDefeatedEnemies] = useState([]);
@@ -49,7 +50,7 @@ export default function App() {
 
 
   const currentEvent = useMemo(() => {
-    if (!activeSave || activeSave.completed || !chapterData || chapterData.number !== activeSave.chapterCurrent || !storyStarted) return null;
+    if (!activeSave || activeSave.completed || !chapterData || chapterLoadedForSaveId !== activeSave.id || chapterData.number !== activeSave.chapterCurrent || !storyStarted) return null;
     if (chapterData.shopAvailable && !visitedShopChapters.includes(chapterData.number)) {
       return {
         key: "c" + String(chapterData.number).padStart(2, "0") + ":shop",
@@ -94,7 +95,7 @@ export default function App() {
       if (event.type === "enemy") return !defeatedEnemies.includes(event.enemy.id);
       return false;
     }) ?? null;
-  }, [activeSave, chapterData, storyStarted, visitedShopChapters, sideQuests, defeatedEnemies]);
+  }, [activeSave, chapterData, chapterLoadedForSaveId, storyStarted, visitedShopChapters, sideQuests, defeatedEnemies]);
 
   const refreshSaves = useCallback(async () => {
     const rows = await apiFetch("/saves");
@@ -112,6 +113,7 @@ export default function App() {
       apiFetch(`/saves/${save.id}/side-quests`),
     ]);
     setChapterData(chapter);
+    setChapterLoadedForSaveId(save.id);
     setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, qty: item.quantity })));
     setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, slot: item.slot })));
     setDefeatedEnemies(defeated.filter((code) => !String(code).startsWith("sidequest:")));
@@ -141,6 +143,7 @@ export default function App() {
     setStoryStarted(false);
     setVisitedShopChapters([]);
     setChapterData(null);
+    setChapterLoadedForSaveId(null);
     setSideQuests([]);
     setDefeatedEnemies([]);
   }, [activeSave?.id]);
@@ -150,7 +153,7 @@ export default function App() {
   }, [activeSave?.chapterCurrent]);
 
   useEffect(() => {
-    if (!activeSave?.id || !chapterData || chapterData.number !== activeSave.chapterCurrent) return;
+    if (!activeSave?.id || chapterLoadedForSaveId !== activeSave.id || !chapterData || chapterData.number !== activeSave.chapterCurrent) return;
     const storyId = "chapter-" + chapterData.number + "-story";
     setStoryEntries((entries) => {
       if (entries.some((entry) => entry.id === storyId)) return entries;
@@ -160,7 +163,7 @@ export default function App() {
         { id: "chapter-" + chapterData.number + "-objective", type: "objective", text: "Objetivo: " + chapterData.objective },
       ];
     });
-  }, [activeSave?.id, activeSave?.chapterCurrent, chapterData]);
+  }, [activeSave?.id, activeSave?.chapterCurrent, chapterData, chapterLoadedForSaveId]);
 
   useEffect(() => {
     if (!storyStarted || !currentEvent) return;
@@ -382,7 +385,7 @@ export default function App() {
     : storyEntries;
 
   const actions = activeSave?.completed ? [] : !storyStarted
-    ? [{ id: "continue-intro", label: "Continuar a história", disabled: !chapterData || storyEntries.length === 0, onClick: () => {
+    ? [{ id: "continue-intro", label: "Continuar a história", disabled: chapterLoadedForSaveId !== activeSave?.id || !chapterData || storyEntries.length === 0, onClick: () => {
         setStoryStarted(true);
         setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: chapterData?.encounterText || "Você segue pela trilha, atento ao que pode surgir adiante." }]);
       } }]
