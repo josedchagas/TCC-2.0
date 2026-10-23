@@ -39,6 +39,8 @@ export default function App() {
   const [inventory, setInventory] = useState([]);
   const [equipment, setEquipment] = useState([]);
   const [defeatedEnemies, setDefeatedEnemies] = useState([]);
+  const [sideQuests, setSideQuests] = useState([]);
+  const [questBusy, setQuestBusy] = useState(false);
   const [battleResult, setBattleResult] = useState(null);
   const [battleBusy, setBattleBusy] = useState(false);
   const [shop, setShop] = useState(null);
@@ -53,7 +55,7 @@ export default function App() {
 
   const refreshGameData = useCallback(async (save) => {
     if (!save?.id) return;
-    const [chapter, inv, eqp, defeated] = await Promise.all([
+    const [chapter, inv, eqp, defeated, quests] = await Promise.all([
       apiFetch(`/game/chapters/${save.chapterCurrent}`),
       apiFetch(`/saves/${save.id}/inventory`),
       apiFetch(`/saves/${save.id}/equipment`),
@@ -62,7 +64,8 @@ export default function App() {
     setChapterData(chapter);
     setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, qty: item.quantity })));
     setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, slot: item.slot })));
-    setDefeatedEnemies(defeated);
+    setDefeatedEnemies(defeated.filter((code) => !String(code).startsWith("sidequest:")));
+    setSideQuests(quests);
   }, []);
 
   useEffect(() => {
@@ -195,6 +198,25 @@ export default function App() {
     finally { setShopBusy(false); }
   };
 
+  const resolveQuest = async (quest, action) => {
+    if (!activeSave || questBusy) return;
+    setQuestBusy(true);
+    try {
+      const result = await apiFetch(`/saves/${activeSave.id}/side-quests/${quest.id}/resolve`, {
+        method: "POST",
+        body: JSON.stringify({ action }),
+      });
+      if (result.save) updateSaveInLists(result.save);
+      await refreshGameData(result.save ?? activeSave);
+      if (result.save) await refreshSaves();
+      setNotice(result.message);
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setQuestBusy(false);
+    }
+  };
+
   const useItem = async (item) => {
     if (!activeSave) return;
     try {
@@ -217,6 +239,21 @@ export default function App() {
     ...(chapterData?.enemies ?? []).map((enemy) => {
       const bossBlocked = enemy.kind === "boss" && chapterData.enemies.some((other) => other.kind !== "boss" && !defeatedEnemies.includes(other.id));
       return { id: enemy.id, label: defeatedEnemies.includes(enemy.id) ? `Derrotado: ${enemy.name}` : bossBlocked ? `Bloqueado: ${enemy.name} (derrote os outros)` : `Enfrentar: ${enemy.name} (+${enemy.gold} moedas)`, disabled: defeatedEnemies.includes(enemy.id) || bossBlocked || battleBusy, onClick: () => fightEnemy(enemy) };
+    }),
+    ...sideQuests.map((quest) => {
+      if (quest.status !== "available") {
+        const statusLabel = quest.status === "success" ? "Concluída" : quest.status === "failed" ? "Tentativa encerrada" : "Recusada";
+        return { id: quest.id, label: `Missão: ${quest.title} — ${statusLabel}`, disabled: true, onClick: () => {} };
+      }
+      return {
+        id: quest.id,
+        label: `Missão opcional: ${quest.title} (atributo: ${quest.attribute}, chance base variável)`,
+        disabled: questBusy || battleBusy,
+        onClick: () => {
+          const accepted = window.confirm(`${quest.title}\\n\\n${quest.description}\\n\\nOK: tentar missão. Cancelar: recusar sem penalidade.`);
+          resolveQuest(quest, accepted ? "accept" : "decline");
+        },
+      };
     }),
     ...(chapterData?.shopAvailable ? [{ id: "shop", label: `Visitar loja: ${chapterData.title}`, onClick: openShop }] : []),
   ];
