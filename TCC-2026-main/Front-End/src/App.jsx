@@ -60,6 +60,7 @@ export default function App() {
       apiFetch(`/saves/${save.id}/inventory`),
       apiFetch(`/saves/${save.id}/equipment`),
       apiFetch(`/saves/${save.id}/encounters/defeated`),
+      apiFetch(`/saves/${save.id}/side-quests`),
     ]);
     setChapterData(chapter);
     setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, qty: item.quantity })));
