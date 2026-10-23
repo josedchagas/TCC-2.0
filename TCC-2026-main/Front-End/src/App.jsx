@@ -139,15 +139,28 @@ export default function App() {
   useEffect(() => {
     setStoryEntries([]);
     setStoryStarted(false);
-  }, [activeSave?.id, activeSave?.chapterCurrent]);
+    setVisitedShopChapters([]);
+    setChapterData(null);
+    setSideQuests([]);
+    setDefeatedEnemies([]);
+  }, [activeSave?.id]);
 
   useEffect(() => {
-    if (!activeSave?.id || !chapterData || chapterData.number !== activeSave.chapterCurrent || storyEntries.length > 0) return;
-    setStoryEntries([
-      { id: "chapter-" + chapterData.number + "-story", type: "narration", text: chapterData.story },
-      { id: "chapter-" + chapterData.number + "-objective", type: "objective", text: "Objetivo: " + chapterData.objective },
-    ]);
-  }, [activeSave?.id, activeSave?.chapterCurrent, chapterData, storyEntries.length]);
+    setStoryStarted(false);
+  }, [activeSave?.chapterCurrent]);
+
+  useEffect(() => {
+    if (!activeSave?.id || !chapterData || chapterData.number !== activeSave.chapterCurrent) return;
+    const storyId = "chapter-" + chapterData.number + "-story";
+    setStoryEntries((entries) => {
+      if (entries.some((entry) => entry.id === storyId)) return entries;
+      return [
+        ...entries,
+        { id: storyId, type: "narration", text: chapterData.story },
+        { id: "chapter-" + chapterData.number + "-objective", type: "objective", text: "Objetivo: " + chapterData.objective },
+      ];
+    });
+  }, [activeSave?.id, activeSave?.chapterCurrent, chapterData]);
 
   useEffect(() => {
     if (!storyStarted || !currentEvent) return;
