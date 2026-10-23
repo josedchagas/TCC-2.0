@@ -226,7 +226,7 @@ export async function listSideQuests(req, res) {
     .from(defeatedEncounters).where(eq(defeatedEncounters.saveId, req.save.id));
   const statuses = new Map();
   for (const row of rows) {
-    const match = /^sidequest:(c\\d{2}_q[12]):(success|failed|declined)$/.exec(row.enemyCode);
+    const match = /^sidequest:(c\d{2}_q[12]):(success|failed|declined)$/.exec(row.enemyCode);
     if (match) statuses.set(match[1], match[2]);
   }
   res.json(getChapterSideQuests(chapter).map(({ id, chapter: chapterNumber, chapterTitle, title, description, attribute, difficulty, successText, failureText, xp, gold, rewardItem }) => ({
