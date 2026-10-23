@@ -176,7 +176,7 @@ export default function CharacterPanel({
           <h3 className="char-panel__section-title">Inventário</h3>
           <div className="char-panel__grid">
             {inventorySlots.map((item, i) => (
-              <Slot key={i} item={item} onUseItem={onUseItem} />
+              <Slot key={i} item={item} onUseItem={onUseItem} onEquipItem={onEquipItem} />
             ))}
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function CharacterPanel({
               usedCount[slotType] = (usedCount[slotType] ?? 0);
               const item = equipmentBySlot[slotType]?.[usedCount[slotType]];
               usedCount[slotType] += 1;
-              return <Slot key={i} item={item} placeholderLabel={slotType} />;
+              return <Slot key={i} item={item} placeholderLabel={slotType} onUnequipItem={onUnequipItem} />;
             })}
           </div>
         </div>
@@ -224,7 +224,7 @@ function StatRow({ label, children }) {
   );
 }
 
-function Slot({ item, placeholderLabel, onUseItem }) {
+function Slot({ item, placeholderLabel, onUseItem, onEquipItem, onUnequipItem }) {
   const contents = <>
     {item?.icon ? <img src={item.icon} alt={item.name ?? item.id} className="slot__icon" /> : item && <span className="slot__fallback">{(item.name ?? item.id ?? "?").slice(0, 2).toUpperCase()}</span>}
     {item?.qty > 1 && <span className="slot__qty">{item.qty}</span>}
