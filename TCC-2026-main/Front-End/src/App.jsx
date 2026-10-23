@@ -205,7 +205,7 @@ export default function App() {
       : item.type === "accessory" ? ["ring"]
       : ["helmet", "chest", "pants", "shield", "boots"];
     const promptText = slots.length === 1
-      ? `Equipar ${item.name} no slot ${slots[0]}? Digite OK para confirmar.`
+      ? `Digite "${slots[0]}" para equipar ${item.name}.`
       : `Escolha o slot para ${item.name}: ${slots.join(", ")}. Digite exatamente um deles.`;
     const chosen = window.prompt(promptText, slots[0]);
     if (!chosen) return;
@@ -308,6 +308,8 @@ export default function App() {
           statusOpen={statusOpen}
           onToggleStatus={() => setStatusOpen((value) => !value)}
           onUseItem={useItem}
+          onEquipItem={equipItem}
+          onUnequipItem={unequipItem}
         />
         <StoryPanel
           chapterLabel={activeSave ? chapterLabel(activeSave, chapterData) : "Capítulo 1 — A Vila Esquecida"}
