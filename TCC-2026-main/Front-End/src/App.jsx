@@ -277,9 +277,10 @@ export default function App() {
     try {
       const result = await apiFetch(`/saves/${activeSave.id}/shop/purchase`, { method: "POST", body: JSON.stringify({ itemCode: item.code, quantity: 1 }) });
       updateSaveInLists(result.save);
+      setStoryEntries((entries) => [...entries, { id: "purchase-" + Date.now(), type: "outcome", text: result.message }]);
       await refreshSaves();
       await refreshGameData(result.save);
-      setNotice(result.message);
+      setNotice("");
     } catch (error) { setNotice(error.message); }
     finally { setShopBusy(false); }
   };
@@ -349,8 +350,9 @@ export default function App() {
     try {
       const result = await apiFetch(`/saves/${activeSave.id}/inventory/${item.id}/use`, { method: "POST", body: JSON.stringify({}) });
       updateSaveInLists(result.save);
+      setStoryEntries((entries) => [...entries, { id: "use-item-" + Date.now(), type: "outcome", text: result.message }]);
       await refreshGameData(result.save);
-      setNotice(result.message);
+      setNotice("");
     } catch (error) { setNotice(error.message); }
   };
 
@@ -367,7 +369,7 @@ export default function App() {
     : storyEntries;
 
   const actions = activeSave?.completed ? [] : !storyStarted
-    ? [{ id: "continue-intro", label: "Continuar a história", onClick: () => {
+    ? [{ id: "continue-intro", label: "Continuar a história", disabled: !chapterData || storyEntries.length === 0, onClick: () => {
         setStoryStarted(true);
         setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: chapterData?.encounterText || "Você segue pela trilha, atento ao que pode surgir adiante." }]);
       } }]
