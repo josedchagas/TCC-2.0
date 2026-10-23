@@ -199,6 +199,41 @@ export default function App() {
     finally { setShopBusy(false); }
   };
 
+  const equipItem = async (item) => {
+    if (!activeSave || !item?.itemId) return;
+    const slots = item.type === "weapon" ? ["weapon"]
+      : item.type === "accessory" ? ["ring"]
+      : ["helmet", "chest", "pants", "shield", "boots"];
+    const promptText = slots.length === 1
+      ? `Equipar ${item.name} no slot ${slots[0]}? Digite OK para confirmar.`
+      : `Escolha o slot para ${item.name}: ${slots.join(", ")}. Digite exatamente um deles.`;
+    const chosen = window.prompt(promptText, slots[0]);
+    if (!chosen) return;
+    const slot = chosen.trim().toLowerCase();
+    if (!slots.includes(slot)) {
+      setNotice("Slot inválido para este item.");
+      return;
+    }
+    try {
+      const current = equipment.filter((entry) => entry.slot === slot);
+      const target = current[0];
+      const result = target
+        ? await apiFetch(`/saves/${activeSave.id}/equipment/${target.id}`, { method: "PUT", body: JSON.stringify({ itemId: item.itemId }) })
+        : await apiFetch(`/saves/${activeSave.id}/equipment`, { method: "POST", body: JSON.stringify({ itemId: item.itemId, slot }) });
+      await refreshGameData(activeSave);
+      setNotice(target ? `${item.name} equipado; equipamento anterior devolvido ao inventário.` : `${item.name} equipado.`);
+    } catch (error) { setNotice(error.message); }
+  };
+
+  const unequipItem = async (item) => {
+    if (!activeSave || !item?.id) return;
+    try {
+      await apiFetch(`/saves/${activeSave.id}/equipment/${item.id}`, { method: "DELETE" });
+      await refreshGameData(activeSave);
+      setNotice(`${item.name} foi devolvido ao inventário.`);
+    } catch (error) { setNotice(error.message); }
+  };
+
   const resolveQuest = async (quest, action) => {
     if (!activeSave || questBusy) return;
     setQuestBusy(true);
