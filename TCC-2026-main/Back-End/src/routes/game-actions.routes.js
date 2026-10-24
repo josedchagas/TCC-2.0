@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { buyItem, resolveEncounter, useItem, listDefeatedEncounters, listSideQuests, resolveSideQuest } from "../controllers/game.controller.js";
+import { buyItem, resolveEncounter, resolveBattleDrop, useItem, listDefeatedEncounters, listSideQuests, resolveSideQuest } from "../controllers/game.controller.js";
 import { buyItemSchema } from "../controllers/game.schemas.js";
 import { validate } from "../middlewares/validate.js";
 import { asyncHandler } from "../middlewares/errorHandler.js";
@@ -9,5 +9,6 @@ router.get("/side-quests", asyncHandler(listSideQuests));
 router.post("/side-quests/:questId/resolve", asyncHandler(resolveSideQuest));
 router.post("/shop/purchase", validate(buyItemSchema), asyncHandler(buyItem));
 router.post("/battle/:enemyId/resolve", asyncHandler(resolveEncounter));
+router.post("/battle/:enemyId/drops/:itemCode/:action", asyncHandler(resolveBattleDrop));
 router.post("/inventory/:inventoryId/use", asyncHandler(useItem));
 export default router;
