@@ -331,7 +331,10 @@ export default function App() {
       const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(enemy.id)}/resolve`, { method: "POST", body: JSON.stringify({}) });
       updateSaveInLists(result.save);
       const stamp = Date.now();
-      const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}`, type: "outcome", text: result.message }];
+      const battleText = result.victory
+        ? [`O confronto contra ${enemy.name} termina quando a criatura perde o equilíbrio e a corrupção abandona seu corpo em fios de fumaça escura.`, `Por um breve instante, o lugar fica em silêncio; até o vento parece esperar para descobrir o que restou sob aquela ameaça.`, `Você percebe marcas antigas na pedra, antes escondidas pelos passos do inimigo, e entende que ele guardava a passagem por muito mais tempo do que imaginava.`, `${enemy.name} já não bloqueia a trilha, e os sobreviventes que aguardavam à distância finalmente podem se aproximar.`, result.message, "Com o caminho livre, você recolhe o que pode ser útil e se prepara para descobrir o que existe além das ruínas."].join("\\n")
+        : [`O golpe final de ${enemy.name} rompe sua defesa e obriga você a recuar, enquanto o mundo parece perder o som por alguns segundos.`, `Você alcança abrigo atrás de pedras antigas e tenta recuperar o fôlego, sem tirar os olhos da passagem bloqueada.`, `A criatura não persegue você; limita-se a guardar o caminho, como se obedecesse a uma ordem gravada muito antes de sua chegada.`, `A derrota dói, mas também revela o ritmo dos movimentos do adversário e os pontos frágeis que você não conseguiu aproveitar desta vez.`, result.message, "Você ainda poderá tentar novamente quando estiver preparado, mas a jornada não avançará enquanto essa ameaça permanecer de pé."].join("\\n");
+      const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}`, type: "outcome", text: battleText }];
       if (result.victory && result.rewards) {
         lines.push({ id: `battle-reward-${enemy.id}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
       }
@@ -462,7 +465,7 @@ export default function App() {
   const actions = activeSave?.completed ? [] : !storyStarted
     ? [{ id: "continue-intro", label: "Continuar a história", disabled: chapterLoadedForSaveId !== activeSave?.id || !chapterData || storyEntries.length === 0, onClick: () => {
         setStoryStarted(true);
-        setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: [`Você deixa para trás o último abrigo e entra em ${chapterLocation(chapterData.number)}.`, chapterData?.encounterText || "A paisagem guarda sinais de uma ameaça antiga.", "O caminho se estreita e o silêncio torna cada ruído mais próximo.", "Marcas recentes no chão indicam que alguém passou por ali pouco antes de você.", "Você respira fundo e segue, sabendo que a próxima decisão pode mudar o rumo da jornada."].join("\n") }]);
+        setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: [`Você deixa para trás o último abrigo e entra em ${chapterLocation(chapterData.number)}.`, chapterData?.encounterText || "A paisagem guarda sinais de uma ameaça antiga.", "Maelis marcou a rota no mapa com tinta azul, mas algumas linhas mudam de lugar sempre que a névoa se adensa.", "Entre as pedras, você encontra pegadas recentes e um pedaço de tecido preso a um galho; alguém passou por ali tentando fugir sem ser visto.", "O vento traz um som distante, quase uma voz chamando debaixo da terra, e a fita do sino vibra contra seu equipamento.", "Você segue em frente, decidido a descobrir quem está chamando os desaparecidos e por que a trilha parece reconhecer seus passos."].join("\n") }]);
       } }]
     : currentEvent?.type === "quest"
       ? [
