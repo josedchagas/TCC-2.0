@@ -171,7 +171,7 @@ export async function resolveEncounter(req, res) {
     const lifeAdjustment = adjustedLifeBonus - baseLifeBonus;
     playerMaxHp = Math.max(playerMaxHp, 100 + adjustedLifeBonus);
     playerHp = Math.max(0, Math.min(playerMaxHp, playerHp + lifeAdjustment));
-    const playerCritRoll = seededRoll("player-crit", round);
+    const playerCritRoll = seededRoll(`player-crit-${playerRoll}`, round);
     const playerCritical = playerRoll === 20 || playerCritRoll <= playerCritChance;
     const playerBaseDamage = Math.max(1, Math.floor(strength + weaponDamage * playerMultiplier));
     const playerDamage = Math.max(1, Math.floor(playerBaseDamage * (playerCritical ? 1.5 : 1)));
