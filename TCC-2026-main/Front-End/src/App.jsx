@@ -139,7 +139,7 @@ export default function App() {
 
 
   const currentEvent = useMemo(() => {
-    if (!activeSave || activeSave.completed || !chapterData || chapterLoadedForSaveId !== activeSave.id || chapterData.number !== activeSave.chapterCurrent || !storyStarted) return null;
+    if (!activeSave || activeSave.completed || activeSave.hpCurrent <= 0 || activeSave.energyCurrent <= 0 || !chapterData || chapterLoadedForSaveId !== activeSave.id || chapterData.number !== activeSave.chapterCurrent || !storyStarted) return null;
     if (chapterData.shopAvailable && !visitedShopChapters.includes(chapterData.number)) {
       return {
         key: "c" + String(chapterData.number).padStart(2, "0") + ":shop",
@@ -508,7 +508,7 @@ export default function App() {
         ]
       : storyEntries;
 
-  const actions = activeSave?.completed ? [] : !storyStarted
+  const actions = activeSave?.completed || permanentlyLost ? [] : !storyStarted
     ? [{ id: "continue-intro", label: "Continuar a história", disabled: chapterLoadedForSaveId !== activeSave?.id || !chapterData || storyEntries.length === 0, onClick: () => {
         setStoryStarted(true);
         setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: [`Você deixa para trás o último abrigo e segue até ${chapterLocation(chapterData.number)}.`, chapterData?.encounterText || "A paisagem guarda sinais de uma ameaça antiga.", "Maelis marcou a rota no mapa com tinta azul, mas algumas linhas mudam de lugar sempre que a névoa se adensa.", "Entre as pedras, você encontra pegadas recentes e um pedaço de tecido preso a um galho; alguém passou por ali tentando fugir sem ser visto.", "O vento traz um som distante, quase uma voz chamando debaixo da terra, e a fita do sino vibra contra seu equipamento.", "Você segue em frente, decidido a descobrir quem está chamando os desaparecidos e por que a trilha parece reconhecer seus passos."].join("\n") }]);
