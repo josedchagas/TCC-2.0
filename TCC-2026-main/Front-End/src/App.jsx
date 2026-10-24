@@ -74,43 +74,69 @@ function sceneCharacter(chapter, subject, isQuest = false) {
 
 function sceneNarration(chapter, subject, description, isQuest = false) {
   const place = chapterLocation(chapter);
+  const region = chapterRegion(chapter);
   const character = sceneCharacter(chapter, subject, isQuest);
   const detail = description || "O silêncio parece esconder algo que ainda não foi revelado.";
-  const variants = [
-    "Uma corrente de ar percorre as frestas e apaga, uma a uma, as pequenas luzes deixadas pelos moradores.",
-    "No chão, a poeira forma círculos perfeitos ao redor de marcas que não pertencem a botas nem a patas.",
-    "Ao longe, madeira estala dentro de uma casa vazia; quando você olha, a porta está aberta e não há ninguém lá.",
-    "A fita do sino vibra junto ao seu equipamento, embora o vento tenha parado por completo.",
-    "Por trás das paredes, um ruído responde aos seus passos com um atraso exato de três batidas."
-  ];
   const seed = [...String(subject || "mistério")].reduce((sum, char) => sum + char.charCodeAt(0), Number(chapter) || 1);
-  const detailOfPlace = variants[seed % variants.length];
+  const atmospheres = [
+    "A névoa rasteja pelo chão e se enrola nos seus tornozelos, escondendo as rachaduras entre as pedras.",
+    "Uma janela bate duas vezes numa casa vazia; logo depois, todas as aves da rua levantam voo ao mesmo tempo.",
+    "O ar cheira a ferro molhado e cinzas antigas, e a fita do sino vibra contra seu equipamento.",
+    "Pequenas gotas escorrem pelas paredes, embora não chova há dias; cada uma deixa uma mancha escura na pedra.",
+    "O silêncio é interrompido por três batidas vindas de algum lugar sob o caminho, sempre na mesma distância dos seus passos.",
+    "As lanternas próximas se apagam em sequência, deixando apenas o brilho estranho que pulsa no símbolo diante de você."
+  ];
   if (isQuest) {
-    const questPerson = Number(chapter) === 1 ? character : character;
-    return [
-      "Na região de " + place + ", você encontra " + questPerson.name + ", " + questPerson.role + ", esperando perto de um marco coberto de fuligem.",
-      "A pessoa segura uma pista ligada a “" + subject + "”, mas não a entrega de imediato; a superfície está marcada por um símbolo que também aparece no mapa de Maelis.",
-      "“" + detail + "” — explica " + questPerson.name + ", e a voz falha quando o sino subterrâneo responde com uma vibração curta.",
-      questPerson.name + " conta que sua busca pode ajudar a " + (CHAPTER_CHARACTERS[Math.max(0, Number(chapter) - 1)]?.motive || "descobrir a origem da corrupção") + ".",
-      detailOfPlace + " A pista parece recente, mas alguém tentou escondê-la antes de a névoa cobrir a região.",
-      "“Não vou obrigar você a ficar”, diz " + questPerson.name + ". “Mas, se partir agora, talvez ninguém mais consiga descobrir o que aconteceu aqui.”"
-    ].join("\n");
+    const openings = [
+      "Você encontra " + character.name + ", " + character.role + ", ajoelhado junto a uma caixa de madeira partida " + region + ".",
+      "Uma voz chama por você de dentro de um abrigo quase soterrado. Lá está " + character.name + ", " + character.role + ", protegendo uma pequena pista da umidade " + region + ".",
+      "Perto de um marco coberto de fuligem, " + character.name + ", " + character.role + ", espera com um mapa amassado e as mãos sujas de terra " + region + ".",
+      "O caminho termina diante de uma porta entreaberta. " + character.name + ", " + character.role + ", surge do escuro e pede que você não faça barulho " + region + "."
+    ];
+    const reveals = [
+      "A pista está ligada a um símbolo repetido nas casas abandonadas; alguém tentou raspá-lo da madeira, mas deixou os sulcos intactos.",
+      "Entre os objetos, há uma página chamuscada com nomes riscados. Um deles foi escrito tantas vezes que quase rasgou o papel.",
+      "O objeto guarda um resíduo de energia que pulsa no mesmo ritmo do sino subterrâneo, como se ambos fizessem parte de um mecanismo.",
+      "No verso da pista, alguém desenhou uma rota que não aparece no mapa de Maelis; a tinta ainda está fresca apesar da umidade."
+    ];
+    const choices = [
+      "“Se me ajudar, talvez consigamos descobrir quem deixou isto aqui antes que a névoa apague o último vestígio”, diz " + character.name + ".",
+      "“Não posso prometer que será seguro”, admite " + character.name + ". “Só sei que ninguém deveria ter encontrado isso e continuado vivo para contar.”",
+      "“Leve o tempo que precisar para decidir”, diz " + character.name + ". “Mas, se ouvir o sino tocar três vezes, não fique aqui.”",
+      "“Eu devia ter contado isso antes”, confessa " + character.name + ". “Só não sabia em quem confiar desde que as pessoas começaram a desaparecer.”"
+    ];
+    return [openings[seed % openings.length], detail, reveals[(seed + 1) % reveals.length], atmospheres[(seed + 2) % atmospheres.length], character.name + " explica que a descoberta pode ajudar a " + (CHAPTER_CHARACTERS[Math.max(0, Number(chapter) - 1)]?.motive || "descobrir a origem da corrupção") + ".", choices[(seed + 3) % choices.length]].join("\n");
   }
-  const enemyLines = [
-    "As marcas no corpo da criatura brilham sempre que o sino enterrado emite uma nota distante.",
-    "A criatura arrasta uma das patas pelo chão, riscando um símbolo idêntico ao que Maelis desenhou no mapa.",
-    "Um cheiro de palha molhada e ferro antigo toma o ar; a coisa à sua frente parece ter sido montada com restos do lugar.",
-    "A sombra do inimigo se move um instante antes do próprio corpo, como se outra presença controlasse seus gestos."
+  const openings = [
+    "O caminho se estreita " + region + ", onde as casas dão lugar a ruínas tomadas por raízes negras.",
+    "Um estalo ecoa do outro lado da passagem " + region + "; quando você se aproxima, uma silhueta bloqueia a trilha.",
+    "Você avista marcas recentes no barro " + region + ". Antes que consiga examiná-las, " + subject + " salta para o caminho.",
+    "A fita do sino começa a vibrar quando você entra na área interditada " + region + ". Uma figura corrompida ergue a cabeça e encara você.",
+    "Entre carroças tombadas e pedras partidas " + region + ", " + subject + " se arrasta para fora das sombras e ocupa a passagem."
+  ];
+  const actions = [
+    "A criatura golpeia o chão e uma onda de poeira revela marcas antigas, dispostas como os dentes de uma fechadura.",
+    "Seus movimentos são bruscos, mas cada investida termina voltada para o mesmo ponto: uma porta de pedra coberta por raízes.",
+    "O inimigo carrega restos de tecido e uma pequena medalha de morador; por um segundo, a corrupção parece hesitar dentro dele.",
+    "Uma sombra se desprende da criatura e corre pela parede, apontando para a estrada antes de desaparecer numa fenda.",
+    "O som de metal arrastado acompanha cada passo do adversário; no peito dele, um fragmento escuro pulsa como um coração emprestado."
   ];
   const ally = Number(chapter) === 1 ? CHAPTER_ONE_CAST[3] : character;
-  return [
-    "Ao avançar " + chapterRegion(chapter) + ", você encontra " + subject + " bloqueando a passagem entre as ruínas.",
-    detail,
-    enemyLines[seed % enemyLines.length],
-    ally.name + ", " + ally.role + ", observa a criatura de um abrigo próximo e revela o que sabe: “Ela não está caçando por fome; está protegendo alguma coisa.”",
-    detailOfPlace + " O inimigo reage ao som da fita do sino e se prepara para atacar, como se reconhecesse o objeto que você carrega.",
-    "Você pode enfrentá-lo agora ou recuar para se preparar. Enquanto essa ameaça permanecer de pé, porém, a rota seguirá bloqueada."
-  ].join("\n");
+  const warnings = [
+    "“Não ataque às cegas”, avisa " + ally.name + ". “Observe o que ela protege; a corrupção nunca escolhe um guardião sem motivo.”",
+    "De um abrigo próximo, " + ally.name + " grita: “Quando ela baixar a cabeça, afaste-se! Foi assim que derrubou a última barricada.”",
+    ally.name + " segura uma lanterna trêmula e revela: “Essa coisa já esteve aqui antes. Toda vez que aparece, alguma lembrança desaparece da vila.”",
+    "“O símbolo no corpo dela é igual ao da capela”, murmura " + ally.name + ". “Se o destruirmos, talvez encontremos a origem da ordem que ela segue.”",
+    ally.name + " recua para proteger a passagem e diz: “Vou manter a rota aberta, mas não consigo segurá-la por muito tempo.”"
+  ];
+  const stakes = [
+    "A ameaça se prepara para atacar, e o caminho continuará bloqueado até que você a vença.",
+    "A criatura inclina o corpo e calcula a distância entre vocês. Recuar é possível, mas alguém terá de enfrentar esse guardião para abrir a passagem.",
+    "O chão treme sob seus pés; se a criatura alcançar o marco de pedra, a trilha poderá desabar junto com a única rota segura.",
+    "Você sente que o inimigo está ligado ao sino enterrado. Derrotá-lo pode revelar uma nova pista, mas hesitar dará a ele a primeira investida.",
+    "A névoa se fecha atrás de você. Não há caminho livre até que a criatura seja vencida ou que você consiga escapar da área interditada."
+  ];
+  return [openings[seed % openings.length], detail, actions[(seed + 1) % actions.length], atmospheres[(seed + 2) % atmospheres.length], warnings[(seed + 3) % warnings.length], stakes[(seed + 4) % stakes.length]].join("\n");
 }
 
 function relativeTime(value) {
@@ -373,7 +399,7 @@ export default function App() {
               "O eco revela que Tomas não provocou o desaparecimento: ele tentou selar algo que despertou sob a vila e foi arrastado para além da estrada.",
               "Ao amanhecer, algumas portas se abrem e os sobreviventes voltam à praça. Valedouro não está salva por completo, mas agora seus moradores sabem que a névoa pode ser enfrentada.",
               "Maelis marca no mapa a direção indicada pelo último eco do sino. A estrada dos corvos é o próximo passo, e ela entrega a você uma cópia do mapa antes de ficar para ajudar a reconstruir a vila."
-            ].join("\\n")
+            ].join("\n")
           : [
               "Com a queda do guardião, a ameaça que dominava " + chapterLocation(chapterNumber) + " perde sua força, e os sinais de corrupção começam a desaparecer das pedras.",
               "Os moradores e viajantes que aguardavam escondidos deixam seus abrigos, ainda cautelosos, mas já sem ouvir os sussurros que os mantinham presos.",
@@ -381,7 +407,7 @@ export default function App() {
               "Seu aliado reúne os sobreviventes e promete manter a rota aberta enquanto você segue adiante; ninguém confunde essa vitória com o fim da jornada.",
               "Antes de partir, você registra no mapa o que aprendeu e guarda um símbolo retirado do local, uma nova pista sobre a origem da corrupção.",
               "A estrada para o próximo destino se abre diante de você. O lugar ficou para trás, mas as consequências desta batalha continuarão acompanhando sua jornada."
-            ].join("\\n");
+            ].join("\n");
         lines.push({ id: `chapter-ending-${chapterNumber}`, type: "narration", text: chapterEnding });
       }
       if (result.victory && result.rewards) {
