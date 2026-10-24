@@ -203,7 +203,8 @@ export async function resolveEncounter(req, res) {
   const nextChapter = isBoss ? Math.min(CHAPTERS.length, save.chapterCurrent + 1) : save.chapterCurrent;
   const [updated] = await db.update(saves).set({
     // Subir de nível aumenta os limites, mas não recupera vida ou vigor automaticamente.
-    hpCurrent: Math.max(1, Math.min(save.hpMax + levelsGained * 12, playerHp)),
+    // O dano recebido durante a simulação não reduz corações ao vencer; a vida salva permanece igual.
+    hpCurrent: Math.max(1, Math.min(save.hpMax + levelsGained * 12, save.hpCurrent)),
     hpMax: save.hpMax + levelsGained * 12,
     energyCurrent: save.energyCurrent,
     energyMax: save.energyMax + levelsGained * 5,
