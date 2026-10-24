@@ -803,7 +803,7 @@ export default function App() {
 
       <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
       <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} onSell={sellItem} inventory={inventory} money={activeSave?.money ?? 0} busy={shopBusy} />
-      <BattleModal battle={battle} busy={battleBusy} onRoll={rollBattleDie} onDropChoice={chooseBattleDrop} onClose={() => { if (!battleBusy && battle?.result && !(battle.result.victory && (battle.result.drops || []).some((drop) => !drop.claimed && !drop.discarded))) setBattle(null); }} />
+      <BattleModal key={battle?.enemy?.id ?? "no-battle"} battle={battle} busy={battleBusy} onRoll={rollBattleDie} onDropChoice={chooseBattleDrop} onClose={() => { if (!battleBusy && battle?.result && !(battle.result.victory && (battle.result.drops || []).some((drop) => !drop.claimed && !drop.discarded))) setBattle(null); }} />
       <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
   );
