@@ -174,8 +174,8 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
           {!combat.turns?.length && <p className="battle-modal__log-empty">A batalha começou. Role o D20 para executar sua primeira ação.</p>}
           {(combat.turns || []).slice(-5).map((turn) => (
             <p key={turn.round} className="battle-modal__log-entry">
-              <strong>Rodada {turn.round}:</strong> você tirou {turn.playerRoll} (×{turn.playerMultiplier}), {turn.playerDamage} de dano e {turn.lifeAdjustment > 0 ? "+" : ""}{turn.lifeAdjustment} PV de ajuste pela armadura/resistência.
-              {turn.enemyRoll ? ` O inimigo tirou ${turn.enemyRoll} (×${turn.enemyMultiplier}) e causou ${turn.enemyDamage} de dano.` : " O inimigo foi derrotado antes de contra-atacar."}
+              <strong>Rodada {turn.round}:</strong> você tirou {turn.playerRoll} (×{turn.playerMultiplier}), {turn.playerDamage} de dano{turn.playerCritical ? " — CRÍTICO!" : ""} e {turn.lifeAdjustment > 0 ? "+" : ""}{turn.lifeAdjustment} PV de ajuste pela armadura/resistência.
+              {turn.enemyRoll ? ` O inimigo tirou ${turn.enemyRoll} (×${turn.enemyMultiplier}) e causou ${turn.enemyDamage} de dano${turn.enemyCritical ? " — CRÍTICO!" : ""}.` : " O inimigo foi derrotado antes de contra-atacar."}
             </p>
           ))}
           {result && <p className={`battle-modal__outcome ${result.victory ? "is-victory" : "is-defeat"}`}>{result.victory ? "Inimigo derrotado! As recompensas foram aplicadas." : result.permanentDeath ? "Derrota permanente: a campanha foi encerrada." : "Você foi derrotado. A consequência foi registrada na campanha."}</p>}
