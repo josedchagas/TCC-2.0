@@ -187,7 +187,7 @@ export const CHAPTERS = chaptersRaw.map((row, index) => ({
   ending: (chapterNarratives[index] || row[1]).split("\n").slice(-1)[0] || row[1].split("\n").slice(-1)[0],
   encounterText: row[2],
   objective: row[3],
-  shopAvailable: [5, 10, 15, 20].includes(index + 1),
+  shopAvailable: index + 1 > 1,
   enemies: row[4],
 }));
 
@@ -213,6 +213,26 @@ export const SHOPS = {
     itemCodes: ["pocao_grande", "elixir_total", "espada_aurora", "armadura_guardiao", "anel_sabio", "manto_arcanista"]
   },
 };
+
+// Haverá uma loja no início de cada capítulo, exceto no primeiro.
+// Os estoques evoluem conforme a progressão; os capítulos 5, 10, 15 e 20
+// mantêm suas lojas especiais definidas acima.
+const earlyShopItems = ["pocao_vida", "tonico_energia", "espada_aventureiro", "arco_freixo", "cajado_cobre", "tunica_couro", "escudo_carvalho"];
+for (const chapter of CHAPTERS) {
+  if (chapter.number === 1 || SHOPS[chapter.number]) continue;
+  const stock = chapter.number < 5
+    ? earlyShopItems
+    : chapter.number < 10
+      ? SHOPS[5].itemCodes
+      : chapter.number < 15
+        ? SHOPS[10].itemCodes
+        : SHOPS[15].itemCodes;
+  SHOPS[chapter.number] = {
+    name: "Mercador itinerante",
+    greeting: "O comerciante organiza seus suprimentos antes de você seguir viagem.",
+    itemCodes: [...stock],
+  };
+}
 
 export function getItemByCode(code) {
   return ITEMS.find((item) => item.code === code);
