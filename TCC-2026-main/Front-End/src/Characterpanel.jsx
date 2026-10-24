@@ -26,7 +26,7 @@ export default function CharacterPanel({
   statusOpen = false,
   onToggleStatus,
   onUseItem,
-  onSellItem,
+  onDropItem,
   onEquipItem,
   onUnequipItem,
 }) {
@@ -181,15 +181,15 @@ export default function CharacterPanel({
             {inventorySlots.map((item, i) => (
               <div className="inventory-slot-cell" key={i}>
                 <Slot item={item} onUseItem={onUseItem} onEquipItem={onEquipItem} />
-                {item && item.sellPrice > 0 && onSellItem && (
+                {item && onDropItem && (
                   <button
                     type="button"
                     className="inventory-slot__sell"
-                    title={"Vender 1 unidade por " + item.sellPrice + " moedas"}
-                    aria-label={"Vender uma unidade de " + item.name + " por " + item.sellPrice + " moedas"}
-                    onClick={() => onSellItem(item)}
+                    title={"Largar " + item.name}
+                    aria-label={"Largar " + item.name}
+                    onClick={() => onDropItem(item)}
                   >
-                    🪙
+                    ↘
                   </button>
                 )}
               </div>
