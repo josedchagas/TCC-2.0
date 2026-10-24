@@ -105,6 +105,8 @@ export async function listEquipment(req, res) {
       rarity: definition?.rarity ?? "comum",
       stats: definition?.stats ?? {},
       price: definition?.price ?? 0,
+      damage: definition?.damage ?? 0,
+      armorHp: definition?.armorHp ?? 0,
     };
   }));
 }
