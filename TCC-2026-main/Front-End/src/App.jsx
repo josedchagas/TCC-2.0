@@ -499,6 +499,7 @@ export default function App() {
   const permanentlyLost = Boolean(activeSave && (activeSave.hpCurrent <= 0 || activeSave.energyCurrent <= 0));
   const storyText = permanentlyLost
     ? [
+        ...storyEntries,
         { id: "permadeath", type: "outcome", text: "DERROTA PERMANENTE — este save foi perdido porque a vida ou o vigor chegou a zero. Não é possível continuar esta campanha nem recuperar o personagem com itens." },
       ]
     : activeSave?.completed
