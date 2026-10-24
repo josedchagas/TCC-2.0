@@ -133,6 +133,7 @@ export default function App() {
   const [visitedShopChapters, setVisitedShopChapters] = useState([]);
   const [questBusy, setQuestBusy] = useState(false);
   const [battleBusy, setBattleBusy] = useState(false);
+  const [battle, setBattle] = useState(null);
   const [shop, setShop] = useState(null);
   const [shopOpen, setShopOpen] = useState(false);
   const [shopBusy, setShopBusy] = useState(false);
@@ -208,8 +209,8 @@ export default function App() {
     ]);
     setChapterData(chapter);
     setChapterLoadedForSaveId(save.id);
-    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", rarity: item.rarity ?? "comum", stats: item.stats ?? {}, price: item.price ?? 0, qty: item.quantity, sellPrice: item.sellPrice ?? 0 })));
-    setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", rarity: item.rarity ?? "comum", stats: item.stats ?? {}, price: item.price ?? 0, slot: item.slot })));
+    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", rarity: item.rarity ?? "comum", stats: item.stats ?? {}, price: item.price ?? 0, damage: item.damage ?? 0, armorHp: item.armorHp ?? 0, qty: item.quantity, sellPrice: item.sellPrice ?? 0 })));
+    setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", rarity: item.rarity ?? "comum", stats: item.stats ?? {}, price: item.price ?? 0, damage: item.damage ?? 0, armorHp: item.armorHp ?? 0, slot: item.slot })));
     setDefeatedEnemies(defeated.filter((code) => !String(code).startsWith("sidequest:")));
     setSideQuests(quests);
   }, []);
@@ -352,39 +353,66 @@ export default function App() {
   };
 
   const fightEnemy = async (enemy) => {
-    if (!activeSave || battleBusy) return;
+    if (!activeSave || battleBusy || battle) return;
     setBattleBusy(true);
     try {
-      const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(enemy.id)}/resolve`, { method: "POST", body: JSON.stringify({}) });
+      const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(enemy.id)}/resolve`, {
+        method: "POST",
+        body: JSON.stringify({ rolls: [] }),
+      });
+      setBattle({ enemy, rolls: [], combat: result.combat, lastRoll: null, result: null });
+      setNotice("");
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setBattleBusy(false);
+    }
+  };
+
+  const rollBattleDie = async () => {
+    if (!activeSave || !battle || battleBusy || battle.result) return;
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const rolls = [...battle.rolls, roll];
+    setBattleBusy(true);
+    try {
+      const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(battle.enemy.id)}/resolve`, {
+        method: "POST",
+        body: JSON.stringify({ rolls }),
+      });
+
+      if (result.inProgress) {
+        setBattle((current) => current ? { ...current, rolls, lastRoll: roll, combat: result.combat } : current);
+        return;
+      }
+
+      setBattle((current) => current ? { ...current, rolls, lastRoll: roll, combat: result.combat, result } : current);
       updateSaveInLists(result.save);
       const stamp = Date.now();
+      const enemy = battle.enemy;
       const battleText = result.victory
-        ? [`O confronto contra ${enemy.name} termina quando a criatura perde o equilíbrio e a corrupção abandona seu corpo em fios de fumaça escura.`, `Por um breve instante, o lugar fica em silêncio; até o vento parece esperar para descobrir o que restou sob aquela ameaça.`, `Você percebe marcas antigas na pedra, antes escondidas pelos passos do inimigo, e entende que ele guardava a passagem por muito mais tempo do que imaginava.`, `${enemy.name} já não bloqueia a trilha, e os sobreviventes que aguardavam à distância finalmente podem se aproximar.`, "Com o caminho livre, você recolhe o que pode ser útil e se prepara para descobrir o que existe além das ruínas."].join("\n")
+        ? `Após ${result.rounds} rodada(s), ${enemy.name} cai diante dos seus golpes. A rolagem e o equipamento fizeram a diferença neste confronto.`
         : result.permanentDeath
-          ? [`O último golpe de ${enemy.name} o derruba. O som ao redor se afasta, a escuridão toma conta da paisagem, e sua jornada termina ali.`].join("\n")
+          ? `A batalha contra ${enemy.name} termina em derrota definitiva. A jornada foi encerrada.`
           : result.chapterAdvanced
-            ? [`O Guardião do Sino continua de pé quando você recua. O estrondo do confronto faz ceder uma parede lateral, revelando uma passagem estreita.`, "Sem tempo para retomar a luta, você atravessa a abertura enquanto o eco do sino se perde atrás de você. A criatura continua à sua caça, mas a estrada adiante está aberta."].join("\n")
-            : [`O golpe de ${enemy.name} o obriga a ceder terreno. Você recua entre as pedras, sentindo o peso da batalha, até encontrar uma abertura estreita que leva adiante.`, "Quando olha para trás, a criatura ainda guarda o caminho. Você segue em frente, levando consigo o eco do confronto."].join("\n");
-      const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}`, type: "narration", text: battleText }];
+            ? `Você recua diante de ${enemy.name}, mas encontra uma passagem para seguir adiante. A criatura permanece viva.`
+            : `Você não conseguiu superar ${enemy.name} desta vez e recua para recuperar o fôlego. A criatura permanece viva.`;
+      const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}-${stamp}`, type: "narration", text: battleText }];
       if ((result.victory || result.chapterAdvanced) && enemy.kind === "boss" && !result.permanentDeath) {
         const chapterNumber = Number(activeSave.chapterCurrent);
-        const chapterEnding = chapterData?.ending || ("A ameaça em " + chapterLocation(chapterNumber) + " foi derrotada. Os sobreviventes começam a reconstruir o caminho, e as pistas reunidas apontam para a próxima região da campanha.");
-        lines.push({ id: `chapter-ending-${chapterNumber}`, type: "narration", text: chapterEnding });
+        const chapterEnding = chapterData?.ending || ("A ameaça em " + chapterLocation(chapterNumber) + " foi superada. Os sobreviventes começam a reconstruir o caminho, e as pistas reunidas apontam para a próxima região da campanha.");
+        lines.push({ id: `chapter-ending-${chapterNumber}-${stamp}`, type: "narration", text: chapterEnding });
       }
       if (result.victory && result.rewards) {
-        lines.push({ id: `battle-reward-${enemy.id}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
+        lines.push({ id: `battle-reward-${enemy.id}-${stamp}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
       }
       const drops = (result.drops ?? []).filter((drop) => drop.granted).map((drop) => drop.name);
-      if (drops.length) lines.push({ id: `battle-drops-${enemy.id}`, type: "outcome", text: `Você encontrou: ${drops.join(", ")}.` });
-      setStoryEntries((entries) => {
-        const newEntries = lines.filter((line) => !entries.some((entry) => entry.id === line.id));
-        return [...entries, ...newEntries];
-      });
+      if (drops.length) lines.push({ id: `battle-drops-${enemy.id}-${stamp}`, type: "outcome", text: `Você encontrou: ${drops.join(", ")}.` });
+      setStoryEntries((entries) => [...entries, ...lines]);
       await refreshSaves();
       await refreshGameData(result.save);
       setNotice("");
     } catch (error) {
-      setStoryEntries((entries) => [...entries, { id: "battle-error-" + Date.now(), type: "outcome", text: error.message }]);
+      setNotice(error.message);
     } finally {
       setBattleBusy(false);
     }
@@ -622,6 +650,7 @@ export default function App() {
 
       <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
       <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} onSell={sellItem} inventory={inventory} money={activeSave?.money ?? 0} busy={shopBusy} />
+      <BattleModal battle={battle} busy={battleBusy} onRoll={rollBattleDie} onClose={() => { if (!battleBusy && battle?.result) setBattle(null); }} />
       <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
   );
