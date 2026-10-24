@@ -115,6 +115,83 @@ function relativeTime(value) {
   return `há ${days} dia${days === 1 ? "" : "s"}`;
 }
 
+function BattleModal({ battle, busy, onRoll, onClose }) {
+  if (!battle) return null;
+  const combat = battle.combat || {};
+  const result = battle.result;
+  const playerPct = combat.playerMaxHp ? Math.max(0, Math.min(100, (combat.playerHp / combat.playerMaxHp) * 100)) : 100;
+  const enemyPct = combat.enemyMaxHp ? Math.max(0, Math.min(100, (combat.enemyHp / combat.enemyMaxHp) * 100)) : 100;
+  const lastTurn = combat.turns?.[combat.turns.length - 1];
+  const roll = battle.lastRoll;
+  const multiplier = roll ? (roll / 10).toFixed(1) : null;
+  const rollLabel = roll === 10 ? "Resultado normal" : roll < 10 ? "Falha: bônus reduzido" : roll === 20 ? "Crítico: bônus dobrado" : "Sucesso: bônus ampliado";
+
+  return (
+    <div className="battle-modal__backdrop" role="presentation">
+      <section className="battle-modal" role="dialog" aria-modal="true" aria-labelledby="battle-modal-title">
+        <header className="battle-modal__header">
+          <div>
+            <p className="battle-modal__eyebrow">COMBATE POR TURNOS · D20</p>
+            <h2 id="battle-modal-title">{battle.enemy.name}</h2>
+          </div>
+          <span className="battle-modal__round">Rodada {combat.rounds || 0}</span>
+        </header>
+
+        <div className="battle-modal__fighters">
+          <div className="battle-modal__fighter">
+            <div className="battle-modal__fighter-title"><span>Você</span><strong>{Math.ceil(combat.playerHp ?? combat.playerMaxHp ?? 0)} / {combat.playerMaxHp ?? 0} PV</strong></div>
+            <div className="battle-modal__bar"><span className="battle-modal__bar-fill battle-modal__bar-fill--player" style={{ width: playerPct + "%" }} /></div>
+          </div>
+          <div className="battle-modal__fighter">
+            <div className="battle-modal__fighter-title"><span>{battle.enemy.name}</span><strong>{Math.ceil(combat.enemyHp ?? combat.enemyMaxHp ?? 0)} / {combat.enemyMaxHp ?? battle.enemy.hp} PV</strong></div>
+            <div className="battle-modal__bar"><span className="battle-modal__bar-fill battle-modal__bar-fill--enemy" style={{ width: enemyPct + "%" }} /></div>
+          </div>
+        </div>
+
+        <div className="battle-modal__middle">
+          <div className="battle-modal__dice-wrap">
+            <button className={`battle-modal__dice ${busy ? "battle-modal__dice--rolling" : ""}`} onClick={onRoll} disabled={busy || Boolean(result)} aria-label="Rolar dado de vinte lados">
+              <svg viewBox="0 0 100 100" aria-hidden="true">
+                <polygon points="50,4 84,20 97,54 73,88 27,88 3,54 16,20" />
+                <path d="M16 20 L50 38 L84 20 M3 54 L50 38 L97 54 M27 88 L50 38 L73 88 M50 4 L50 38" />
+                <text x="50" y="68" textAnchor="middle">{roll ?? "D20"}</text>
+              </svg>
+            </button>
+            <p className="battle-modal__dice-caption">{busy ? "Resolvendo a rodada..." : result ? (result.victory ? "Vitória!" : "Derrota") : "Clique no dado para rolar"}</p>
+            {roll !== null && roll !== undefined && <p className={`battle-modal__roll-result ${roll < 10 ? "is-failure" : roll > 10 ? "is-success" : ""}`}>{roll} · ×{multiplier} · {rollLabel}</p>}
+          </div>
+          <div className="battle-modal__combat-stats">
+            <h3>Seu equipamento</h3>
+            <p><span>Dano da arma</span><strong>{combat.weaponDamage ?? 0}</strong></p>
+            <p><span>Força total</span><strong>{combat.strength ?? 0}</strong></p>
+            <p><span>Vida da armadura</span><strong>+{combat.armorHp ?? 0}</strong></p>
+            <p><span>Resistência</span><strong>{combat.resistance ?? 0}</strong></p>
+            <p className="battle-modal__formula">Dano do turno = Força + (dano da arma × multiplicador)</p>
+          </div>
+        </div>
+
+        <div className="battle-modal__log" aria-live="polite">
+          <h3>Registro do combate</h3>
+          {!combat.turns?.length && <p className="battle-modal__log-empty">A batalha começou. Role o D20 para executar sua primeira ação.</p>}
+          {(combat.turns || []).slice(-5).map((turn) => (
+            <p key={turn.round} className="battle-modal__log-entry">
+              <strong>Rodada {turn.round}:</strong> você tirou {turn.playerRoll} (×{turn.playerMultiplier}) e causou {turn.playerDamage} de dano.
+              {turn.enemyRoll ? ` O inimigo tirou ${turn.enemyRoll} e causou ${turn.enemyDamage} de dano.` : " O inimigo foi derrotado antes de contra-atacar."}
+            </p>
+          ))}
+          {result && <p className={`battle-modal__outcome ${result.victory ? "is-victory" : "is-defeat"}`}>{result.victory ? "Inimigo derrotado! As recompensas foram aplicadas." : result.permanentDeath ? "Derrota permanente: a campanha foi encerrada." : "Você foi derrotado. A consequência foi registrada na campanha."}</p>}
+        </div>
+
+        <footer className="battle-modal__footer">
+          {!result
+            ? <button className="battle-modal__primary" onClick={onRoll} disabled={busy}>Rolar D20 e agir</button>
+            : <button className="battle-modal__primary" onClick={onClose} disabled={busy}>Fechar batalha</button>}
+        </footer>
+      </section>
+    </div>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState("menu");
   const [statusOpen, setStatusOpen] = useState(false);
