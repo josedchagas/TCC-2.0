@@ -202,12 +202,12 @@ export async function resolveEncounter(req, res) {
   const isBoss = enemy.kind === "boss";
   const nextChapter = isBoss ? Math.min(CHAPTERS.length, save.chapterCurrent + 1) : save.chapterCurrent;
   const [updated] = await db.update(saves).set({
-    // Subir de nível aumenta os limites, mas não recupera vida ou vigor automaticamente.
-    // O dano recebido durante a simulação não reduz corações ao vencer; a vida salva permanece igual.
-    hpCurrent: Math.max(1, Math.min(save.hpMax + levelsGained * 12, save.hpCurrent)),
-    hpMax: save.hpMax + levelsGained * 12,
-    energyCurrent: save.energyCurrent,
-    energyMax: save.energyMax + levelsGained * 5,
+    // Corações (moral) e vigor têm capacidade fixa de 5; subir de nível não altera esses limites.
+    // O dano recebido durante a simulação não reduz corações ao vencer.
+    hpCurrent: Math.min(5, Math.max(1, save.hpCurrent)),
+    hpMax: 5,
+    energyCurrent: Math.min(5, save.energyCurrent),
+    energyMax: 5,
     xpCurrent, xpMax, availablePoints,
     money: sql`${saves.money} + ${enemy.gold}`,
     chapterCurrent: nextChapter,
@@ -322,11 +322,11 @@ export async function resolveSideQuest(req, res) {
     }
     await db.update(saves).set({
       xpCurrent, xpMax, availablePoints,
-      // A evolução aumenta os limites, mas só consumíveis recuperam os valores atuais.
-      hpMax: save.hpMax + levelsGained * 12,
-      hpCurrent: save.hpCurrent,
-      energyMax: save.energyMax + levelsGained * 5,
-      energyCurrent: save.energyCurrent,
+      // Corações (moral) e vigor permanecem com limite fixo de 5, mesmo ao subir de nível.
+      hpMax: 5,
+      hpCurrent: Math.min(5, save.hpCurrent),
+      energyMax: 5,
+      energyCurrent: Math.min(5, save.energyCurrent),
       money: sql`${saves.money} + ${quest.gold}`,
       updatedAt: new Date(), lastPlayedAt: new Date(),
     }).where(eq(saves.id, save.id));
