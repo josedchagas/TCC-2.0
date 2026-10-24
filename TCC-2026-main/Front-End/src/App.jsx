@@ -118,13 +118,21 @@ function relativeTime(value) {
 function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   const [animationAction, setAnimationAction] = useState(null);
   const [animatedHp, setAnimatedHp] = useState(null);
+  const [animationFinished, setAnimationFinished] = useState(false);
   useEffect(() => {
     const turns = battle?.combat?.turns || [];
-    if (!battle?.result || !turns.length) {
+    if (!battle?.result) {
       setAnimationAction(null);
+      setAnimationFinished(false);
+      return undefined;
+    }
+    if (!turns.length) {
+      setAnimationAction(null);
+      setAnimationFinished(true);
       return undefined;
     }
     let cancelled = false;
+    setAnimationFinished(false);
     const timers = [];
     setAnimatedHp({ playerHp: battle.combat.playerMaxHp, enemyHp: battle.combat.enemyMaxHp });
     let index = 0;
@@ -134,8 +142,10 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
       }, delay));
     };
     const playTurn = () => {
-      if (cancelled || index >= turns.length) {
+      if (cancelled) return;
+      if (index >= turns.length) {
         setAnimationAction(null);
+        setAnimationFinished(true);
         return;
       }
       // Cada ataque tem sua animação; depois dela, há 800 ms de pausa.
@@ -173,6 +183,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   if (!battle) return null;
   const combat = battle.combat || {};
   const result = battle.result;
+  const combatFinished = Boolean(result && animationFinished);
   const displayedPlayerHp = animatedHp?.playerHp ?? (result ? combat.playerMaxHp : combat.playerHp);
   const displayedEnemyHp = animatedHp?.enemyHp ?? (result ? combat.enemyMaxHp : combat.enemyHp);
   const playerPct = combat.playerMaxHp ? Math.max(0, Math.min(100, (displayedPlayerHp / combat.playerMaxHp) * 100)) : 100;
@@ -189,7 +200,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
       <section className="battle-modal" role="dialog" aria-modal="true" aria-labelledby="battle-modal-title">
         <header className="battle-modal__header">
           <div><p className="battle-modal__eyebrow">COMBATE · D20</p><h2 id="battle-modal-title">{battle.enemy.name}</h2></div>
-          <span className="battle-modal__round">{result ? (result.victory ? "Vitória" : "Derrota") : "Prepare-se"}</span>
+          <span className="battle-modal__round">{combatFinished ? (result.victory ? "Vitória" : "Derrota") : "Prepare-se"}</span>
         </header>
 
         <div className="battle-modal__fighters">
@@ -219,8 +230,8 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
                   </svg>
                 </button>
               : <div className="battle-modal__final-roll"><span>D20</span><strong>{roll}</strong><small>×{multiplier}</small></div>}
-            <p className="battle-modal__dice-caption">{busy ? "A batalha está acontecendo..." : result ? (result.victory ? "Inimigo derrotado!" : "Combate encerrado") : "Clique uma vez para decidir a batalha"}</p>
-            {result && <p className={`battle-modal__roll-result ${result.victory ? "is-success" : "is-failure"}`}>{result.victory ? "Vitória" : "Derrota"}{combat.turns?.some((turn) => turn.playerCritical || turn.enemyCritical) ? " · Crítico no combate!" : ""}</p>}
+            <p className="battle-modal__dice-caption">{busy || (result && !combatFinished) ? "A batalha está acontecendo..." : combatFinished ? (result.victory ? "Inimigo derrotado!" : "Combate encerrado") : "Clique uma vez para decidir a batalha"}</p>
+            {combatFinished && <p className={`battle-modal__roll-result ${result.victory ? "is-success" : "is-failure"}`}>{result.victory ? "Vitória" : "Derrota"}{combat.turns?.some((turn) => turn.playerCritical || turn.enemyCritical) ? " · Crítico no combate!" : ""}</p>}
           </div>
           <article className="battle-modal__character-card battle-modal__character-card--enemy">
             <div className="battle-modal__avatar" aria-hidden="true">{enemyVisual}</div>
@@ -229,7 +240,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
           </article>
         </div>
 
-        {result && <section className="battle-modal__drops">
+        {combatFinished && <section className="battle-modal__drops">
           <h3>{result.victory ? "Drops do inimigo" : "Resultado do combate"}</h3>
           {!result.victory && <p className="battle-modal__drops-empty">Nenhum drop: você não venceu este confronto.</p>}
           {result.victory && drops.length === 0 && <p className="battle-modal__drops-empty">Este inimigo não deixou itens desta vez.</p>}
@@ -244,10 +255,10 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
           ))}
         </section>}
 
-        {result && <p className={`battle-modal__outcome ${result.victory ? "is-victory" : "is-defeat"}`}>{result.victory ? "Você venceu! XP e moedas foram contabilizados." : result.permanentDeath ? "Derrota permanente: a campanha foi encerrada." : "Você perdeu o combate e perdeu 1 ponto de Moral."}</p>}
+        {combatFinished && <p className={`battle-modal__outcome ${result.victory ? "is-victory" : "is-defeat"}`}>{result.victory ? "Você venceu! XP e moedas foram contabilizados." : result.permanentDeath ? "Derrota permanente: a campanha foi encerrada." : "Você perdeu o combate e perdeu 1 ponto de Moral."}</p>}
         <footer className="battle-modal__footer">
-          {!roll && !result
-            ? <span className="battle-modal__footer-hint">Uma única rolagem resolve toda a batalha.</span>
+          {!roll || !combatFinished
+            ? <span className="battle-modal__footer-hint">{roll && !combatFinished ? "Aguarde o fim dos golpes..." : "Uma única rolagem resolve toda a batalha."}</span>
             : <button className="battle-modal__primary" onClick={onClose} disabled={busy || (result?.victory && drops.some((drop) => !drop.claimed && !drop.discarded))}>{result?.victory && drops.some((drop) => !drop.claimed && !drop.discarded) ? "Escolha os drops para continuar" : "Fechar batalha"}</button>}
         </footer>
       </section>
