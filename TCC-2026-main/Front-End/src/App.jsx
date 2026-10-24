@@ -186,7 +186,6 @@ export default function App() {
     }
     const quests = [...sideQuests].sort((a, b) => a.id.localeCompare(b.id));
     const enemies = chapterData.enemies ?? [];
-    const chapterCharacter = CHAPTER_CHARACTERS[Math.max(0, Math.min(CHAPTER_CHARACTERS.length - 1, Number(chapterData.number) - 1))];
     const ordinaryEnemies = enemies.filter((enemy) => enemy.kind !== "boss");
     const boss = enemies.find((enemy) => enemy.kind === "boss");
     const sequence = [
