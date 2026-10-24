@@ -72,7 +72,7 @@ function sceneNarration(chapter, subject, description, isQuest = false) {
     "Em " + place + ", você encontra " + character.name + ", " + character.role + ". A chuva escorre pelas pedras e apaga as pegadas que chegam até vocês.",
     character.name + " segura um objeto ligado a “" + subject + "”, mas hesita em entregá-lo; há marcas recentes de corrupção na superfície.",
     "“" + detail + "” — explica " + character.name + ", baixando a voz quando um ruído atravessa as casas vazias.",
-    "Ela lhe conta que a pista pode estar ligada a " + character.motive + ", mas não esconde que a tentativa pode custar tempo, recursos ou confiança.",
+    character.name + " lhe conta que a pista pode estar ligada a " + character.motive + ", mas não esconde que a tentativa pode custar tempo, recursos ou confiança.",
     "Ao longe, alguma coisa responde ao som de suas palavras, como se a região inteira estivesse escutando a conversa.",
     character.name + " encara você, esperando uma decisão: aceitar a missão significa se comprometer com a verdade; partir significa deixar essa pista para trás."
   ].join("\n");
@@ -139,7 +139,7 @@ export default function App() {
       quests[0] && {
         key: quests[0].id, type: "quest", quest: quests[0],
         intro: sceneNarration(chapterData.number, quests[0].title, quests[0].description, true),
-        dialogue: "— Não posso resolver isso sem ajuda — diz a pessoa, mantendo a voz baixa. — Você aceita me ajudar ou prefere seguir viagem?",
+        dialogue: "— " + chapterCharacter.name + " — diz " + chapterCharacter.name + ", mantendo a voz baixa — não posso resolver isso sem ajuda. Você aceita me ajudar ou vai me deixar com essa pista?",
       },
       ordinaryEnemies[0] && {
         key: ordinaryEnemies[0].id, type: "enemy", enemy: ordinaryEnemies[0],
@@ -149,7 +149,7 @@ export default function App() {
       quests[1] && {
         key: quests[1].id, type: "quest", quest: quests[1],
         intro: sceneNarration(chapterData.number, quests[1].title, quests[1].description, true),
-        dialogue: "— O tempo está acabando — diz a pessoa, olhando para a trilha atrás de você. — Ainda posso contar com sua ajuda?",
+        dialogue: "— O tempo está acabando — diz " + chapterCharacter.name + ", olhando para a trilha atrás de você. — Ainda posso contar com sua ajuda?",
       },
       ordinaryEnemies[1] && {
         key: ordinaryEnemies[1].id, type: "enemy", enemy: ordinaryEnemies[1],
