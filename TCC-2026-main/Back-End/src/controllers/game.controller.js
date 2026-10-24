@@ -151,45 +151,45 @@ export async function resolveEncounter(req, res) {
   let playerHp = playerMaxHp;
   const turns = [];
 
-  // Os dados inimigos são reproduzíveis para que o servidor possa revalidar
-  // toda a sequência enviada pelo cliente sem armazenar uma sessão temporária.
-  const enemyRollForTurn = (turn) => {
-    const seed = `${save.id}:${enemy.id}:${turn}`;
+  // Rolagens inimigas e testes críticos são estáveis ao revalidar a sequência.
+  const seededRoll = (label, turn) => {
+    const seed = `${save.id}:${enemy.id}:${turn}:${label}`;
     let hash = 0;
     for (const character of seed) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-    return (hash % 20) + 1;
+    return (hash % 100) + 1;
   };
+  const enemyRollForTurn = (turn) => (seededRoll("attack", turn) % 20) + 1;
+  const critByClass = { Guerreiro: 10, Arqueira: 15, Maga: 12, Ladino: 20 };
+  const playerCritChance = critByClass[save.classRole] ?? 10;
+  const enemyCritChance = enemy.kind === "boss" ? 18 : enemy.kind === "elite" ? 13 : 8;
 
   for (let index = 0; index < submittedRolls.length && enemyHp > 0 && playerHp > 0; index += 1) {
+    const round = index + 1;
     const playerRoll = submittedRolls[index];
     const playerMultiplier = playerRoll / 10;
-    // O dado modifica apenas o bônus de vida (armadura + resistência), não os 100 PV base.
     const adjustedLifeBonus = Math.floor(baseLifeBonus * playerMultiplier);
     const lifeAdjustment = adjustedLifeBonus - baseLifeBonus;
     playerMaxHp = Math.max(playerMaxHp, 100 + adjustedLifeBonus);
     playerHp = Math.max(0, Math.min(playerMaxHp, playerHp + lifeAdjustment));
-    const playerDamage = Math.max(1, Math.floor(strength + weaponDamage * playerMultiplier));
+    const playerCritRoll = seededRoll("player-crit", round);
+    const playerCritical = playerRoll === 20 || playerCritRoll <= playerCritChance;
+    const playerBaseDamage = Math.max(1, Math.floor(strength + weaponDamage * playerMultiplier));
+    const playerDamage = Math.max(1, Math.floor(playerBaseDamage * (playerCritical ? 1.5 : 1)));
     enemyHp = Math.max(0, enemyHp - playerDamage);
-    const turn = {
-      round: index + 1,
-      playerRoll,
-      playerMultiplier: Number(playerMultiplier.toFixed(1)),
-      lifeAdjustment,
-      playerMaxHp,
-      playerDamage,
-      enemyHp,
-      enemyRoll: null,
-      enemyDamage: 0,
-      playerHp,
-    };
-
+    const turn = { round, playerRoll, playerMultiplier: Number(playerMultiplier.toFixed(1)), playerCritChance, playerCritRoll, playerCritical, lifeAdjustment, playerMaxHp, playerBaseDamage, playerDamage, enemyHp, enemyRoll: null, enemyCritChance, enemyCritRoll: null, enemyCritical: false, enemyDamage: 0, playerHp };
     if (enemyHp > 0) {
-      const enemyRoll = enemyRollForTurn(index + 1);
+      const enemyRoll = enemyRollForTurn(round);
       const enemyMultiplier = enemyRoll / 10;
-      const enemyDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier));
+      const enemyCritRoll = seededRoll("enemy-crit", round);
+      const enemyCritical = enemyCritRoll <= enemyCritChance;
+      const enemyBaseDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier));
+      const enemyDamage = Math.max(1, Math.floor(enemyBaseDamage * (enemyCritical ? 1.5 : 1)));
       playerHp = Math.max(0, playerHp - enemyDamage);
       turn.enemyRoll = enemyRoll;
       turn.enemyMultiplier = Number(enemyMultiplier.toFixed(1));
+      turn.enemyCritRoll = enemyCritRoll;
+      turn.enemyCritical = enemyCritical;
+      turn.enemyBaseDamage = enemyBaseDamage;
       turn.enemyDamage = enemyDamage;
       turn.playerHp = playerHp;
     }
@@ -200,7 +200,7 @@ export async function resolveEncounter(req, res) {
   const victory = enemyHp <= 0;
   const combat = {
     playerHp, playerMaxHp, enemyHp, enemyMaxHp: enemy.hp,
-    rounds, turns, weaponDamage, armorHp, strength, resistance,
+    rounds, turns, weaponDamage, armorHp, strength, resistance, playerCritChance, enemyCritChance,
   };
 
   if (submittedRolls.length === 0 || (!victory && playerHp > 0 && rounds < 40)) {
