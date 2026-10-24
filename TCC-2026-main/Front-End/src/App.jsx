@@ -73,72 +73,37 @@ function sceneCharacter(chapter, subject, isQuest = false) {
 }
 
 function sceneNarration(chapter, subject, description, isQuest = false) {
-  const place = chapterLocation(chapter);
   const region = chapterRegion(chapter);
   const character = sceneCharacter(chapter, subject, isQuest);
-  const detail = description || "O silêncio parece esconder algo que ainda não foi revelado.";
+  const detail = String(description || "").trim();
   const seed = [...String(subject || "mistério")].reduce((sum, char) => sum + char.charCodeAt(0), Number(chapter) || 1);
-  const atmospheres = [
-    "A névoa rasteja pelo chão e se enrola nos seus tornozelos, escondendo as rachaduras entre as pedras.",
-    "Uma janela bate duas vezes numa casa vazia; logo depois, todas as aves da rua levantam voo ao mesmo tempo.",
-    "O ar cheira a ferro molhado e cinzas antigas, e a fita do sino vibra contra seu equipamento.",
-    "Pequenas gotas escorrem pelas paredes, embora não chova há dias; cada uma deixa uma mancha escura na pedra.",
-    "O silêncio é interrompido por três batidas vindas de algum lugar sob o caminho, sempre na mesma distância dos seus passos.",
-    "As lanternas próximas se apagam em sequência, deixando apenas o brilho estranho que pulsa no símbolo diante de você."
-  ];
+  const atmosphere = ["A névoa rasteja entre as pedras e esconde marcas recentes.", "Uma corrente de ar frio faz as lanternas oscilarem.", "O cheiro de terra molhada e cinzas denuncia que algo foi perturbado.", "Pequenas gotas escorrem pela pedra, embora não chova há dias."][seed % 4];
   if (isQuest) {
     const openings = [
-      "Você encontra " + character.name + ", " + character.role + ", ajoelhado junto a uma caixa de madeira partida " + region + ".",
-      "Uma voz chama por você de dentro de um abrigo quase soterrado. Lá está " + character.name + ", " + character.role + ", protegendo uma pequena pista da umidade " + region + ".",
-      "Perto de um marco coberto de fuligem, " + character.name + ", " + character.role + ", espera com um mapa amassado e as mãos sujas de terra " + region + ".",
-      "O caminho termina diante de uma porta entreaberta. " + character.name + ", " + character.role + ", surge do escuro e pede que você não faça barulho " + region + "."
+      "Ao lado de uma caixa de madeira partida " + region + ", você encontra " + character.name + ", " + character.role + ". Ela separa os objetos que conseguiu salvar e ergue os olhos quando você se aproxima.",
+      region.charAt(0).toUpperCase() + region.slice(1) + ", uma voz pede ajuda de dentro de um abrigo quase soterrado. É " + character.name + ", " + character.role + ", protegendo uma pista da umidade.",
+      "Perto de um marco coberto de fuligem " + region + ", " + character.name + ", " + character.role + ", espera com um mapa amassado nas mãos.",
+      "Uma porta entreaberta bloqueia a passagem " + region + ". " + character.name + ", " + character.role + ", aparece do outro lado e explica por que não entrou sozinho."
     ];
-    const reveals = [
-      "A pista está ligada a um símbolo repetido nas casas abandonadas; alguém tentou raspá-lo da madeira, mas deixou os sulcos intactos.",
-      "Entre os objetos, há uma página chamuscada com nomes riscados. Um deles foi escrito tantas vezes que quase rasgou o papel.",
-      "O objeto guarda um resíduo de energia que pulsa no mesmo ritmo do sino subterrâneo, como se ambos fizessem parte de um mecanismo.",
-      "No verso da pista, alguém desenhou uma rota que não aparece no mapa de Maelis; a tinta ainda está fresca apesar da umidade."
-    ];
-    const choices = [
-      "“Se me ajudar, talvez consigamos descobrir quem deixou isto aqui antes que a névoa apague o último vestígio”, diz " + character.name + ".",
-      "“Não posso prometer que será seguro”, admite " + character.name + ". “Só sei que ninguém deveria ter encontrado isso e continuado vivo para contar.”",
-      "“Leve o tempo que precisar para decidir”, diz " + character.name + ". “Mas, se ouvir o sino tocar três vezes, não fique aqui.”",
-      "“Eu devia ter contado isso antes”, confessa " + character.name + ". “Só não sabia em quem confiar desde que as pessoas começaram a desaparecer.”"
-    ];
-    return [openings[seed % openings.length], detail, reveals[(seed + 1) % reveals.length], atmospheres[(seed + 2) % atmospheres.length], character.name + " explica que a descoberta pode ajudar a " + (CHAPTER_CHARACTERS[Math.max(0, Number(chapter) - 1)]?.motive || "descobrir a origem da corrupção") + ".", choices[(seed + 3) % choices.length]].join("\n");
+    const reveals = ["A pista mostra um símbolo repetido nas casas abandonadas. Alguém tentou raspá-lo da madeira, mas os sulcos continuam visíveis.", "Entre os objetos, há uma página chamuscada com vários nomes riscados. Um deles foi escrito tantas vezes que quase rasgou o papel.", "O objeto guarda um resíduo de energia que pulsa no mesmo ritmo do sino subterrâneo, como se os dois fizessem parte do mesmo mecanismo.", "No verso da pista, alguém desenhou uma rota ausente do mapa de Maelis. Apesar da umidade, a tinta parece recente."];
+    const motives = [character.name + " acredita que a pista pode revelar quem esteve ali antes dos desaparecimentos e pede sua ajuda para examiná-la.", character.name + " teme que a névoa apague os últimos vestígios dos moradores desaparecidos.", character.name + " quer confirmar se a pista está ligada ao sino enterrado antes que alguém a destrua.", character.name + " admite que guardou o achado por medo de confiar na pessoa errada."];
+    const choices = ["“Se me ajudar, talvez descubramos quem deixou isto aqui”, diz " + character.name + ".", "“Não posso prometer que será seguro”, admite " + character.name + ". “Mas não quero que outra pessoa desapareça.”", "“Se ouvir o sino tocar três vezes, afaste-se do poço”, alerta " + character.name + ".", "“Eu devia ter contado isso antes”, confessa " + character.name + ". “Só não sabia em quem confiar.”"];
+    const task = detail ? "Você examina a tarefa: " + detail.charAt(0).toLowerCase() + detail.slice(1) : "Você examina os vestígios à procura de uma explicação.";
+    return [openings[seed % openings.length], task, reveals[(seed + 1) % reveals.length], atmosphere, motives[(seed + 2) % motives.length], choices[(seed + 3) % choices.length]].join("\n");
   }
+  const enemyName = String(subject || "a criatura desconhecida").trim();
+  const enemyDescription = detail ? detail.charAt(0).toLowerCase() + detail.slice(1).replace(/[.!?]+$/, "") : "uma criatura deformada pela corrupção";
   const openings = [
-    "O caminho se estreita " + region + ", onde as casas dão lugar a ruínas tomadas por raízes negras.",
-    "Um estalo ecoa do outro lado da passagem " + region + "; quando você se aproxima, uma silhueta bloqueia a trilha.",
-    "Você avista marcas recentes no barro " + region + ". Antes que consiga examiná-las, " + subject + " salta para o caminho.",
-    "A fita do sino começa a vibrar quando você entra na área interditada " + region + ". Uma figura corrompida ergue a cabeça e encara você.",
-    "Entre carroças tombadas e pedras partidas " + region + ", " + subject + " se arrasta para fora das sombras e ocupa a passagem."
+    "Você chega a uma passagem estreita " + region + ". Entre as ruínas, vê " + enemyName + ", " + enemyDescription + ", bloqueando a estrada.",
+    "Um ruído de pedra raspando contra pedra vem da trilha " + region + ". Ao se aproximar, você vê " + enemyName + " — " + enemyDescription + " — saindo das sombras.",
+    "As marcas no barro levam a uma construção abandonada " + region + ". No centro do caminho, " + enemyName + ", " + enemyDescription + ", ergue a cabeça ao perceber sua presença.",
+    "A fita do sino vibra quando você entra na área interditada " + region + ". Logo adiante, " + enemyName + ", " + enemyDescription + ", bloqueia a saída.",
+    "Carroças tombadas e pedras partidas bloqueiam a estrada " + region + ". Atrás delas, " + enemyName + ", " + enemyDescription + ", prepara-se para atacar."
   ];
-  const actions = [
-    "A criatura golpeia o chão e uma onda de poeira revela marcas antigas, dispostas como os dentes de uma fechadura.",
-    "Seus movimentos são bruscos, mas cada investida termina voltada para o mesmo ponto: uma porta de pedra coberta por raízes.",
-    "O inimigo carrega restos de tecido e uma pequena medalha de morador; por um segundo, a corrupção parece hesitar dentro dele.",
-    "Uma sombra se desprende da criatura e corre pela parede, apontando para a estrada antes de desaparecer numa fenda.",
-    "O som de metal arrastado acompanha cada passo do adversário; no peito dele, um fragmento escuro pulsa como um coração emprestado."
-  ];
-  const ally = Number(chapter) === 1 ? CHAPTER_ONE_CAST[3] : character;
-  const warnings = [
-    "“Não ataque às cegas”, avisa " + ally.name + ". “Observe o que ela protege; a corrupção nunca escolhe um guardião sem motivo.”",
-    "De um abrigo próximo, " + ally.name + " grita: “Quando ela baixar a cabeça, afaste-se! Foi assim que derrubou a última barricada.”",
-    ally.name + " segura uma lanterna trêmula e revela: “Essa coisa já esteve aqui antes. Toda vez que aparece, alguma lembrança desaparece da vila.”",
-    "“O símbolo no corpo dela é igual ao da capela”, murmura " + ally.name + ". “Se o destruirmos, talvez encontremos a origem da ordem que ela segue.”",
-    ally.name + " recua para proteger a passagem e diz: “Vou manter a rota aberta, mas não consigo segurá-la por muito tempo.”"
-  ];
-  const stakes = [
-    "A ameaça se prepara para atacar, e o caminho continuará bloqueado até que você a vença.",
-    "A criatura inclina o corpo e calcula a distância entre vocês. Recuar é possível, mas alguém terá de enfrentar esse guardião para abrir a passagem.",
-    "O chão treme sob seus pés; se a criatura alcançar o marco de pedra, a trilha poderá desabar junto com a única rota segura.",
-    "Você sente que o inimigo está ligado ao sino enterrado. Derrotá-lo pode revelar uma nova pista, mas hesitar dará a ele a primeira investida.",
-    "A névoa se fecha atrás de você. Não há caminho livre até que a criatura seja vencida ou que você consiga escapar da área interditada."
-  ];
-  return [openings[seed % openings.length], detail, actions[(seed + 1) % actions.length], atmospheres[(seed + 2) % atmospheres.length], warnings[(seed + 3) % warnings.length], stakes[(seed + 4) % stakes.length]].join("\n");
+  const actions = ["A criatura golpeia o chão; a poeira revela marcas antigas, dispostas como os dentes de uma fechadura.", "Cada investida termina diante de uma porta de pedra coberta por raízes. Parece proteger algo atrás dela.", "Preso ao corpo da criatura há um medalhão de morador. Por um instante, ela hesita, como se reconhecesse o objeto.", "Uma sombra escapa da criatura e desliza pela parede até desaparecer numa fenda.", "Um fragmento escuro pulsa no peito do inimigo. A cada pulsação, a névoa ao redor se adensa."];
+  const stakes = ["A criatura avança e bloqueia a passagem. Para seguir por essa rota, você terá de enfrentá-la ou recuar.", "O chão começa a ceder sob as raízes. Se o confronto se prolongar, a passagem pode desabar.", "O fragmento no peito da criatura reage à fita do sino. Derrotá-la pode revelar por que os dois parecem ligados.", "A névoa fecha a trilha atrás de você. A criatura continua entre você e a estrada, pronta para atacar.", "A porta de pedra permanece escondida atrás do inimigo; você não consegue examiná-la enquanto ele bloquear o caminho."];
+  return [openings[seed % openings.length], actions[(seed + 1) % actions.length], atmosphere, stakes[(seed + 2) % stakes.length]].join("\n");
 }
-
 function relativeTime(value) {
   if (!value) return "Ainda não jogado";
   const elapsed = Date.now() - new Date(value).getTime();
