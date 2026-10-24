@@ -124,27 +124,45 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
       return undefined;
     }
     let cancelled = false;
-    let timer;
+    const timers = [];
     let index = 0;
+    const schedule = (callback, delay) => {
+      timers.push(setTimeout(() => {
+        if (!cancelled) callback();
+      }, delay));
+    };
     const playTurn = () => {
       if (cancelled || index >= turns.length) {
         setAnimationAction(null);
         return;
       }
+      // Cada ataque tem sua animação; depois dela, há 800 ms de pausa.
       setAnimationAction("player");
-      timer = setTimeout(() => {
-        if (cancelled) return;
+      schedule(() => {
+        setAnimationAction(null);
         if (turns[index]?.enemyRoll) {
-          setAnimationAction("enemy");
-          timer = setTimeout(() => { index += 1; playTurn(); }, 360);
+          schedule(() => {
+            setAnimationAction("enemy");
+            schedule(() => {
+              setAnimationAction(null);
+              index += 1;
+              // Pausa após o ataque inimigo antes de voltar ao jogador.
+              schedule(playTurn, 800);
+            }, 500);
+          }, 800);
         } else {
           index += 1;
-          playTurn();
+          // Também deixa o golpe final ser visto antes de encerrar a animação.
+          schedule(playTurn, 800);
         }
-      }, 360);
+      }, 500);
     };
-    playTurn();
-    return () => { cancelled = true; clearTimeout(timer); };
+    // Dá tempo para o resultado do D20 aparecer antes de começar a luta.
+    schedule(playTurn, 800);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
   }, [battle?.result, battle?.combat?.turns]);
   if (!battle) return null;
   const combat = battle.combat || {};
