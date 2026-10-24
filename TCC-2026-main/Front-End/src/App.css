@@ -126,3 +126,5 @@
   .battle-modal__header h2 { @apply text-xl; }
   .battle-modal__dice { @apply w-28; }
 }
+
+.battle-modal__footer-hint { @apply text-xs text-[#bda982]; }
