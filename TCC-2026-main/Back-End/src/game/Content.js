@@ -1,23 +1,64 @@
 
+// Cada peça de armadura usa um tipo exclusivo, compatível somente com seu slot.
+const armorSet = (prefix, className, setName, rarity, price, stats) => [
+  { code: `${prefix}_elmo`, name: `Elmo ${setName}`, type: "helmet", rarity, price, description: `Elmo do conjunto ${setName}, criado para ${className.toLowerCase()}.`, stats: { ...stats.helmet } },
+  { code: `${prefix}_peitoral`, name: `Peitoral ${setName}`, type: "chest", rarity, price: price * 2, description: `Peitoral do conjunto ${setName}, criado para ${className.toLowerCase()}.`, stats: { ...stats.chest } },
+  { code: `${prefix}_calcas`, name: `Calças ${setName}`, type: "pants", rarity, price: Math.floor(price * 0.8), description: `Calças do conjunto ${setName}, criadas para ${className.toLowerCase()}.`, stats: { ...stats.pants } },
+  { code: `${prefix}_botas`, name: `Botas ${setName}`, type: "boots", rarity, price: Math.floor(price * 0.7), description: `Botas do conjunto ${setName}, criadas para ${className.toLowerCase()}.`, stats: { ...stats.boots } },
+];
+
+const classArmor = [
+  ...armorSet("arqueira_trilha", "Arqueira", "da Trilha Lunar", "incomum", 120, { helmet: { destreza: 2 }, chest: { resistencia: 2, destreza: 2 }, pants: { agilidade: 2 }, boots: { agilidade: 3 } }),
+  ...armorSet("arqueira_falcao", "Arqueira", "do Falcão Celeste", "epico", 420, { helmet: { destreza: 4, agilidade: 1 }, chest: { resistencia: 4, destreza: 3 }, pants: { destreza: 2, agilidade: 3 }, boots: { agilidade: 5 } }),
+  ...armorSet("guerreiro_bastiao", "Guerreiro", "do Bastião", "incomum", 130, { helmet: { resistencia: 3 }, chest: { resistencia: 4, forca: 1 }, pants: { resistencia: 2 }, boots: { resistencia: 2, forca: 1 } }),
+  ...armorSet("guerreiro_colosso", "Guerreiro", "do Colosso", "epico", 460, { helmet: { resistencia: 5, forca: 1 }, chest: { resistencia: 7, forca: 3 }, pants: { resistencia: 4, forca: 2 }, boots: { resistencia: 3, forca: 2 } }),
+  ...armorSet("maga_astrolabio", "Maga", "do Astrolábio", "incomum", 125, { helmet: { inteligencia: 3 }, chest: { inteligencia: 3, resistencia: 1 }, pants: { inteligencia: 2 }, boots: { agilidade: 1, inteligencia: 1 } }),
+  ...armorSet("maga_cometa", "Maga", "do Cometa Arcano", "epico", 450, { helmet: { inteligencia: 5 }, chest: { inteligencia: 6, resistencia: 2 }, pants: { inteligencia: 3, agilidade: 1 }, boots: { inteligencia: 2, agilidade: 2 } }),
+  ...armorSet("ladino_sombra", "Ladino", "da Sombra", "incomum", 120, { helmet: { destreza: 2, agilidade: 1 }, chest: { resistencia: 2, destreza: 2 }, pants: { destreza: 2 }, boots: { agilidade: 3 } }),
+  ...armorSet("ladino_espectro", "Ladino", "do Espectro", "epico", 440, { helmet: { destreza: 4, agilidade: 2 }, chest: { resistencia: 3, destreza: 4 }, pants: { destreza: 3, agilidade: 2 }, boots: { agilidade: 5, destreza: 1 } }),
+];
+
 export const ITEMS = [
   { code: "pocao_vida", name: "Poção de Vida", type: "consumable", rarity: "comum", price: 25, description: "Recupera 35 pontos de vida.", effect: { hp: 35 } },
   { code: "pocao_grande", name: "Poção de Vida Maior", type: "consumable", rarity: "incomum", price: 65, description: "Recupera 80 pontos de vida.", effect: { hp: 80 } },
   { code: "tonico_energia", name: "Tônico de Energia", type: "consumable", rarity: "comum", price: 30, description: "Recupera 25 pontos de energia.", effect: { energy: 25 } },
   { code: "elixir_total", name: "Elixir do Viajante", type: "consumable", rarity: "raro", price: 140, description: "Recupera 70 de vida e 40 de energia.", effect: { hp: 70, energy: 40 } },
-  { code: "espada_aventureiro", name: "Espada do Aventureiro", type: "weapon", rarity: "comum", price: 90, description: "Uma espada confiável para as primeiras jornadas.", stats: { forca: 3 } },
-  { code: "arco_freixo", name: "Arco de Freixo", type: "weapon", rarity: "comum", price: 90, description: "Arco leve, simples e preciso.", stats: { destreza: 3 } },
-  { code: "cajado_cobre", name: "Cajado de Cobre", type: "weapon", rarity: "comum", price: 95, description: "Canaliza energia arcana básica.", stats: { inteligencia: 3 } },
-  { code: "adaga_lua", name: "Adaga do Luar", type: "weapon", rarity: "incomum", price: 180, description: "Uma lâmina veloz usada por batedores.", stats: { destreza: 4, agilidade: 2 } },
-  { code: "lamina_rubi", name: "Lâmina Rubra", type: "weapon", rarity: "raro", price: 360, description: "Aço rubro que vibra com energia antiga.", stats: { forca: 6, destreza: 2 } },
-  { code: "espada_aurora", name: "Espada da Aurora", type: "weapon", rarity: "epico", price: 720, description: "Uma arma lendária forjada para enfrentar a noite eterna.", stats: { forca: 9, resistencia: 3 } },
-  { code: "tunica_couro", name: "Túnica Reforçada", type: "armor", rarity: "comum", price: 75, description: "Couro reforçado que amortece golpes.", stats: { resistencia: 2 } },
-  { code: "cota_batedor", name: "Cota do Batedor", type: "armor", rarity: "incomum", price: 165, description: "Proteção flexível para quem vive na estrada.", stats: { resistencia: 3, agilidade: 1 } },
-  { code: "armadura_guardiao", name: "Armadura do Guardião", type: "armor", rarity: "raro", price: 340, description: "Armadura pesada marcada por antigas batalhas.", stats: { resistencia: 6, forca: 2 } },
-  { code: "manto_arcanista", name: "Manto do Arcanista", type: "armor", rarity: "incomum", price: 170, description: "Fios encantados protegem e conduzem magia.", stats: { inteligencia: 3, resistencia: 1 } },
+
+  // Quatro armas por classe, com uma lendária em cada grupo.
+  { code: "arco_freixo", name: "Arco de Freixo", classRole: "Arqueira", type: "weapon", rarity: "comum", price: 90, description: "Arco leve, simples e preciso.", stats: { destreza: 3 } },
+  { code: "arqueira_arco_tempestade", name: "Arco da Tempestade", classRole: "Arqueira", type: "weapon", rarity: "incomum", price: 210, description: "Dispara flechas com a força de ventos cortantes.", stats: { destreza: 5, agilidade: 2 } },
+  { code: "arqueira_arco_raiz_antiga", name: "Arco da Raiz Antiga", classRole: "Arqueira", type: "weapon", rarity: "raro", price: 420, description: "Madeira ancestral que encontra o caminho até o alvo.", stats: { destreza: 7, agilidade: 3 } },
+  { code: "arqueira_arco_fenix", name: "Arco Lendário da Fênix", classRole: "Arqueira", type: "weapon", rarity: "lendario", price: 1100, description: "Arco lendário que incendeia o ar a cada disparo.", stats: { destreza: 11, agilidade: 5, inteligencia: 2 } },
+
+  { code: "espada_aventureiro", name: "Espada do Aventureiro", classRole: "Guerreiro", type: "weapon", rarity: "comum", price: 90, description: "Uma espada confiável para as primeiras jornadas.", stats: { forca: 3 } },
+  { code: "guerreiro_martelo_batalha", name: "Martelo de Batalha", classRole: "Guerreiro", type: "weapon", rarity: "incomum", price: 220, description: "Martelo pesado que recompensa a força bruta.", stats: { forca: 5, resistencia: 2 } },
+  { code: "lamina_rubi", name: "Lâmina Rubra", classRole: "Guerreiro", type: "weapon", rarity: "raro", price: 430, description: "Aço rubro que vibra com energia antiga.", stats: { forca: 7, resistencia: 2 } },
+  { code: "espada_aurora", name: "Espada Lendária da Aurora", classRole: "Guerreiro", type: "weapon", rarity: "lendario", price: 1200, description: "Espada lendária forjada para enfrentar a noite eterna.", stats: { forca: 12, resistencia: 4 } },
+
+  { code: "cajado_cobre", name: "Cajado de Cobre", classRole: "Maga", type: "weapon", rarity: "comum", price: 95, description: "Canaliza energia arcana básica.", stats: { inteligencia: 3 } },
+  { code: "maga_orbe_estelar", name: "Orbe Estelar", classRole: "Maga", type: "weapon", rarity: "incomum", price: 225, description: "Um orbe que concentra a luz das constelações.", stats: { inteligencia: 5, resistencia: 1 } },
+  { code: "maga_cajado_cristal", name: "Cajado de Cristal", classRole: "Maga", type: "weapon", rarity: "raro", price: 440, description: "Cristais lapidados ampliam o poder dos feitiços.", stats: { inteligencia: 8, agilidade: 1 } },
+  { code: "maga_cetro_cosmico", name: "Cetro Lendário Cósmico", classRole: "Maga", type: "weapon", rarity: "lendario", price: 1250, description: "Cetro lendário que canaliza a energia entre as estrelas.", stats: { inteligencia: 13, resistencia: 3 } },
+
+  { code: "adaga_lua", name: "Adaga do Luar", classRole: "Ladino", type: "weapon", rarity: "comum", price: 100, description: "Lâmina veloz usada por batedores.", stats: { destreza: 3, agilidade: 1 } },
+  { code: "ladino_laminas_gemeas", name: "Lâminas Gêmeas", classRole: "Ladino", type: "weapon", rarity: "incomum", price: 230, description: "Duas lâminas equilibradas para ataques rápidos.", stats: { destreza: 5, agilidade: 3 } },
+  { code: "ladino_faca_silencio", name: "Faca do Silêncio", classRole: "Ladino", type: "weapon", rarity: "raro", price: 450, description: "Arma discreta que encontra brechas na defesa.", stats: { destreza: 8, agilidade: 3 } },
+  { code: "ladino_adaga_vazio", name: "Adaga Lendária do Vazio", classRole: "Ladino", type: "weapon", rarity: "lendario", price: 1180, description: "Adaga lendária que parece desaparecer entre um golpe e outro.", stats: { destreza: 12, agilidade: 6 } },
+
+  // Armaduras existentes agora apontam para o slot correto.
+  { code: "tunica_couro", name: "Túnica Reforçada", type: "chest", rarity: "comum", price: 75, description: "Couro reforçado que amortece golpes.", stats: { resistencia: 2 } },
+  { code: "cota_batedor", name: "Cota do Batedor", type: "chest", rarity: "incomum", price: 165, description: "Proteção flexível para quem vive na estrada.", stats: { resistencia: 3, agilidade: 1 } },
+  { code: "armadura_guardiao", name: "Armadura do Guardião", type: "chest", rarity: "raro", price: 340, description: "Armadura pesada marcada por antigas batalhas.", stats: { resistencia: 6, forca: 2 } },
+  { code: "manto_arcanista", name: "Manto do Arcanista", type: "chest", rarity: "incomum", price: 170, description: "Fios encantados protegem e conduzem magia.", stats: { inteligencia: 3, resistencia: 1 } },
+  { code: "botas_cacador", name: "Botas do Caçador", type: "boots", rarity: "incomum", price: 150, description: "Botas silenciosas para trilhas difíceis.", stats: { agilidade: 3 } },
+  { code: "elmo_vigia", name: "Elmo do Vigia", type: "helmet", rarity: "comum", price: 70, description: "Um elmo simples que protege a cabeça.", stats: { resistencia: 2 } },
+  { code: "calcas_couro", name: "Calças de Couro", type: "pants", rarity: "comum", price: 65, description: "Calças resistentes para longas jornadas.", stats: { agilidade: 1, resistencia: 1 } },
+  { code: "escudo_carvalho", name: "Escudo de Carvalho", type: "shield", rarity: "comum", price: 80, description: "Escudo robusto, feito de madeira antiga.", stats: { resistencia: 3 } },
   { code: "anel_vigor", name: "Anel do Vigor", type: "accessory", rarity: "incomum", price: 190, description: "Um anel simples que fortalece o corpo.", stats: { resistencia: 2 } },
   { code: "anel_sabio", name: "Anel do Sábio", type: "accessory", rarity: "raro", price: 330, description: "Amplifica a concentração e o raciocínio.", stats: { inteligencia: 4 } },
-  { code: "botas_cacador", name: "Botas do Caçador", type: "armor", rarity: "incomum", price: 150, description: "Botas silenciosas para trilhas difíceis.", stats: { agilidade: 3 } },
-  { code: "escudo_carvalho", name: "Escudo de Carvalho", type: "armor", rarity: "comum", price: 80, description: "Escudo robusto, feito de madeira antiga.", stats: { resistencia: 3 } },
+
+  ...classArmor,
+
   { code: "cristal_arcano", name: "Cristal Arcano", type: "material", rarity: "incomum", price: 45, description: "Fragmento de energia usado em rituais e trocas." },
   { code: "presa_sombria", name: "Presa Sombria", type: "material", rarity: "comum", price: 18, description: "Presa de uma criatura corrompida." },
   { code: "escama_draconica", name: "Escama Dracônica", type: "material", rarity: "raro", price: 95, description: "Escama resistente, valorizada por ferreiros." },
