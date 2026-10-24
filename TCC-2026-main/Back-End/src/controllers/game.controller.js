@@ -202,9 +202,10 @@ export async function resolveEncounter(req, res) {
   const isBoss = enemy.kind === "boss";
   const nextChapter = isBoss ? Math.min(CHAPTERS.length, save.chapterCurrent + 1) : save.chapterCurrent;
   const [updated] = await db.update(saves).set({
-    hpCurrent: Math.max(1, Math.min(save.hpMax + levelsGained * 12, playerHp + levelsGained * 12)),
+    // Subir de nível aumenta os limites, mas não recupera vida ou vigor automaticamente.
+    hpCurrent: Math.max(1, Math.min(save.hpMax + levelsGained * 12, playerHp)),
     hpMax: save.hpMax + levelsGained * 12,
-    energyCurrent: Math.min(save.energyMax + levelsGained * 5, save.energyCurrent + levelsGained * 5),
+    energyCurrent: save.energyCurrent,
     energyMax: save.energyMax + levelsGained * 5,
     xpCurrent, xpMax, availablePoints,
     money: sql`${saves.money} + ${enemy.gold}`,
@@ -320,10 +321,11 @@ export async function resolveSideQuest(req, res) {
     }
     await db.update(saves).set({
       xpCurrent, xpMax, availablePoints,
+      // A evolução aumenta os limites, mas só consumíveis recuperam os valores atuais.
       hpMax: save.hpMax + levelsGained * 12,
-      hpCurrent: Math.min(save.hpMax + levelsGained * 12, save.hpCurrent + levelsGained * 12),
+      hpCurrent: save.hpCurrent,
       energyMax: save.energyMax + levelsGained * 5,
-      energyCurrent: Math.min(save.energyMax + levelsGained * 5, save.energyCurrent + levelsGained * 5),
+      energyCurrent: save.energyCurrent,
       money: sql`${saves.money} + ${quest.gold}`,
       updatedAt: new Date(), lastPlayedAt: new Date(),
     }).where(eq(saves.id, save.id));
