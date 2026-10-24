@@ -153,7 +153,6 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   const enemyPct = combat.enemyMaxHp ? Math.max(0, Math.min(100, (combat.enemyHp / combat.enemyMaxHp) * 100)) : 100;
   const roll = battle.lastRoll;
   const multiplier = roll ? (roll / 10).toFixed(1) : null;
-  const playerWins = Boolean(result?.victory);
   const playerClass = battle.classRole || "Aventureiro";
   const playerVisual = ({ Guerreiro: "🛡️", Arqueira: "🏹", Maga: "🪄", Ladino: "🗡️" })[playerClass] || "🧙";
   const enemyVisual = battle.enemy.kind === "boss" ? "👹" : battle.enemy.kind === "elite" ? "👺" : "🐺";
