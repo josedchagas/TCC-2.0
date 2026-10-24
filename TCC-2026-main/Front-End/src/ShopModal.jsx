@@ -1,6 +1,6 @@
 import "./ShopModal.css";
 
-export default function ShopModal({ shop, open, onClose, onBuy, busy = false }) {
+export default function ShopModal({ shop, open, onClose, onBuy, money = 0, busy = false }) {
   if (!open || !shop) return null;
   return (
     <div className="shop-overlay" onClick={onClose}>
@@ -9,6 +9,7 @@ export default function ShopModal({ shop, open, onClose, onBuy, busy = false }) 
           <div><p className="shop-kicker">Comerciante itinerante</p><h2>{shop.name}</h2></div>
           <button className="shop-close" onClick={onClose} aria-label="Fechar loja">×</button>
         </header>
+        <div className="shop-wallet" aria-live="polite"><span>Suas moedas</span><strong>🪙 {money}</strong></div>
         <p className="shop-greeting">{shop.greeting}</p>
         <div className="shop-items">
           {shop.items.map((item) => (
