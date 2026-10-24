@@ -209,7 +209,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
           {result.victory && drops.length === 0 && <p className="battle-modal__drops-empty">Este inimigo não deixou itens desta vez.</p>}
           {result.victory && drops.map((drop) => (
             <div className="battle-modal__drop" key={drop.code}>
-              <div><strong>{drop.name}</strong><span>{drop.claimed ? "Adicionado ao inventário" : drop.discarded ? "Descartado" : drop.reason === "inventory_full" ? "Inventário cheio — libere espaço para pegar" : "Item encontrado"}</span></div>
+              <div><strong>{drop.name}</strong><span>{drop.claimed ? "Adicionado ao inventário" : drop.discarded ? "Descartado" : drop.reason === "inventory_full" ? "Inventário cheio — descarte este item para continuar" : "Item encontrado"}</span></div>
               {!drop.claimed && !drop.discarded && <div className="battle-modal__drop-actions">
                 <button onClick={() => onDropChoice(drop.code, "claim")} disabled={busy}>Pegar</button>
                 <button onClick={() => onDropChoice(drop.code, "discard")} disabled={busy}>Descartar</button>
