@@ -39,13 +39,24 @@ app.use("/saves", savesRoutes);
 app.use("/game", gameRoutes);
 app.use(errorHandler);
 async function seedGameItems() {
-  const existingRows = await db.select({ name: items.name }).from(items);
-  const existingNames = new Set(existingRows.map((row) => row.name));
-  const missing = ITEMS.filter((item) => !existingNames.has(item.name));
+  const existingRows = await db.select({ id: items.id, name: items.name, type: items.type, description: items.description }).from(items);
+  const existingByName = new Map(existingRows.map((row) => [row.name, row]));
+  const missing = ITEMS.filter((item) => !existingByName.has(item.name));
+
   if (missing.length) {
     await db.insert(items).values(missing.map((item) => ({
       name: item.name, type: item.type, iconUrl: null, description: item.description,
     })));
+  }
+
+  // Atualiza também os registros já existentes, para corrigir tipos antigos como armor.
+  for (const definition of ITEMS) {
+    const existing = existingByName.get(definition.name);
+    if (existing && (existing.type !== definition.type || existing.description !== definition.description)) {
+      await db.update(items)
+        .set({ type: definition.type, description: definition.description })
+        .where(eq(items.id, existing.id));
+    }
   }
 }
 
