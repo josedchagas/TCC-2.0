@@ -56,6 +56,9 @@ async function grantItem(saveId, itemDef, quantity = 1) {
 }
 
 export async function buyItem(req, res) {
+  if (req.save.completed || req.save.hpCurrent <= 0 || req.save.energyCurrent <= 0) {
+    return res.status(409).json({ error: "Este save foi encerrado e não pode realizar compras." });
+  }
   const save = req.save;
   const { itemCode, quantity = 1 } = req.body;
   const shop = SHOPS[save.chapterCurrent];
@@ -271,6 +274,9 @@ export async function listSideQuests(req, res) {
 }
 
 export async function resolveSideQuest(req, res) {
+  if (req.save.completed || req.save.hpCurrent <= 0 || req.save.energyCurrent <= 0) {
+    return res.status(409).json({ error: "Este save foi encerrado por derrota permanente; não é possível continuar missões." });
+  }
   const save = req.save;
   const quest = getSideQuest(req.params.questId);
   if (!quest) return res.status(404).json({ error: "Missão opcional não encontrada." });
