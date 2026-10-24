@@ -77,42 +77,54 @@ export async function createSave(req, res) {
   const preset = CHARACTER_PRESETS[req.body.characterId];
   if (!preset) return res.status(400).json({ error: "Personagem inicial inválido." });
 
-  // Valores iniciais, atributos e equipamento vêm do servidor, não do cliente.
+  // O driver neon-http não suporta db.transaction(). Primeiro validamos
+  // todo o catálogo; depois criamos o save e inserimos o equipamento.
   const loadout = STARTER_LOADOUTS[req.body.characterId];
-  const save = await db.transaction(async (tx) => {
-    const [createdSave] = await tx.insert(saves).values({
-      userId,
-      slotNumber: req.body.slotNumber,
-      ...preset,
-      chapterCurrent: 1,
-      chapterMax: 20,
-      xpCurrent: 0,
-      xpMax: 100,
-      hpCurrent: 5,
-      hpMax: 5,
-      energyCurrent: 5,
-      energyMax: 5,
-      money: 0,
-      availablePoints: 0,
-    }).returning();
-
-    const initialEquipment = [];
-    for (const piece of loadout) {
-      const definition = ITEMS.find((candidate) => candidate.code === piece.code);
-      if (!definition) throw new Error(`Equipamento inicial ausente no catálogo: ${piece.code}`);
-      const [catalogItem] = await tx.select({ id: items.id }).from(items).where(eq(items.name, definition.name));
-      if (!catalogItem) throw new Error(`Equipamento inicial não encontrado no banco: ${definition.name}`);
-      initialEquipment.push({
-        saveId: createdSave.id,
-        itemId: catalogItem.id,
-        slot: piece.slot,
-      });
+  const initialEquipment = [];
+  for (const piece of loadout) {
+    const definition = ITEMS.find((candidate) => candidate.code === piece.code);
+    if (!definition) {
+      return res.status(500).json({ error: `Equipamento inicial ausente no catálogo: ${piece.code}` });
     }
-    await tx.insert(equippedItems).values(initialEquipment);
-    return createdSave;
-  });
+    const [catalogItem] = await db.select({ id: items.id }).from(items).where(eq(items.name, definition.name));
+    if (!catalogItem) {
+      return res.status(500).json({ error: `Equipamento inicial não encontrado no banco: ${definition.name}` });
+    }
+    initialEquipment.push({ itemId: catalogItem.id, slot: piece.slot });
+  }
 
-  res.status(201).json(save);
+  const [createdSave] = await db.insert(saves).values({
+    userId,
+    slotNumber: req.body.slotNumber,
+    ...preset,
+    chapterCurrent: 1,
+    chapterMax: 20,
+    xpCurrent: 0,
+    xpMax: 100,
+    hpCurrent: 5,
+    hpMax: 5,
+    energyCurrent: 5,
+    energyMax: 5,
+    money: 0,
+    availablePoints: 0,
+  }).returning();
+
+  try {
+    await db.insert(equippedItems).values(
+      initialEquipment.map((piece) => ({ ...piece, saveId: createdSave.id }))
+    );
+  } catch (error) {
+    // Se o equipamento falhar, removemos o save recém-criado para não deixar
+    // o personagem inicial em estado incompleto.
+    try {
+      await db.delete(saves).where(eq(saves.id, createdSave.id));
+    } catch (cleanupError) {
+      console.error("Não foi possível limpar o save após falha no equipamento inicial:", cleanupError);
+    }
+    throw error;
+  }
+
+  res.status(201).json(createdSave);
 }
 
 export async function updateSave(req, res) {
