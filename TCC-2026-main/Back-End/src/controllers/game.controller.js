@@ -163,9 +163,10 @@ export async function resolveEncounter(req, res) {
   const playerCritChance = critByClass[save.classRole] ?? 10;
   const enemyCritChance = enemy.kind === "boss" ? 18 : enemy.kind === "elite" ? 13 : 8;
 
-  for (let index = 0; index < submittedRolls.length && enemyHp > 0 && playerHp > 0; index += 1) {
+  for (let index = 0; index < 40 && submittedRolls.length > 0 && enemyHp > 0 && playerHp > 0; index += 1) {
     const round = index + 1;
-    const playerRoll = submittedRolls[index];
+    // A única rolagem escolhida pelo jogador determina seus ataques em toda a simulação.
+    const playerRoll = submittedRolls[0];
     const playerMultiplier = playerRoll / 10;
     const adjustedLifeBonus = Math.floor(baseLifeBonus * playerMultiplier);
     const lifeAdjustment = adjustedLifeBonus - baseLifeBonus;
@@ -203,7 +204,7 @@ export async function resolveEncounter(req, res) {
     rounds, turns, weaponDamage, armorHp, strength, resistance, playerCritChance, enemyCritChance,
   };
 
-  if (submittedRolls.length === 0 || (!victory && playerHp > 0 && rounds < 40)) {
+  if (submittedRolls.length === 0) {
     return res.json({
       inProgress: true,
       victory: false,
@@ -251,12 +252,9 @@ export async function resolveEncounter(req, res) {
     if (Math.random() <= drop.chance) {
       const itemDef = getItemByCode(drop.item);
       if (!itemDef) continue;
-      try {
-        const result = await grantItem(save.id, itemDef, 1);
-        drops.push({ code: itemDef.code, name: itemDef.name, granted: result.granted, reason: result.reason || null });
-      } catch {
-        drops.push({ code: itemDef.code, name: itemDef.name, granted: false, reason: "grant_failed" });
-      }
+      const pendingCode = `pending-drop:${enemy.id}:${itemDef.code}`;
+      await db.insert(defeatedEncounters).values({ saveId: save.id, enemyCode: pendingCode }).onConflictDoNothing();
+      drops.push({ code: itemDef.code, name: itemDef.name, granted: false, pending: true });
     }
   }
 
@@ -419,4 +417,29 @@ export async function resolveSideQuest(req, res) {
     message: success ? quest.successText : quest.failureText,
     reward, save: updatedSave,
   });
+}
+
+export async function resolveBattleDrop(req, res) {
+  const save = req.save;
+  const enemy = getEnemyById(req.params.enemyId);
+  const itemCode = String(req.params.itemCode || "");
+  const action = String(req.params.action || "");
+  if (!enemy || enemy.chapter !== save.chapterCurrent) return res.status(404).json({ error: "Inimigo não encontrado neste capítulo." });
+  if (!["claim", "discard"].includes(action)) return res.status(400).json({ error: "Ação de drop inválida." });
+  const itemDef = getItemByCode(itemCode);
+  if (!itemDef || !(enemy.drops || []).some((drop) => drop.item === itemCode)) {
+    return res.status(400).json({ error: "Este item não pertence à lista de drops do inimigo." });
+  }
+  const pendingCode = `pending-drop:${enemy.id}:${itemCode}`;
+  const [pending] = await db.select().from(defeatedEncounters)
+    .where(and(eq(defeatedEncounters.saveId, save.id), eq(defeatedEncounters.enemyCode, pendingCode)));
+  if (!pending) return res.status(409).json({ error: "Este drop já foi coletado ou descartado." });
+  if (action === "claim") {
+    const grant = await grantItem(save.id, itemDef, 1);
+    if (!grant.granted) {
+      return res.status(409).json({ error: grant.reason === "inventory_full" ? "Inventário cheio. Libere um espaço antes de pegar este drop." : "Não foi possível adicionar o item ao inventário." });
+    }
+  }
+  await db.delete(defeatedEncounters).where(eq(defeatedEncounters.id, pending.id));
+  return res.json({ claimed: action === "claim", discarded: action === "discard", item: itemDef.name });
 }
