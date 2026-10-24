@@ -72,6 +72,29 @@ function sceneCharacter(chapter, subject, isQuest = false) {
   return CHAPTER_CHARACTERS[Math.max(0, Math.min(CHAPTER_CHARACTERS.length - 1, Number(chapter) - 1 + (hash % 3 === 0 ? 1 : 0)))];
 }
 
+const QUEST_AFTERMATH = [
+  {"success":"A descoberta confirma que o sino e os desaparecimentos estão ligados a um mecanismo sob a vila. A pista é anotada no mapa de Maelis para orientar a busca pela estrada.","failure":"Você deixa o local sem uma resposta completa. Ainda assim, a fita do sino reage às marcas sob as pedras, oferecendo uma direção para continuar a investigação."},
+  {"success":"As placas recuperadas revelam que os corvos seguem uma melodia usada para guiar viajantes até o altar. Tovan pode agora alertar outras caravanas.","failure":"A rota até o altar continua incerta, mas Tovan reconhece parte da melodia e indica uma trilha menos exposta."},
+  {"success":"A lembrança preservada nas flores permite distinguir a corrupção das vozes verdadeiras. Iria registra o padrão para que ninguém precise entregar uma memória ao bosque.","failure":"A árvore não revela tudo, mas a pétala salva prova que as vozes são lembranças aprisionadas, não chamados dos mortos."},
+  {"success":"O reparo e as inscrições deixam uma rota segura para quem vier atrás. Bram identifica o caminho dos cristais que seguem para Miralume.","failure":"A travessia principal continua perigosa, então Bram marca uma rota alternativa. O avanço será mais lento, mas outros viajantes não cairão no abismo."},
+  {"success":"Os registros libertam comerciantes das dívidas mágicas e mostram que a guilda compra cristais das minas. Nara promete espalhar a prova antes que os cobradores voltem.","failure":"A guilda mantém parte do controle, mas a lanterna danificada ainda revela o símbolo dos contratos. Nara começa a reunir comerciantes dispostos a resistir."},
+  {"success":"A frequência correta abre a galeria sem destruir os cristais. Dália conduz os mineiros para fora e confirma que o núcleo recebe energia de outro lugar.","failure":"A galeria permanece fechada, mas o mineiro é retirado da camada cristalina e a sequência de pulsos fica registrada para uma nova tentativa."},
+  {"success":"O fragmento do juramento confirma que a abadia ajudou a construir a prisão da Fenda. Cael aceita revelar os nomes dos guardiões que esconderam a verdade.","failure":"O arquivo continua incompleto, mas as marcas mostram quem levou o registro. Cael abre a passagem e continua procurando os nomes apagados."},
+  {"success":"O nome recuperado rompe o silêncio imposto pelo pântano e revela a rota até a torre afundada. Sena marca o caminho para que outros não sejam atraídos pelas vozes.","failure":"Você não recupera o nome inteiro, mas entende que responder às vozes fortalece os guardiões. Sena conduz você até a torre por uma rota estreita."},
+  {"success":"O mecanismo volta a avançar e revela a passagem temporal escondida. Oren consegue libertar os viajantes presos no ciclo e aponta quando o festival abrirá a Fenda.","failure":"O ciclo persiste, mas você memoriza a única saída que não se repete. Oren permanece para tentar estabilizar o relógio."},
+  {"success":"A prova expõe o ritual antes que a multidão seja usada. Nara reúne comerciantes e moradores para esvaziar a praça e confrontar a guilda.","failure":"O agente escapa, mas o símbolo deixado por ele confirma que o festival encobre o ritual. Nara usa a pista para alertar os comerciantes."},
+  {"success":"A caravana recupera forças e Samir confirma a rota estelar. Os viajantes seguem para abrigo, enquanto você recebe o mapa do observatório.","failure":"A água encontrada basta para manter a caravana viva, embora a rota continue incerta. Samir identifica a direção geral do observatório."},
+  {"success":"A lente alinhada revela a fraqueza do selo e confirma a mensagem de Tomas. Liora copia os cálculos para que o conhecimento não desapareça com o observatório.","failure":"A visão permanece incompleta, mas a lente mostra o ponto mais estável da Fenda. Liora registra uma aproximação segura."},
+  {"success":"A sentinela reconhece o símbolo da Aurora e ajuda a proteger as lembranças libertadas. Eron confirma que a árvore é uma âncora viva.","failure":"A sentinela não desperta, mas a seiva preservada mantém a árvore estável. Eron protege as memórias enquanto você segue para Asterion."},
+  {"success":"A lembrança recuperada identifica quem ordenou o apagamento de Asterion. Aveline registra os nomes nas paredes para que a cidade não seja esquecida outra vez.","failure":"A memória não retorna por completo, mas a frase preservada confirma a existência da segunda âncora. Aveline indica o acesso inferior."},
+  {"success":"A peça forjada aceita o juramento sem apagar as memórias do metal. Varek pode usá-la para estabilizar a âncora e preparar a passagem para Nimbária.","failure":"A peça não assume a forma desejada, mas o fragmento resiste ao calor e continua útil. Varek guarda o material para reforçar a aliança."},
+  {"success":"A tripulação estabiliza o convés e a rota pelo mar fica marcada. Ysra mantém a passagem aberta para quem precisar retornar.","failure":"O navio permanece estável apenas por algum tempo, mas a tripulação consegue avançar. Ysra marca a corrente menos perigosa."},
+  {"success":"O reflexo recupera a própria forma e mostra uma possibilidade além de destruir ou libertar a estrela sem proteção. Nérian confia na rota para a fortaleza.","failure":"A visão se desfaz, mas a advertência revela o preço das escolhas extremas. Nérian guia você para fora do labirinto de reflexos."},
+  {"success":"A linha de suprimentos volta a funcionar e os aliados preparam o avanço. Rovan usa o tempo ganho para reunir as forças em torno dos três selos.","failure":"Parte da carga se perde, mas o essencial chega aos defensores. Rovan mantém a aliança unida e ajusta o plano."},
+  {"success":"As memórias formam uma rota estável até a ponte de retorno. Aster confirma que os desaparecidos ainda podem ser alcançados se os selos forem usados juntos.","failure":"A memória central sobrevive à interferência e mantém aberta uma passagem estreita. Aster alerta que o tempo está acabando, mas a decisão ainda é possível."},
+  {"success":"A mensagem esclarece como os três selos podem transformar a prisão numa passagem controlada. Maelis prepara o sino para sustentar o caminho durante o confronto final.","failure":"A mensagem chega incompleta, mas o mensageiro confirma que os selos precisam permanecer juntos. Maelis ajuda você a compreender o risco da escolha final."}
+];
+
 function sceneNarration(chapter, subject, description, isQuest = false, stageText = "", stageIndex = 0) {
   const detail = String(description || "").trim();
   const name = String(subject || "a ameaça desconhecida").trim();
@@ -433,9 +456,11 @@ export default function App() {
       if (result.status === "declined" || action === "decline") {
         conclusion = "Você decide não aceitar “" + questName + "”. " + (result.message || "A pessoa que pediu ajuda recolhe a pista e segue sem sua participação.") + " A investigação fica sem solução por enquanto, e você retoma a jornada sem receber recompensas por essa missão.";
       } else if (result.status === "success") {
-        conclusion = "MISSÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.successText || "Você conclui a tarefa e consegue a pista que procurava.") + " A situação imediata foi resolvida, e agora você pode seguir viagem levando consigo o que descobriu.";
+        const aftermath = QUEST_AFTERMATH[(Number(quest.chapter) || Number(activeSave.chapterCurrent) || 1) - 1]?.success || "A descoberta passa a fazer parte do mapa da campanha.";
+        conclusion = "MISSÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.successText || "Você conclui a tarefa e consegue a pista que procurava.") + " " + aftermath;
       } else {
-        conclusion = "MISSÃO NÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.failureText || "A tentativa não sai como esperado.") + " Você não consegue alcançar tudo o que pretendia e precisa deixar o local sem uma solução completa. A história continua a partir desse resultado, não de uma vitória.";
+        const aftermath = QUEST_AFTERMATH[(Number(quest.chapter) || Number(activeSave.chapterCurrent) || 1) - 1]?.failure || "A tentativa não resolve tudo, mas você segue com o que conseguiu aprender.";
+        conclusion = "MISSÃO NÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.failureText || "A tentativa não sai como esperado.") + " " + aftermath;
       }
       setStoryEntries((entries) => [...entries, { id: "quest-result-" + quest.id + "-" + stamp, type: "outcome", text: conclusion }]);
       if (result.reward) {
