@@ -228,7 +228,7 @@ export async function resolveEncounter(req, res) {
     return res.json({
       victory: false, permanentDeath, chapterAdvanced: isBoss && !permanentDeath && nextChapter !== save.chapterCurrent,
       enemy: { id: enemy.id, name: enemy.name, hp: enemy.hp, hpCurrent: Math.max(0, enemyHp), kind: enemy.kind },
-      rounds, damageTaken: 1, save: updated,
+      rounds, damageTaken: 1, combat, save: updated,
       message: permanentDeath
         ? "DERROTA PERMANENTE: você perdeu seu último coração ou estava sem vigor. Este save foi encerrado."
         : isBoss
@@ -285,6 +285,7 @@ export async function resolveEncounter(req, res) {
     victory: true,
     enemy: { id: enemy.id, name: enemy.name, kind: enemy.kind, hp: enemy.hp, hpCurrent: 0 },
     rounds,
+    combat,
     rewards: { xp: enemy.xp, gold: enemy.gold, levelsGained },
     drops,
     chapterAdvanced: isBoss && nextChapter !== save.chapterCurrent,
