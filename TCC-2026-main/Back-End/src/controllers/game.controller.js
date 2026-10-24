@@ -145,7 +145,8 @@ export async function resolveEncounter(req, res) {
     if (!["helmet", "chest", "pants", "boots", "shield"].includes(row.slot)) return total;
     return total + (ITEMS.find((item) => item.name === row.name)?.armorHp || 0);
   }, 0);
-  const playerMaxHp = 100 + armorHp + resistance * 5;
+  const baseLifeBonus = armorHp + resistance;
+  let playerMaxHp = 100 + baseLifeBonus;
   let enemyHp = enemy.hp;
   let playerHp = playerMaxHp;
   const turns = [];
@@ -162,12 +163,19 @@ export async function resolveEncounter(req, res) {
   for (let index = 0; index < submittedRolls.length && enemyHp > 0 && playerHp > 0; index += 1) {
     const playerRoll = submittedRolls[index];
     const playerMultiplier = playerRoll / 10;
+    // O dado modifica apenas o bônus de vida (armadura + resistência), não os 100 PV base.
+    const adjustedLifeBonus = Math.floor(baseLifeBonus * playerMultiplier);
+    const lifeAdjustment = adjustedLifeBonus - baseLifeBonus;
+    playerMaxHp = 100 + adjustedLifeBonus;
+    playerHp = Math.max(0, Math.min(playerMaxHp, playerHp + lifeAdjustment));
     const playerDamage = Math.max(1, Math.floor(strength + weaponDamage * playerMultiplier));
     enemyHp = Math.max(0, enemyHp - playerDamage);
     const turn = {
       round: index + 1,
       playerRoll,
       playerMultiplier: Number(playerMultiplier.toFixed(1)),
+      lifeAdjustment,
+      playerMaxHp,
       playerDamage,
       enemyHp,
       enemyRoll: null,
@@ -178,9 +186,7 @@ export async function resolveEncounter(req, res) {
     if (enemyHp > 0) {
       const enemyRoll = enemyRollForTurn(index + 1);
       const enemyMultiplier = enemyRoll / 10;
-      const rawEnemyDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier));
-      const effectiveDefense = Math.floor((armorHp * 0.25 + resistance * 3) * playerMultiplier);
-      const enemyDamage = Math.max(1, rawEnemyDamage - effectiveDefense);
+      const enemyDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier));
       playerHp = Math.max(0, playerHp - enemyDamage);
       turn.enemyRoll = enemyRoll;
       turn.enemyMultiplier = Number(enemyMultiplier.toFixed(1));
