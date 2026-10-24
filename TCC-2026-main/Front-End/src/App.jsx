@@ -463,10 +463,20 @@ export default function App() {
       });
       if (result.save) updateSaveInLists(result.save);
       const stamp = Date.now();
-      setStoryEntries((entries) => [...entries, { id: `quest-result-${quest.id}-${stamp}`, type: "outcome", text: result.message }]);
+      const questName = quest.title || "a missão";
+      let conclusion;
+      if (result.status === "declined" || action === "decline") {
+        conclusion = "Você decide não aceitar “" + questName + "”. " + (result.message || "A pessoa que pediu ajuda recolhe a pista e segue sem sua participação.") + " A investigação fica sem solução por enquanto, e você retoma a jornada sem receber recompensas por essa missão.";
+      } else if (result.status === "success") {
+        conclusion = "MISSÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.successText || "Você conclui a tarefa e consegue a pista que procurava.") + " A situação imediata foi resolvida, e agora você pode seguir viagem levando consigo o que descobriu.";
+      } else {
+        conclusion = "MISSÃO NÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.failureText || "A tentativa não sai como esperado.") + " Você não consegue alcançar tudo o que pretendia e precisa deixar o local sem uma solução completa. A história continua a partir desse resultado, não de uma vitória.";
+      }
+      setStoryEntries((entries) => [...entries, { id: "quest-result-" + quest.id + "-" + stamp, type: "outcome", text: conclusion }]);
       if (result.reward) {
-        const details = `Recompensas: +${result.reward.xp} XP e +${result.reward.gold} moedas${result.reward.itemGranted ? `; item recebido: ${result.reward.item}` : ""}.`;
-        setStoryEntries((entries) => [...entries, { id: `quest-reward-${quest.id}-${stamp}`, type: "outcome", text: details }]);
+        const itemText = result.reward.itemGranted ? "; item recebido: " + result.reward.item : result.reward.item ? "; item previsto, mas não adicionado ao inventário" : "";
+        const details = "Recompensas: +" + result.reward.xp + " XP e +" + result.reward.gold + " moedas" + itemText + ".";
+        setStoryEntries((entries) => [...entries, { id: "quest-reward-" + quest.id + "-" + stamp, type: "outcome", text: details }]);
       }
       await refreshGameData(result.save ?? activeSave);
       if (result.save) await refreshSaves();
