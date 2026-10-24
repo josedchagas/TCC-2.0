@@ -15,74 +15,97 @@ function chapterLabel(save, chapterData) {
 }
 
 const CHAPTER_LOCATIONS = [
-  "as vielas de Valedouro, a vila dos sinos enterrados",
-  "o Passo dos Corvos, entre marcos de pedra e carroças abandonadas",
-  "o Bosque de Miravéu, onde as árvores guardam vozes antigas",
-  "a Ponte de Salmour, suspensa sobre o desfiladeiro mudo",
-  "Miralume, o mercado das lanternas errantes",
-  "as Minas de Vidro sob as ruas de Miralume",
-  "a Abadia de Santa Véspera, no alto da encosta",
-  "o Pântano de Namar, onde a lama pronuncia nomes",
-  "a Torre de Horolog, afundada nas águas escuras",
-  "a Praça da Lua Rubra, no coração de Miralume",
-  "as Dunas de Cinza, além das últimas muralhas",
-  "o Observatório de Arquen, partido sobre o planalto",
-  "a Floresta Petrificada de Elarion",
-  "a cidade soterrada de Asterion",
-  "a Forja de Vhal, onde os juramentos viram aço",
-  "o Mar Suspenso de Nimbária",
-  "o Reino do Avesso, além do espelho partido",
-  "o Bastião da Fenda, cercado por ruínas flutuantes",
-  "o Coração da Estrela, no centro da prisão cósmica",
-  "a fronteira de Valedouro, sob a primeira aurora"
+  "Valedouro", "o Passo dos Corvos", "o Bosque de Miravéu", "a Ponte de Salmour",
+  "Miralume", "as Minas de Vidro", "a Abadia de Santa Véspera", "o Pântano de Namar",
+  "a Torre de Horolog", "a Praça da Lua Rubra", "as Dunas de Cinza", "o Observatório de Arquen",
+  "a Floresta Petrificada de Elarion", "a cidade soterrada de Asterion", "a Forja de Vhal",
+  "o Mar Suspenso de Nimbária", "o Reino do Avesso", "o Bastião da Fenda",
+  "o Coração da Estrela", "as fronteiras de Valedouro"
 ];
 
 const CHAPTER_CHARACTERS = [
-  { name: "Maelis", role: "a cartógrafa sobrevivente de Valedouro", motive: "encontrar os moradores desaparecidos e recuperar o sino enterrado" },
-  { name: "Tovan", role: "um cocheiro que perdeu a irmã na estrada", motive: "descobrir quem ensinou os corvos a repetir vozes humanas" },
-  { name: "Iria", role: "uma herborista que conhece os caminhos de Miravéu", motive: "impedir que a raiz corrompida roube as lembranças da floresta" },
-  { name: "Bram", role: "um antigo engenheiro da Ponte de Salmour", motive: "reabrir a passagem antes que os mercenários a destruam" },
-  { name: "Nara", role: "uma mercadora de Miralume, conhecida por cumprir a palavra", motive: "derrubar a guilda que mantém a cidade sob contratos de medo" },
-  { name: "Dália", role: "uma mineira presa entre os cristais", motive: "desligar o núcleo antes que ele parta a montanha" },
-  { name: "Irmão Cael", role: "um guardião ferido da Abadia de Santa Véspera", motive: "proteger o mapa celeste dos acólitos corrompidos" },
-  { name: "Sena", role: "uma barqueira que atravessa Namar desde criança", motive: "chegar ao outro lado sem entregar nomes às vozes do pântano" },
-  { name: "Oren", role: "um relojoeiro que envelhece a cada minuto repetido", motive: "romper o ciclo que mantém a torre presa no passado" },
-  { name: "Nara", role: "uma mercadora infiltrada no festival", motive: "desmascarar o conselheiro que não projeta sombra" },
-  { name: "Samir", role: "o guia de uma caravana perdida", motive: "encontrar água e levar os sobreviventes até o observatório" },
-  { name: "Liora", role: "uma astrônoma que se recusou a abandonar Arquen", motive: "descobrir a fraqueza da prisão antes que ela perceba quem a observa" },
-  { name: "Eron", role: "um guardião de memórias da floresta", motive: "libertar as lembranças roubadas dos habitantes de Valedouro" },
-  { name: "Aveline", role: "a última arquivista de Asterion", motive: "revelar quem construiu a prisão ao redor da estrela" },
-  { name: "Varek", role: "um ferreiro que carrega um juramento antigo", motive: "forjar uma arma capaz de atingir o núcleo da Fenda" },
+  { name: "Maelis", role: "cartógrafa sobrevivente de Valedouro", motive: "encontrar os moradores desaparecidos e recuperar o sino enterrado" },
+  { name: "Tovan", role: "cocheiro que perdeu a irmã na estrada", motive: "descobrir quem ensinou os corvos a repetir vozes humanas" },
+  { name: "Iria", role: "herborista que conhece os caminhos de Miravéu", motive: "impedir que a raiz corrompida roube as lembranças da floresta" },
+  { name: "Bram", role: "antigo engenheiro da Ponte de Salmour", motive: "reabrir a passagem antes que os mercenários a destruam" },
+  { name: "Nara", role: "mercadora de Miralume, conhecida por cumprir a palavra", motive: "derrubar a guilda que mantém a cidade sob contratos de medo" },
+  { name: "Dália", role: "mineira presa entre os cristais", motive: "desligar o núcleo antes que ele parta a montanha" },
+  { name: "Irmão Cael", role: "guardião ferido da Abadia de Santa Véspera", motive: "proteger o mapa celeste dos acólitos corrompidos" },
+  { name: "Sena", role: "barqueira que atravessa Namar desde criança", motive: "chegar ao outro lado sem entregar nomes às vozes do pântano" },
+  { name: "Oren", role: "relojoeiro preso num minuto que se repete", motive: "romper o ciclo que mantém a torre presa no passado" },
+  { name: "Nara", role: "mercadora infiltrada no festival", motive: "desmascarar o conselheiro que não projeta sombra" },
+  { name: "Samir", role: "guia de uma caravana perdida", motive: "encontrar água e levar os sobreviventes até o observatório" },
+  { name: "Liora", role: "astrônoma que se recusou a abandonar Arquen", motive: "descobrir a fraqueza da prisão antes que ela perceba quem a observa" },
+  { name: "Eron", role: "guardião das memórias da floresta", motive: "libertar as lembranças roubadas dos habitantes de Valedouro" },
+  { name: "Aveline", role: "última arquivista de Asterion", motive: "revelar quem construiu a prisão ao redor da estrela" },
+  { name: "Varek", role: "ferreiro que carrega um juramento antigo", motive: "forjar uma arma capaz de atingir o núcleo da Fenda" },
   { name: "Capitã Ysra", role: "comandante de um navio preso no céu", motive: "recuperar a bússola que aponta para a passagem oculta" },
-  { name: "Nérian", role: "um viajante que sobreviveu ao Reino do Avesso", motive: "provar que a Fenda não é a única saída para salvar o mundo" },
+  { name: "Nérian", role: "viajante que sobreviveu ao Reino do Avesso", motive: "provar que a Fenda não é a única saída para salvar o mundo" },
   { name: "Comandante Rovan", role: "líder das forças reunidas contra a Fenda", motive: "abrir caminho até o portal e manter os aliados vivos" },
-  { name: "Aster", role: "uma consciência estelar aprisionada há eras", motive: "ser ouvida antes que os selos decidam seu destino" },
-  { name: "Maelis", role: "a cartógrafa que atravessou o reino para alcançar você", motive: "devolver aos desaparecidos a possibilidade de escolher seu próprio futuro" }
+  { name: "Aster", role: "consciência estelar aprisionada há eras", motive: "ser ouvida antes que os selos decidam seu destino" },
+  { name: "Maelis", role: "cartógrafa que atravessou o reino para alcançar você", motive: "devolver aos desaparecidos a possibilidade de escolher o próprio futuro" }
+];
+
+const CHAPTER_ONE_CAST = [
+  { name: "Maelis", role: "cartógrafa da vila", voice: "fala baixo, como se temesse que a névoa aprendesse suas palavras" },
+  { name: "Edda", role: "antiga zeladora do poço", voice: "escolhe cada palavra com a cautela de quem guarda um segredo há anos" },
+  { name: "Sira", role: "aprendiz da boticária desaparecida", voice: "tenta parecer corajosa, mas não consegue esconder o medo" },
+  { name: "Bram", role: "coveiro e guardião das chaves da capela", voice: "fala com uma calma pesada, acostumada a despedidas" },
+  { name: "Tomas", role: "irmão de Maelis, ouvido apenas nas gravações e ecos do sino", voice: "sua voz chega distorcida, como se viesse do fundo de um poço" }
 ];
 
 function chapterLocation(chapter) {
   return CHAPTER_LOCATIONS[Math.max(0, Math.min(CHAPTER_LOCATIONS.length - 1, Number(chapter) - 1))];
 }
 
+function sceneCharacter(chapter, subject, isQuest = false) {
+  const key = String(subject || "mistério");
+  const hash = [...key].reduce((sum, char) => sum + char.charCodeAt(0), Number(chapter) || 1);
+  if (Number(chapter) === 1) {
+    const index = isQuest ? (key.includes("Diário") ? 2 : 1) : (key.includes("Guardião") ? 3 : 3);
+    return CHAPTER_ONE_CAST[index];
+  }
+  return CHAPTER_CHARACTERS[Math.max(0, Math.min(CHAPTER_CHARACTERS.length - 1, Number(chapter) - 1 + (hash % 3 === 0 ? 1 : 0)))];
+}
+
 function sceneNarration(chapter, subject, description, isQuest = false) {
   const place = chapterLocation(chapter);
-  const character = CHAPTER_CHARACTERS[Math.max(0, Math.min(CHAPTER_CHARACTERS.length - 1, Number(chapter) - 1))];
-  const detail = description || "O silêncio ao redor parece esconder algo que ainda não compreendemos.";
-  if (isQuest) return [
-    "Em " + place + ", você encontra " + character.name + ", " + character.role + ". A chuva escorre pelas pedras e apaga as pegadas que chegam até vocês.",
-    character.name + " segura um objeto ligado a “" + subject + "”, mas hesita em entregá-lo; há marcas recentes de corrupção na superfície.",
-    "“" + detail + "” — explica " + character.name + ", baixando a voz quando um ruído atravessa as casas vazias.",
-    character.name + " lhe conta que a pista pode estar ligada a " + character.motive + ", mas não esconde que a tentativa pode custar tempo, recursos ou confiança.",
-    "Ao longe, alguma coisa responde ao som de suas palavras, como se a região inteira estivesse escutando a conversa.",
-    character.name + " encara você, esperando uma decisão: aceitar a missão significa se comprometer com a verdade; partir significa deixar essa pista para trás."
-  ].join("\n");
+  const character = sceneCharacter(chapter, subject, isQuest);
+  const detail = description || "O silêncio parece esconder algo que ainda não foi revelado.";
+  const variants = [
+    "Uma corrente de ar percorre as frestas e apaga, uma a uma, as pequenas luzes deixadas pelos moradores.",
+    "No chão, a poeira forma círculos perfeitos ao redor de marcas que não pertencem a botas nem a patas.",
+    "Ao longe, madeira estala dentro de uma casa vazia; quando você olha, a porta está aberta e não há ninguém lá.",
+    "A fita do sino vibra junto ao seu equipamento, embora o vento tenha parado por completo.",
+    "Por trás das paredes, um ruído responde aos seus passos com um atraso exato de três batidas."
+  ];
+  const seed = [...String(subject || "mistério")].reduce((sum, char) => sum + char.charCodeAt(0), Number(chapter) || 1);
+  const detailOfPlace = variants[seed % variants.length];
+  if (isQuest) {
+    const questPerson = Number(chapter) === 1 ? character : character;
+    return [
+      "Na região de " + place + ", você encontra " + questPerson.name + ", " + questPerson.role + ", esperando perto de um marco coberto de fuligem.",
+      "A pessoa segura uma pista ligada a “" + subject + "”, mas não a entrega de imediato; a superfície está marcada por um símbolo que também aparece no mapa de Maelis.",
+      "“" + detail + "” — explica " + questPerson.name + ", e a voz falha quando o sino subterrâneo responde com uma vibração curta.",
+      questPerson.name + " conta que sua busca pode ajudar a " + (CHAPTER_CHARACTERS[Math.max(0, Number(chapter) - 1)]?.motive || "descobrir a origem da corrupção") + ".",
+      detailOfPlace + " A pista parece recente, mas alguém tentou escondê-la antes de a névoa cobrir a região.",
+      "“Não vou obrigar você a ficar”, diz " + questPerson.name + ". “Mas, se partir agora, talvez ninguém mais consiga descobrir o que aconteceu aqui.”"
+    ].join("\n");
+  }
+  const enemyLines = [
+    "As marcas no corpo da criatura brilham sempre que o sino enterrado emite uma nota distante.",
+    "A criatura arrasta uma das patas pelo chão, riscando um símbolo idêntico ao que Maelis desenhou no mapa.",
+    "Um cheiro de palha molhada e ferro antigo toma o ar; a coisa à sua frente parece ter sido montada com restos do lugar.",
+    "A sombra do inimigo se move um instante antes do próprio corpo, como se outra presença controlasse seus gestos."
+  ];
+  const ally = Number(chapter) === 1 ? CHAPTER_ONE_CAST[3] : character;
   return [
-    "A trilha desemboca em " + place + ". O vento carrega cinzas, folhas e um cheiro metálico que parece vir debaixo da terra.",
+    "A passagem adiante leva a " + place + ", mas " + subject + " surge entre você e o caminho, impedindo qualquer avanço.",
     detail,
-    "Então " + subject + " surge entre as ruínas e se coloca no único caminho seguro. Seus movimentos parecem responder a uma ordem que ninguém pronunciou.",
-    character.name + ", " + character.role + ", avisa de trás de uma parede rachada: “Não deixe que a criatura alcance o marco; se ele cair, perderemos a única rota adiante.”",
-    "A ameaça inclina o corpo, e um brilho escuro percorre suas marcas. Por um instante, você percebe nela um vestígio de algo que já foi vivo.",
-    "O caminho não se abrirá sozinho. Você pode enfrentar " + subject + " agora ou recuar para recuperar o fôlego, mas a passagem continuará bloqueada até que a ameaça seja vencida."
+    enemyLines[seed % enemyLines.length],
+    ally.name + ", " + ally.role + ", observa a criatura de um abrigo próximo e revela o que sabe: “Ela não está caçando por fome; está protegendo alguma coisa.”",
+    detailOfPlace + " O inimigo reage ao som da fita do sino e se prepara para atacar, como se reconhecesse o objeto que você carrega.",
+    "Você pode enfrentá-lo agora ou recuar para se preparar. Enquanto essa ameaça permanecer de pé, porém, a rota seguirá bloqueada."
   ].join("\n");
 }
 
