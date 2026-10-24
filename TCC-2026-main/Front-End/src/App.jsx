@@ -166,7 +166,7 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
             <p><span>Força total</span><strong>{combat.strength ?? 0}</strong></p>
             <p><span>Vida da armadura</span><strong>+{combat.armorHp ?? 0}</strong></p>
             <p><span>Resistência</span><strong>{combat.resistance ?? 0}</strong></p>
-            <p className="battle-modal__formula">Dano do turno = Força + (dano da arma × multiplicador)</p>
+            <p className="battle-modal__formula">Dano = Força + (dano da arma × multiplicador). Vida = 100 PV base + ((armadura + resistência) × multiplicador).</p>
           </div>
         </div>
 
@@ -175,8 +175,8 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
           {!combat.turns?.length && <p className="battle-modal__log-empty">A batalha começou. Role o D20 para executar sua primeira ação.</p>}
           {(combat.turns || []).slice(-5).map((turn) => (
             <p key={turn.round} className="battle-modal__log-entry">
-              <strong>Rodada {turn.round}:</strong> você tirou {turn.playerRoll} (×{turn.playerMultiplier}) e causou {turn.playerDamage} de dano.
-              {turn.enemyRoll ? ` O inimigo tirou ${turn.enemyRoll} e causou ${turn.enemyDamage} de dano.` : " O inimigo foi derrotado antes de contra-atacar."}
+              <strong>Rodada {turn.round}:</strong> você tirou {turn.playerRoll} (×{turn.playerMultiplier}), {turn.playerDamage} de dano e {turn.lifeAdjustment > 0 ? "+" : ""}{turn.lifeAdjustment} PV de ajuste pela armadura/resistência.
+              {turn.enemyRoll ? ` O inimigo tirou ${turn.enemyRoll} (×${turn.enemyMultiplier}) e causou ${turn.enemyDamage} de dano.` : " O inimigo foi derrotado antes de contra-atacar."}
             </p>
           ))}
           {result && <p className={`battle-modal__outcome ${result.victory ? "is-victory" : "is-defeat"}`}>{result.victory ? "Inimigo derrotado! As recompensas foram aplicadas." : result.permanentDeath ? "Derrota permanente: a campanha foi encerrada." : "Você foi derrotado. A consequência foi registrada na campanha."}</p>}
