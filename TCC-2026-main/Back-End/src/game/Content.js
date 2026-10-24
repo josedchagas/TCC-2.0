@@ -7,6 +7,14 @@ const armorLineage = (prefix, className, setName, rarity, price, stats) => [
   { code: `${prefix}_botas`, name: `Botas ${setName}`, type: "boots", rarity, price: Math.floor(price * 0.7), description: `Botas da linhagem ${setName}, criadas para ${className.toLowerCase()}.`, stats: { ...stats.boots } },
 ];
 
+// Equipamento de início: peças comuns, separadas por slot e com bônus modestos.
+const starterArmor = [
+  ...armorLineage("inicial_arqueira", "Arqueira", "da Trilha da Arqueira", "comum", 15, { helmet: { destreza: 1 }, chest: { resistencia: 1, destreza: 1 }, pants: { agilidade: 1 }, boots: { agilidade: 1 } }),
+  ...armorLineage("inicial_guerreiro", "Guerreiro", "do Guarda Novato", "comum", 15, { helmet: { resistencia: 1 }, chest: { resistencia: 1, forca: 1 }, pants: { resistencia: 1 }, boots: { resistencia: 1 } }),
+  ...armorLineage("inicial_maga", "Maga", "da Aprendiz Arcana", "comum", 15, { helmet: { inteligencia: 1 }, chest: { resistencia: 1, inteligencia: 1 }, pants: { inteligencia: 1 }, boots: { agilidade: 1 } }),
+  ...armorLineage("inicial_ladino", "Ladino", "do Batedor", "comum", 15, { helmet: { destreza: 1 }, chest: { resistencia: 1, destreza: 1 }, pants: { destreza: 1 }, boots: { agilidade: 1 } }),
+];
+
 const classArmor = [
   ...armorLineage("arqueira_trilha", "Arqueira", "da Trilha Lunar", "incomum", 120, { helmet: { destreza: 2 }, chest: { resistencia: 2, destreza: 2 }, pants: { agilidade: 2 }, boots: { agilidade: 3 } }),
   ...armorLineage("arqueira_falcao", "Arqueira", "do Falcão Celeste", "epico", 420, { helmet: { destreza: 4, agilidade: 1 }, chest: { resistencia: 4, destreza: 3 }, pants: { destreza: 2, agilidade: 3 }, boots: { agilidade: 5 } }),
@@ -57,6 +65,7 @@ export const ITEMS = [
   { code: "anel_vigor", name: "Anel do Vigor", type: "accessory", rarity: "incomum", price: 190, description: "Um anel simples que fortalece o corpo.", stats: { resistencia: 2 } },
   { code: "anel_sabio", name: "Anel do Sábio", type: "accessory", rarity: "raro", price: 330, description: "Amplifica a concentração e o raciocínio.", stats: { inteligencia: 4 } },
 
+  ...starterArmor,
   ...classArmor,
 
   { code: "cristal_arcano", name: "Cristal Arcano", type: "material", rarity: "incomum", price: 45, description: "Fragmento de energia usado em rituais e trocas." },
