@@ -105,7 +105,16 @@ export async function resolveEncounter(req, res) {
       return res.status(409).json({ error: "Decida o destino das duas missões opcionais deste capítulo antes do chefe (você pode recusá-las)." });
     }
   }
-  if (save.hpCurrent <= 0) return res.status(409).json({ error: "Você está sem vida. Use um item de cura antes de lutar." });
+  if (save.completed) return res.status(409).json({ error: "Este save já foi encerrado e não pode continuar." });
+  if (save.hpCurrent <= 0 || save.energyCurrent <= 0) {
+    const [lostSave] = await db.update(saves).set({ completed: true, updatedAt: new Date(), lastPlayedAt: new Date() })
+      .where(eq(saves.id, save.id)).returning();
+    return res.json({
+      victory: false, permanentDeath: true, enemy: { id: enemy.id, name: enemy.name, kind: enemy.kind },
+      rounds: 0, damageTaken: 0, save: lostSave,
+      message: "DERROTA PERMANENTE: a vida ou o vigor chegou a zero. Este save foi encerrado."
+    });
+  }
 
   const [alreadyDefeated] = await db.select().from(defeatedEncounters).where(and(eq(defeatedEncounters.saveId, save.id), eq(defeatedEncounters.enemyCode, enemy.id)));
   if (alreadyDefeated) return res.status(409).json({ error: "Este inimigo já foi derrotado neste save." });
@@ -133,8 +142,31 @@ export async function resolveEncounter(req, res) {
   }
   const victory = enemyHp <= 0;
   if (!victory) {
-    const [updated] = await db.update(saves).set({ hpCurrent: Math.max(1, playerHp), updatedAt: new Date(), lastPlayedAt: new Date() }).where(eq(saves.id, save.id)).returning();
-    return res.json({ victory: false, enemy: { id: enemy.id, name: enemy.name, hp: enemy.hp, hpCurrent: Math.max(0, enemyHp), kind: enemy.kind }, rounds, damageTaken: save.hpCurrent - updated.hpCurrent, save: updated, message: "Você foi derrotado e precisou recuar. Nenhuma recompensa foi concedida." });
+    // A derrota custa exatamente um coração; o dano calculado durante o combate não é descontado.
+    const remainingHp = Math.max(0, save.hpCurrent - 1);
+    const permanentDeath = remainingHp <= 0 || save.energyCurrent <= 0;
+    // O encontro fica resolvido mesmo com a retirada, permitindo que a narrativa avance.
+    await db.insert(defeatedEncounters).values({ saveId: save.id, enemyCode: enemy.id }).onConflictDoNothing();
+    const isBoss = enemy.kind === "boss";
+    const nextChapter = isBoss && !permanentDeath ? Math.min(CHAPTERS.length, save.chapterCurrent + 1) : save.chapterCurrent;
+    const [updated] = await db.update(saves).set({
+      hpCurrent: remainingHp,
+      completed: permanentDeath,
+      chapterCurrent: nextChapter,
+      chapterMax: CHAPTERS.length,
+      updatedAt: new Date(),
+      lastPlayedAt: new Date(),
+    }).where(eq(saves.id, save.id)).returning();
+    return res.json({
+      victory: false, permanentDeath, chapterAdvanced: isBoss && !permanentDeath && nextChapter !== save.chapterCurrent,
+      enemy: { id: enemy.id, name: enemy.name, hp: enemy.hp, hpCurrent: Math.max(0, enemyHp), kind: enemy.kind },
+      rounds, damageTaken: 1, save: updated,
+      message: permanentDeath
+        ? "DERROTA PERMANENTE: você perdeu seu último coração ou estava sem vigor. Este save foi encerrado."
+        : isBoss
+          ? "Você perdeu o confronto e recuou. O chefe permanece vivo, mas você encontrou uma rota para seguir adiante. Nenhuma recompensa foi concedida."
+          : "Você perdeu o confronto e recuou. A criatura permanece viva, mas encontrou uma abertura para continuar a jornada. Nenhuma recompensa foi concedida."
+    });
   }
 
   const [registered] = await db.insert(defeatedEncounters).values({ saveId: save.id, enemyCode: enemy.id }).onConflictDoNothing().returning();
@@ -192,6 +224,9 @@ export async function resolveEncounter(req, res) {
 }
 
 export async function useItem(req, res) {
+  if (req.save.completed || req.save.hpCurrent <= 0 || req.save.energyCurrent <= 0) {
+    return res.status(409).json({ error: "Este save foi encerrado por derrota permanente; não é possível usar itens nele." });
+  }
   const inventoryId = Number(req.params.inventoryId);
   if (!Number.isSafeInteger(inventoryId) || inventoryId < 1) return res.status(400).json({ error: "ID de inventário inválido." });
   const [row] = await db.select({ inventoryId: inventoryItems.id, quantity: inventoryItems.quantity, itemId: items.id, name: items.name })
