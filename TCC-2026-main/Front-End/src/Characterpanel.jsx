@@ -247,7 +247,7 @@ function Slot({ item, placeholderLabel, onUseItem, onEquipItem, onUnequipItem })
     {!item && placeholderLabel && <span className="slot__placeholder">{placeholderLabel === "helmet" && "elmo"}{placeholderLabel === "weapon" && "arma"}{placeholderLabel === "chest" && "peito"}{placeholderLabel === "pants" && "calça"}{placeholderLabel === "shield" && "escudo"}{placeholderLabel === "boots" && "botas"}{placeholderLabel === "ring" && "anel"}</span>}
   </>;
   if (item?.type === "consumable" && onUseItem) return <button type="button" className="slot" title={`Usar ${item.name}`} onClick={() => onUseItem(item)}>{contents}</button>;
-  if (item && onEquipItem && ["weapon", "armor", "accessory"].includes(item.type)) return <button type="button" className="slot" title={`Equipar ${item.name}`} onClick={() => onEquipItem(item)}>{contents}</button>;
+  if (item && onEquipItem && ["weapon", "armor", "accessory", "helmet", "chest", "pants", "shield", "boots"].includes(item.type)) return <button type="button" className="slot" title={`Equipar ${item.name}`} onClick={() => onEquipItem(item)}>{contents}</button>;
   if (item && onUnequipItem) return <button type="button" className="slot" title={`Desequipar ${item.name}`} onClick={() => onUnequipItem(item)}>{contents}</button>;
   return (
     <div className="slot" title={item?.name ?? item?.id ?? placeholderLabel ?? ""}>
