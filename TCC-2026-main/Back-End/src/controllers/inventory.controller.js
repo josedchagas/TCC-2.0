@@ -1,9 +1,10 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { inventoryItems, items } from "../db/schema.js";
+import { inventoryItems, items, saves } from "../db/schema.js";
+import { ITEMS } from "../game/Content.js";
 import { parseId } from "../utils/params.js";
 
-const MAX_INVENTORY_SLOTS = 8; // os 8 slots do CharacterPanel
+const MAX_INVENTORY_SLOTS = 16; // deve corresponder à capacidade exibida no CharacterPanel
 const MAX_STACK = 99;
 
 // GET /saves/:saveId/inventory — já traz os dados do item (nome, ícone...)
@@ -22,7 +23,13 @@ export async function listInventory(req, res) {
     .innerJoin(items, eq(inventoryItems.itemId, items.id))
     .where(eq(inventoryItems.saveId, req.save.id));
 
-  res.json(rows);
+  res.json(rows.map((row) => {
+    const definition = ITEMS.find((item) => item.name === row.name);
+    const sellPrice = definition && definition.type !== "quest" && definition.price > 0
+      ? Math.max(1, Math.floor(definition.price / 2))
+      : 0;
+    return { ...row, sellPrice };
+  }));
 }
 
 // POST /saves/:saveId/inventory — se o item já está no inventário, soma a quantidade
@@ -114,4 +121,39 @@ export async function removeFromInventory(req, res) {
   }
 
   res.status(204).send();
+}
+// POST /saves/:saveId/inventory/:id/sell — vende uma unidade da pilha.
+export async function sellInventoryItem(req, res) {
+  const id = parseId(req.params.id);
+  if (id === null) return res.status(400).json({ error: "ID inválido." });
+  if (req.save.completed || req.save.hpCurrent <= 0 || req.save.energyCurrent <= 0) {
+    return res.status(409).json({ error: "Este save foi encerrado e não pode vender itens." });
+  }
+
+  const [row] = await db
+    .select({ inventoryId: inventoryItems.id, quantity: inventoryItems.quantity, itemId: items.id, name: items.name, type: items.type })
+    .from(inventoryItems)
+    .innerJoin(items, eq(inventoryItems.itemId, items.id))
+    .where(and(eq(inventoryItems.id, id), eq(inventoryItems.saveId, req.save.id)));
+  if (!row) return res.status(404).json({ error: "Item não encontrado no inventário." });
+
+  const definition = ITEMS.find((item) => item.name === row.name);
+  if (!definition || definition.type === "quest" || definition.price <= 0) {
+    return res.status(400).json({ error: "Este item não pode ser vendido." });
+  }
+
+  const sellPrice = Math.max(1, Math.floor(definition.price / 2));
+  const [updatedSave] = await db.update(saves)
+    .set({ money: sql`${saves.money} + ${sellPrice}`, updatedAt: new Date(), lastPlayedAt: new Date() })
+    .where(eq(saves.id, req.save.id))
+    .returning();
+
+  if (row.quantity <= 1) {
+    await db.delete(inventoryItems).where(and(eq(inventoryItems.id, row.inventoryId), eq(inventoryItems.saveId, req.save.id)));
+  } else {
+    await db.update(inventoryItems).set({ quantity: row.quantity - 1 })
+      .where(and(eq(inventoryItems.id, row.inventoryId), eq(inventoryItems.saveId, req.save.id)));
+  }
+
+  res.json({ message: `Você vendeu 1x ${row.name} por ${sellPrice} moedas.`, sellPrice, save: updatedSave });
 }
