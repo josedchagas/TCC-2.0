@@ -116,6 +116,36 @@ function relativeTime(value) {
 }
 
 function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
+  const [animationAction, setAnimationAction] = useState(null);
+  useEffect(() => {
+    const turns = battle?.combat?.turns || [];
+    if (!battle?.result || !turns.length) {
+      setAnimationAction(null);
+      return undefined;
+    }
+    let cancelled = false;
+    let timer;
+    let index = 0;
+    const playTurn = () => {
+      if (cancelled || index >= turns.length) {
+        setAnimationAction(null);
+        return;
+      }
+      setAnimationAction("player");
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        if (turns[index]?.enemyRoll) {
+          setAnimationAction("enemy");
+          timer = setTimeout(() => { index += 1; playTurn(); }, 360);
+        } else {
+          index += 1;
+          playTurn();
+        }
+      }, 360);
+    };
+    playTurn();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [battle?.result, battle?.combat?.turns]);
   if (!battle) return null;
   const combat = battle.combat || {};
   const result = battle.result;
@@ -148,7 +178,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
           </div>
         </div>
 
-        <div className={`battle-modal__arena ${result ? (playerWins ? "player-wins" : "enemy-wins") : ""}`}>
+        <div className={`battle-modal__arena ${animationAction ? `${animationAction}-attacking` : ""}`}>
           <article className="battle-modal__character-card battle-modal__character-card--player">
             <div className="battle-modal__avatar" aria-hidden="true">{playerVisual}</div>
             <strong>{battle.characterName || "Aventureiro"}</strong>
