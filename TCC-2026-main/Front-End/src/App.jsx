@@ -6,9 +6,33 @@ import StoryPanel from "./Storypanel";
 import GameMenu from "./GameMenu";
 import ShopModal from "./ShopModal";
 import { apiFetch, ensureGuestSession } from "./api";
+import loboDasSombras from "../imagens/lobo das sombras.png";
+import espantalho from "../imagens/Espantalho.png";
+import corvoFerrugem from "../imagens/Corvo Ferrugem.png";
+import saqueadorDaEstrada from "../imagens/Saqueador da Estrada.png";
+import capitaoDosCorvos from "../imagens/Capitão dos corvos.png";
+import guardiaoDoSino from "../imagens/Guardião do Sino.png";
 import "./App.css";
 
 const STAT_KEYS = ["forca", "destreza", "inteligencia", "resistencia", "agilidade"];
+
+function normalizeEnemyName(name) {
+  return String(name || "")
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+const ENEMY_IMAGES = {
+  "lobo das sombras": loboDasSombras,
+  "vulto de palha": espantalho,
+  espantalho,
+  "corvo ferrugem": corvoFerrugem,
+  "saqueador da estrada": saqueadorDaEstrada,
+  "capitao dos corvos": capitaoDosCorvos,
+  "guardiao do sino": guardiaoDoSino,
+};
 
 function chapterLabel(save, chapterData) {
   return `Capítulo ${save.chapterCurrent} — ${chapterData?.title ?? "A Vila Esquecida"}`;
@@ -193,6 +217,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   const playerClass = battle.classRole || "Aventureiro";
   const playerVisual = ({ Guerreiro: "🛡️", Arqueira: "🏹", Maga: "🪄", Ladino: "🗡️" })[playerClass] || "🧙";
   const enemyVisual = battle.enemy.kind === "boss" ? "👹" : battle.enemy.kind === "elite" ? "👺" : "🐺";
+  const enemyImage = ENEMY_IMAGES[normalizeEnemyName(battle.enemy.name)];
   const drops = result?.drops || [];
 
   return (
@@ -234,7 +259,9 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
             {combatFinished && <p className={`battle-modal__roll-result ${result.victory ? "is-success" : "is-failure"}`}>{result.victory ? "Vitória" : "Derrota"}{combat.turns?.some((turn) => turn.playerCritical || turn.enemyCritical) ? " · Crítico no combate!" : ""}</p>}
           </div>
           <article className="battle-modal__character-card battle-modal__character-card--enemy">
-            <div className="battle-modal__avatar" aria-hidden="true">{enemyVisual}</div>
+            <div className={`battle-modal__avatar ${enemyImage ? "battle-modal__avatar--image" : ""}`} aria-hidden="true">
+              {enemyImage ? <img src={enemyImage} alt="" /> : enemyVisual}
+            </div>
             <strong>{battle.enemy.name}</strong>
             <span>{battle.enemy.kind === "boss" ? "Chefe" : battle.enemy.kind === "elite" ? "Elite" : "Inimigo"}</span>
           </article>
