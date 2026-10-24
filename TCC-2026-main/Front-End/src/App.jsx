@@ -450,7 +450,9 @@ export default function App() {
     if (!activeSave || !item?.itemId) return;
     const slots = item.type === "weapon" ? ["weapon"]
       : item.type === "accessory" ? ["ring"]
-      : ["helmet", "chest", "pants", "shield", "boots"];
+      : ["helmet", "chest", "pants", "shield", "boots"].includes(item.type) ? [item.type]
+      : item.type === "armor" ? ["helmet", "chest", "pants", "shield", "boots"]
+      : [];
     const promptText = slots.length === 1
       ? `Digite "${slots[0]}" para equipar ${item.name}.`
       : `Escolha o slot para ${item.name}: ${slots.join(", ")}. Digite exatamente um deles.`;
