@@ -424,7 +424,7 @@ export async function resolveBattleDrop(req, res) {
   const enemy = getEnemyById(req.params.enemyId);
   const itemCode = String(req.params.itemCode || "");
   const action = String(req.params.action || "");
-  if (!enemy || enemy.chapter !== save.chapterCurrent) return res.status(404).json({ error: "Inimigo não encontrado neste capítulo." });
+  if (!enemy) return res.status(404).json({ error: "Inimigo não encontrado." });
   if (!["claim", "discard"].includes(action)) return res.status(400).json({ error: "Ação de drop inválida." });
   const itemDef = getItemByCode(itemCode);
   if (!itemDef || !(enemy.drops || []).some((drop) => drop.item === itemCode)) {
