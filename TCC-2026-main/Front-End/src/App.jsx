@@ -117,6 +117,7 @@ function relativeTime(value) {
 
 function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   const [animationAction, setAnimationAction] = useState(null);
+  const [animatedHp, setAnimatedHp] = useState(null);
   useEffect(() => {
     const turns = battle?.combat?.turns || [];
     if (!battle?.result || !turns.length) {
@@ -125,6 +126,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
     }
     let cancelled = false;
     const timers = [];
+    setAnimatedHp({ playerHp: battle.combat.playerMaxHp, enemyHp: battle.combat.enemyMaxHp });
     let index = 0;
     const schedule = (callback, delay) => {
       timers.push(setTimeout(() => {
@@ -140,11 +142,13 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
       setAnimationAction("player");
       schedule(() => {
         setAnimationAction(null);
+        setAnimatedHp({ playerHp: turns[index]?.playerHp ?? battle.combat.playerMaxHp, enemyHp: turns[index]?.enemyHp ?? battle.combat.enemyMaxHp });
         if (turns[index]?.enemyRoll) {
           schedule(() => {
             setAnimationAction("enemy");
             schedule(() => {
               setAnimationAction(null);
+              setAnimatedHp({ playerHp: turns[index]?.playerHp ?? battle.combat.playerHp, enemyHp: turns[index]?.enemyHp ?? battle.combat.enemyHp });
               index += 1;
               // Pausa após o ataque inimigo antes de voltar ao jogador.
               schedule(playTurn, 800);
@@ -169,8 +173,10 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   if (!battle) return null;
   const combat = battle.combat || {};
   const result = battle.result;
-  const playerPct = combat.playerMaxHp ? Math.max(0, Math.min(100, (combat.playerHp / combat.playerMaxHp) * 100)) : 100;
-  const enemyPct = combat.enemyMaxHp ? Math.max(0, Math.min(100, (combat.enemyHp / combat.enemyMaxHp) * 100)) : 100;
+  const displayedPlayerHp = animatedHp?.playerHp ?? (result ? combat.playerMaxHp : combat.playerHp);
+  const displayedEnemyHp = animatedHp?.enemyHp ?? (result ? combat.enemyMaxHp : combat.enemyHp);
+  const playerPct = combat.playerMaxHp ? Math.max(0, Math.min(100, (displayedPlayerHp / combat.playerMaxHp) * 100)) : 100;
+  const enemyPct = combat.enemyMaxHp ? Math.max(0, Math.min(100, (displayedEnemyHp / combat.enemyMaxHp) * 100)) : 100;
   const roll = battle.lastRoll;
   const multiplier = roll ? (roll / 10).toFixed(1) : null;
   const playerClass = battle.classRole || "Aventureiro";
@@ -188,11 +194,11 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
 
         <div className="battle-modal__fighters">
           <div className="battle-modal__fighter">
-            <div className="battle-modal__fighter-title"><span>Você</span><strong>{Math.ceil(combat.playerHp ?? combat.playerMaxHp ?? 0)} / {combat.playerMaxHp ?? 0} PV</strong></div>
+            <div className="battle-modal__fighter-title"><span>Você</span><strong>{Math.ceil(displayedPlayerHp ?? combat.playerMaxHp ?? 0)} / {combat.playerMaxHp ?? 0} PV</strong></div>
             <div className="battle-modal__bar"><span className="battle-modal__bar-fill battle-modal__bar-fill--player" style={{ width: playerPct + "%" }} /></div>
           </div>
           <div className="battle-modal__fighter">
-            <div className="battle-modal__fighter-title"><span>{battle.enemy.name}</span><strong>{Math.ceil(combat.enemyHp ?? combat.enemyMaxHp ?? 0)} / {combat.enemyMaxHp ?? battle.enemy.hp} PV</strong></div>
+            <div className="battle-modal__fighter-title"><span>{battle.enemy.name}</span><strong>{Math.ceil(displayedEnemyHp ?? combat.enemyMaxHp ?? 0)} / {combat.enemyMaxHp ?? battle.enemy.hp} PV</strong></div>
             <div className="battle-modal__bar"><span className="battle-modal__bar-fill battle-modal__bar-fill--enemy" style={{ width: enemyPct + "%" }} /></div>
           </div>
         </div>
@@ -503,11 +509,12 @@ export default function App() {
     if (!activeSave || !battle || battleBusy || battle.result || battle.lastRoll != null) return;
     const roll = Math.floor(Math.random() * 20) + 1;
     setBattleBusy(true);
-    setBattle((current) => current ? { ...current, lastRoll: roll } : current);
     try {
       const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(battle.enemy.id)}/resolve`, {
         method: "POST", body: JSON.stringify({ rolls: [roll] }),
       });
+      // Mantém o D20 animado e visível por pelo menos 700 ms antes de revelar o resultado.
+      await new Promise((resolve) => setTimeout(resolve, 700));
       setBattle((current) => current ? { ...current, rolls: [roll], lastRoll: roll, combat: result.combat, result } : current);
       if (result.save) updateSaveInLists(result.save);
       const stamp = Date.now();
