@@ -331,13 +331,16 @@ export default function App() {
       const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(enemy.id)}/resolve`, { method: "POST", body: JSON.stringify({}) });
       updateSaveInLists(result.save);
       const stamp = Date.now();
-      const lines = [{ id: `battle-${enemy.id}-${stamp}`, type: "outcome", text: result.message }];
+      const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}`, type: "outcome", text: result.message }];
       if (result.victory && result.rewards) {
-        lines.push({ id: `battle-reward-${enemy.id}-${stamp}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
+        lines.push({ id: `battle-reward-${enemy.id}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
       }
       const drops = (result.drops ?? []).filter((drop) => drop.granted).map((drop) => drop.name);
-      if (drops.length) lines.push({ id: `battle-drops-${enemy.id}-${stamp}`, type: "outcome", text: `Você encontrou: ${drops.join(", ")}.` });
-      setStoryEntries((entries) => [...entries, ...lines]);
+      if (drops.length) lines.push({ id: `battle-drops-${enemy.id}`, type: "outcome", text: `Você encontrou: ${drops.join(", ")}.` });
+      setStoryEntries((entries) => {
+        const newEntries = lines.filter((line) => !entries.some((entry) => entry.id === line.id));
+        return [...entries, ...newEntries];
+      });
       await refreshSaves();
       await refreshGameData(result.save);
       setNotice("");
@@ -469,7 +472,7 @@ export default function App() {
       : currentEvent?.type === "enemy"
         ? [
             { id: currentEvent.key + "-fight", label: "Enfrentar " + currentEvent.enemy.name, disabled: battleBusy || (activeSave?.hpCurrent ?? 0) <= 0, onClick: () => fightEnemy(currentEvent.enemy) },
-            { id: currentEvent.key + "-flee", label: "Recuar por enquanto", disabled: battleBusy, onClick: () => setStoryEntries((entries) => [...entries, { id: "flee-" + currentEvent.key + "-" + Date.now(), type: "outcome", text: "Você recua para manter distância de " + currentEvent.enemy.name + ". O caminho continua bloqueado; será preciso voltar e enfrentar o perigo para avançar." }]) },
+            { id: currentEvent.key + "-flee", label: "Recuar por enquanto", disabled: battleBusy, onClick: () => setStoryEntries((entries) => entries.some((entry) => entry.id === "flee-" + currentEvent.key) ? entries : [...entries, { id: "flee-" + currentEvent.key, type: "outcome", text: "Você recua para manter distância de " + currentEvent.enemy.name + ". O caminho continua bloqueado; será preciso voltar e enfrentar o perigo para avançar." }]) },
           ]
         : currentEvent?.type === "shop"
           ? [
