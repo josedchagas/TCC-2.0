@@ -19,7 +19,7 @@ const STAT_KEYS = ["forca", "destreza", "inteligencia", "resistencia", "agilidad
 function normalizeEnemyName(name) {
   return String(name || "")
     .normalize("NFD")
-    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
 }
