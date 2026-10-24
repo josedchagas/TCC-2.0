@@ -133,13 +133,14 @@ export default function App() {
     }
     const quests = [...sideQuests].sort((a, b) => a.id.localeCompare(b.id));
     const enemies = chapterData.enemies ?? [];
+    const chapterCharacter = CHAPTER_CHARACTERS[Math.max(0, Math.min(CHAPTER_CHARACTERS.length - 1, Number(chapterData.number) - 1))];
     const ordinaryEnemies = enemies.filter((enemy) => enemy.kind !== "boss");
     const boss = enemies.find((enemy) => enemy.kind === "boss");
     const sequence = [
       quests[0] && {
         key: quests[0].id, type: "quest", quest: quests[0],
         intro: sceneNarration(chapterData.number, quests[0].title, quests[0].description, true),
-        dialogue: "— " + chapterCharacter.name + " — diz " + chapterCharacter.name + ", mantendo a voz baixa — não posso resolver isso sem ajuda. Você aceita me ajudar ou vai me deixar com essa pista?",
+        dialogue: "— Não posso resolver isso sem ajuda — diz " + chapterCharacter.name + ", mantendo a voz baixa. — Você aceita me ajudar ou vai me deixar com essa pista?",
       },
       ordinaryEnemies[0] && {
         key: ordinaryEnemies[0].id, type: "enemy", enemy: ordinaryEnemies[0],
