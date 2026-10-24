@@ -208,7 +208,7 @@ export default function App() {
     ]);
     setChapterData(chapter);
     setChapterLoadedForSaveId(save.id);
-    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, qty: item.quantity, sellPrice: item.sellPrice ?? 0 })));
+    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", qty: item.quantity, sellPrice: item.sellPrice ?? 0 })));
     setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, slot: item.slot })));
     setDefeatedEnemies(defeated.filter((code) => !String(code).startsWith("sidequest:")));
     setSideQuests(quests);
@@ -415,18 +415,32 @@ export default function App() {
     finally { setShopBusy(false); }
   };
 
-  const sellItem = async (item) => {
-    if (!activeSave || !item?.id) return;
-    const confirmed = window.confirm("Vender 1 unidade de " + item.name + " por " + item.sellPrice + " moedas?");
-    if (!confirmed) return;
+  const sellItem = async (item, quantity = 1) => {
+    if (!activeSave || !item?.id || shopBusy) return;
+    setShopBusy(true);
     try {
       const result = await apiFetch("/saves/" + activeSave.id + "/inventory/" + item.id + "/sell", {
         method: "POST",
-        body: JSON.stringify({}),
+        body: JSON.stringify({ quantity }),
       });
       updateSaveInLists(result.save);
       await refreshGameData(result.save);
       setNotice(result.message);
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setShopBusy(false);
+    }
+  };
+
+  const dropItem = async (item) => {
+    if (!activeSave || !item?.id) return;
+    const confirmed = window.confirm("Largar " + item.name + (item.qty > 1 ? " (todas as " + item.qty + " unidades)" : "") + "? O item será removido do inventário sem receber moedas.");
+    if (!confirmed) return;
+    try {
+      await apiFetch("/saves/" + activeSave.id + "/inventory/" + item.id, { method: "DELETE" });
+      await refreshGameData(activeSave);
+      setNotice("Você largou " + item.name + ".");
     } catch (error) {
       setNotice(error.message);
     }
@@ -572,7 +586,7 @@ export default function App() {
           statusOpen={statusOpen}
           onToggleStatus={() => setStatusOpen((value) => !value)}
           onUseItem={useItem}
-          onSellItem={sellItem}
+          onDropItem={dropItem}
           onEquipItem={equipItem}
           onUnequipItem={unequipItem}
         />
@@ -585,7 +599,7 @@ export default function App() {
       </div>
 
       <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
-      <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} money={activeSave?.money ?? 0} busy={shopBusy} />
+      <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} onSell={sellItem} inventory={inventory} money={activeSave?.money ?? 0} busy={shopBusy} />
       <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
   );
