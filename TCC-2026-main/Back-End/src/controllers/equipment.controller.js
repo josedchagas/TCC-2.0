@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { equippedItems, inventoryItems, items } from "../db/schema.js";
 import { parseId } from "../utils/params.js";
+import { ITEMS } from "../game/Content.js";
 
 // Quantos itens cabem em cada slot (anel tem 2, o resto só 1).
 const SLOT_LIMITS = { ring: 2 };
@@ -9,21 +10,36 @@ const SLOT_LIMITS = { ring: 2 };
 // Qual tipo de item (items.type) cada slot aceita.
 const ALLOWED_TYPES = {
   weapon: ["weapon"],
-  shield: ["armor"],
-  helmet: ["armor"],
-  chest: ["armor"],
-  pants: ["armor"],
-  boots: ["armor"],
+  shield: ["shield"],
+  helmet: ["helmet"],
+  chest: ["chest"],
+  pants: ["pants"],
+  boots: ["boots"],
   ring: ["accessory"],
 };
+
+
+// Compatibilidade com armaduras antigas salvas no banco com type="armor".
+// O nome identifica o slot correto sem permitir equipar uma peça em qualquer lugar.
+function normalizedEquipmentType(item) {
+  if (item.type !== "armor") return item.type;
+  const name = String(item.name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (/\b(elmo|capacete|helmet)\b/.test(name)) return "helmet";
+  if (/\b(bota|botas|boot|boots)\b/.test(name)) return "boots";
+  if (/\b(calca|calcas|pants)\b/.test(name)) return "pants";
+  if (/\b(escudo|shield)\b/.test(name)) return "shield";
+  if (/\b(peitoral|cota|tunica|manto|armadura|chest|torso)\b/.test(name)) return "chest";
+  return "armor";
+}
 
 function limitFor(slot) {
   return SLOT_LIMITS[slot] ?? 1;
 }
 
-function typeProblem(slot, itemType) {
-  if (ALLOWED_TYPES[slot].includes(itemType)) return null;
-  return `O slot "${slot}" só aceita itens do tipo: ${ALLOWED_TYPES[slot].join(", ")}.`;
+function typeProblem(slot, item) {
+  const itemType = normalizedEquipmentType(item);
+  if (ALLOWED_TYPES[slot]?.includes(itemType)) return null;
+  return `O slot "${slot}" só aceita itens do tipo: ${(ALLOWED_TYPES[slot] ?? []).join(", ")}. Tipo identificado: ${itemType}.`;
 }
 
 
@@ -50,7 +66,7 @@ async function canStoreItem(saveId, itemId, removingItemId = null) {
   const oldStack = rows.find((row) => row.itemId === itemId);
   if (oldStack) return oldStack.quantity < 99;
   const slotsAfterRemoval = rows.length - (removingItemId && rows.some((row) => row.itemId === removingItemId && row.quantity === 1) ? 1 : 0);
-  return slotsAfterRemoval < 8;
+  return slotsAfterRemoval < 16;
 }
 
 async function addOneToInventory(saveId, itemId) {
@@ -61,7 +77,7 @@ async function addOneToInventory(saveId, itemId) {
     await db.update(inventoryItems).set({ quantity: existing.quantity + 1 }).where(eq(inventoryItems.id, existing.id));
     return;
   }
-  if (rows.length >= 8) throw new Error("Inventário cheio.");
+  if (rows.length >= 16) throw new Error("Inventário cheio.");
   await db.insert(inventoryItems).values({ saveId, itemId, quantity: 1 });
 }
 
@@ -81,7 +97,18 @@ export async function listEquipment(req, res) {
     .innerJoin(items, eq(equippedItems.itemId, items.id))
     .where(eq(equippedItems.saveId, req.save.id));
 
-  res.json(rows);
+  res.json(rows.map((row) => {
+    const definition = ITEMS.find((item) => item.name === row.name);
+    return {
+      ...row,
+      type: normalizedEquipmentType(row),
+      rarity: definition?.rarity ?? "comum",
+      stats: definition?.stats ?? {},
+      price: definition?.price ?? 0,
+      damage: definition?.damage ?? 0,
+      armorHp: definition?.armorHp ?? 0,
+    };
+  }));
 }
 
 // POST /saves/:saveId/equipment — equipa um item num slot
@@ -94,7 +121,7 @@ export async function equipItem(req, res) {
     return res.status(404).json({ error: "Item não encontrado no catálogo." });
   }
 
-  const problem = typeProblem(slot, item.type);
+  const problem = typeProblem(slot, item);
   if (problem) {
     return res.status(400).json({ error: problem });
   }
@@ -145,7 +172,7 @@ export async function swapEquippedItem(req, res) {
     return res.status(404).json({ error: "Item não encontrado no catálogo." });
   }
 
-  const problem = typeProblem(equipped.slot, item.type);
+  const problem = typeProblem(equipped.slot, item);
   if (problem) {
     return res.status(400).json({ error: problem });
   }

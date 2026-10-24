@@ -1,8 +1,41 @@
 import { asc, eq, gt, lt, and, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { saves } from "../db/schema.js";
+import { equippedItems, items, saves } from "../db/schema.js";
+import { ITEMS } from "../game/Content.js";
 
 const MAX_SAVES_PER_USER = 8;
+
+// Cada personagem começa com arma e quatro peças comuns já equipadas.
+const STARTER_LOADOUTS = {
+  elyra: [
+    { code: "arco_freixo", slot: "weapon" },
+    { code: "inicial_arqueira_elmo", slot: "helmet" },
+    { code: "inicial_arqueira_peitoral", slot: "chest" },
+    { code: "inicial_arqueira_calcas", slot: "pants" },
+    { code: "inicial_arqueira_botas", slot: "boots" },
+  ],
+  bram: [
+    { code: "espada_aventureiro", slot: "weapon" },
+    { code: "inicial_guerreiro_elmo", slot: "helmet" },
+    { code: "inicial_guerreiro_peitoral", slot: "chest" },
+    { code: "inicial_guerreiro_calcas", slot: "pants" },
+    { code: "inicial_guerreiro_botas", slot: "boots" },
+  ],
+  sora: [
+    { code: "cajado_cobre", slot: "weapon" },
+    { code: "inicial_maga_elmo", slot: "helmet" },
+    { code: "inicial_maga_peitoral", slot: "chest" },
+    { code: "inicial_maga_calcas", slot: "pants" },
+    { code: "inicial_maga_botas", slot: "boots" },
+  ],
+  toren: [
+    { code: "adaga_lua", slot: "weapon" },
+    { code: "inicial_ladino_elmo", slot: "helmet" },
+    { code: "inicial_ladino_peitoral", slot: "chest" },
+    { code: "inicial_ladino_calcas", slot: "pants" },
+    { code: "inicial_ladino_botas", slot: "boots" },
+  ],
+};
 const CHARACTER_PRESETS = {
   elyra: { characterName: "Elyra", classRole: "Arqueira", forca: 6, destreza: 16, inteligencia: 9, resistencia: 8, agilidade: 14 },
   bram: { characterName: "Bram", classRole: "Guerreiro", forca: 15, destreza: 8, inteligencia: 6, resistencia: 17, agilidade: 7 },
@@ -10,13 +43,25 @@ const CHARACTER_PRESETS = {
   toren: { characterName: "Toren", classRole: "Ladino", forca: 8, destreza: 15, inteligencia: 11, resistencia: 9, agilidade: 16 },
 };
 
+async function normalizeFixedPips(save) {
+  const hpCurrent = Math.min(5, save.hpCurrent);
+  const energyCurrent = Math.min(5, save.energyCurrent);
+  if (save.hpMax === 5 && save.energyMax === 5 && hpCurrent === save.hpCurrent && energyCurrent === save.energyCurrent) return save;
+  const [updated] = await db.update(saves).set({
+    hpCurrent, hpMax: 5, energyCurrent, energyMax: 5,
+    updatedAt: new Date(),
+  }).where(eq(saves.id, save.id)).returning();
+  return updated;
+}
+
 export async function listSaves(req, res) {
   const rows = await db.select().from(saves).where(eq(saves.userId, req.user.id)).orderBy(asc(saves.slotNumber));
-  res.json(rows);
+  const normalized = await Promise.all(rows.map(normalizeFixedPips));
+  res.json(normalized);
 }
 
 export async function getSave(req, res) {
-  res.json(req.save);
+  res.json(await normalizeFixedPips(req.save));
 }
 
 export async function createSave(req, res) {
@@ -32,13 +77,28 @@ export async function createSave(req, res) {
   const preset = CHARACTER_PRESETS[req.body.characterId];
   if (!preset) return res.status(400).json({ error: "Personagem inicial inválido." });
 
-  // Valores iniciais e atributos vêm do servidor, não do payload do cliente.
-  const [save] = await db.insert(saves).values({
+  // O driver neon-http não suporta db.transaction(). Primeiro validamos
+  // todo o catálogo; depois criamos o save e inserimos o equipamento.
+  const loadout = STARTER_LOADOUTS[req.body.characterId];
+  const initialEquipment = [];
+  for (const piece of loadout) {
+    const definition = ITEMS.find((candidate) => candidate.code === piece.code);
+    if (!definition) {
+      return res.status(500).json({ error: `Equipamento inicial ausente no catálogo: ${piece.code}` });
+    }
+    const [catalogItem] = await db.select({ id: items.id }).from(items).where(eq(items.name, definition.name));
+    if (!catalogItem) {
+      return res.status(500).json({ error: `Equipamento inicial não encontrado no banco: ${definition.name}` });
+    }
+    initialEquipment.push({ itemId: catalogItem.id, slot: piece.slot });
+  }
+
+  const [createdSave] = await db.insert(saves).values({
     userId,
     slotNumber: req.body.slotNumber,
     ...preset,
     chapterCurrent: 1,
-    chapterMax: 1,
+    chapterMax: 20,
     xpCurrent: 0,
     xpMax: 100,
     hpCurrent: 5,
@@ -48,7 +108,23 @@ export async function createSave(req, res) {
     money: 0,
     availablePoints: 0,
   }).returning();
-  res.status(201).json(save);
+
+  try {
+    await db.insert(equippedItems).values(
+      initialEquipment.map((piece) => ({ ...piece, saveId: createdSave.id }))
+    );
+  } catch (error) {
+    // Se o equipamento falhar, removemos o save recém-criado para não deixar
+    // o personagem inicial em estado incompleto.
+    try {
+      await db.delete(saves).where(eq(saves.id, createdSave.id));
+    } catch (cleanupError) {
+      console.error("Não foi possível limpar o save após falha no equipamento inicial:", cleanupError);
+    }
+    throw error;
+  }
+
+  res.status(201).json(createdSave);
 }
 
 export async function updateSave(req, res) {
@@ -61,6 +137,9 @@ export async function updateSave(req, res) {
 
 // Ação segura de evolução: um ponto disponível, atributo abaixo de 20, e alteração no servidor.
 export async function spendPoint(req, res) {
+  if (req.save.completed || req.save.hpCurrent <= 0 || req.save.energyCurrent <= 0) {
+    return res.status(409).json({ error: "Este save foi encerrado e não pode mais ser alterado." });
+  }
   const { stat } = req.body;
   if (req.save.availablePoints < 1) {
     return res.status(409).json({ error: "Você não possui pontos disponíveis." });

@@ -10,7 +10,7 @@ import "./CharacterPanel.css";
  * - hp: { current: number, max: number }        // max define quantos "corações" aparecem
  * - energy: { current: number, max: number }     // max define quantos "pingos" aparecem
  * - money: number
- * - inventory: Array<{ id, icon, qty }>          // até 8 slots
+ * - inventory: Array<{ id, icon, qty }>          // até 16 slots
  * - equipment: Array<{ id, slot, icon }>          // slot: 'helmet' | 'weapon' | 'chest' | 'pants' | 'shield' | 'boots' | 'ring'
  * - statusOpen: boolean                           // vem do App — se o StatusModal está aberto
  * - onToggleStatus: () => void                    // avisa o App pra abrir/fechar o StatusModal
@@ -26,12 +26,16 @@ export default function CharacterPanel({
   statusOpen = false,
   onToggleStatus,
   onUseItem,
+  onDropItem,
+  onEquipItem,
+  onUnequipItem,
 }) {
   const scrollRef = useRef(null);
   const trackRef = useRef(null);
   const draggingRef = useRef(false);
   const [thumb, setThumb] = useState({ height: 100, top: 0 });
   const [scrollable, setScrollable] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const updateThumb = () => {
     const el = scrollRef.current;
@@ -114,7 +118,7 @@ export default function CharacterPanel({
     scrollFromClientY(e.clientY);
   };
 
-  const inventorySlots = Array.from({ length: 8 }, (_, i) => inventory[i] ?? null);
+  const inventorySlots = Array.from({ length: 16 }, (_, i) => inventory[i] ?? null);
 
   const equipmentLayout = [
     null, "helmet", null,
@@ -161,8 +165,8 @@ export default function CharacterPanel({
           </button>
         </div>
 
-        {/* Vida */}
-        <StatRow label={`Vida ${hp.current}/${hp.max}`}>
+        {/* Corações representam a moral e a perseverança do personagem */}
+        <StatRow label={`Moral ${hp.current}/${hp.max}`}>
           {hp.max <= 10 ? Array.from({ length: hp.max }, (_, i) => <Heart key={i} filled={i < hp.current} />) : <Meter current={hp.current} max={hp.max} kind="hp" />}
         </StatRow>
 
@@ -176,7 +180,20 @@ export default function CharacterPanel({
           <h3 className="char-panel__section-title">Inventário</h3>
           <div className="char-panel__grid">
             {inventorySlots.map((item, i) => (
-              <Slot key={i} item={item} onUseItem={onUseItem} />
+              <div className="inventory-slot-cell" key={i}>
+                <Slot item={item} onItemClick={(picked) => setSelectedItem({ item: picked, equipped: false })} />
+                {item && onDropItem && (
+                  <button
+                    type="button"
+                    className="inventory-slot__sell"
+                    title={"Largar " + item.name}
+                    aria-label={"Largar " + item.name}
+                    onClick={() => onDropItem(item)}
+                  >
+                    ↘
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -190,7 +207,7 @@ export default function CharacterPanel({
               usedCount[slotType] = (usedCount[slotType] ?? 0);
               const item = equipmentBySlot[slotType]?.[usedCount[slotType]];
               usedCount[slotType] += 1;
-              return <Slot key={i} item={item} placeholderLabel={slotType} />;
+              return <Slot key={i} item={item} placeholderLabel={slotType} isEquipped onItemClick={(picked) => setSelectedItem({ item: picked, equipped: true })} />;
             })}
           </div>
         </div>
@@ -211,6 +228,16 @@ export default function CharacterPanel({
           />
         </div>
       )}
+      {selectedItem && (
+        <ItemDetailsModal
+          item={selectedItem.item}
+          equipped={selectedItem.equipped}
+          onClose={() => setSelectedItem(null)}
+          onEquip={() => { onEquipItem?.(selectedItem.item); setSelectedItem(null); }}
+          onUnequip={() => { onUnequipItem?.(selectedItem.item); setSelectedItem(null); }}
+          onUse={() => { onUseItem?.(selectedItem.item); setSelectedItem(null); }}
+        />
+      )}
     </aside>
   );
 }
@@ -224,16 +251,60 @@ function StatRow({ label, children }) {
   );
 }
 
-function Slot({ item, placeholderLabel, onUseItem }) {
+function Slot({ item, placeholderLabel, onItemClick, isEquipped = false }) {
   const contents = <>
     {item?.icon ? <img src={item.icon} alt={item.name ?? item.id} className="slot__icon" /> : item && <span className="slot__fallback">{(item.name ?? item.id ?? "?").slice(0, 2).toUpperCase()}</span>}
     {item?.qty > 1 && <span className="slot__qty">{item.qty}</span>}
     {!item && placeholderLabel && <span className="slot__placeholder">{placeholderLabel === "helmet" && "elmo"}{placeholderLabel === "weapon" && "arma"}{placeholderLabel === "chest" && "peito"}{placeholderLabel === "pants" && "calça"}{placeholderLabel === "shield" && "escudo"}{placeholderLabel === "boots" && "botas"}{placeholderLabel === "ring" && "anel"}</span>}
   </>;
-  if (item?.type === "consumable" && onUseItem) return <button type="button" className="slot" title={`Usar ${item.name}`} onClick={() => onUseItem(item)}>{contents}</button>;
-  return (
-    <div className="slot" title={item?.name ?? item?.id ?? placeholderLabel ?? ""}>
+  if (item && onItemClick) return (
+    <button type="button" className={`slot ${isEquipped ? "slot--equipped" : ""}`} title={`Ver detalhes de ${item.name}`} onClick={() => onItemClick(item)}>
       {contents}
+    </button>
+  );
+  return <div className="slot" title={item?.name ?? item?.id ?? placeholderLabel ?? ""}>{contents}</div>;
+}
+
+const EQUIPMENT_TYPES = ["weapon", "armor", "accessory", "helmet", "chest", "pants", "shield", "boots"];
+
+function ItemDetailsModal({ item, equipped, onClose, onEquip, onUnequip, onUse }) {
+  const stats = Object.entries(item.stats || {}).filter(([, value]) => Number(value) !== 0);
+  const canEquip = EQUIPMENT_TYPES.includes(item.type);
+  const rarity = item.rarity || "comum";
+  const statLabels = { forca: "Força", destreza: "Destreza", inteligencia: "Inteligência", resistencia: "Resistência", agilidade: "Agilidade", hp: "Vida", energy: "Energia" };
+  return (
+    <div className="item-modal__backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="item-modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
+        <button type="button" className="item-modal__close" onClick={onClose} aria-label="Fechar detalhes">×</button>
+        <div className="item-modal__header">
+          <div className="item-modal__icon">
+            {item.icon ? <img src={item.icon} alt="" /> : <span>{(item.name || "?").slice(0, 2).toUpperCase()}</span>}
+          </div>
+          <div>
+            <p className={`item-modal__rarity item-modal__rarity--${rarity.toLowerCase()}`}>{rarity}</p>
+            <h2 id="item-modal-title">{item.name}</h2>
+            {item.qty > 1 && <p className="item-modal__quantity">Quantidade: {item.qty}</p>}
+          </div>
+        </div>
+        <p className="item-modal__description">{item.description || "Nenhuma descrição disponível para este item."}</p>
+        {(stats.length > 0 || item.damage > 0 || item.armorHp > 0) && (
+          <div className="item-modal__stats">
+            <h3>Atributos do item</h3>
+            <ul>
+              {item.damage > 0 && <li><span>Dano da arma</span><strong>+{item.damage}</strong></li>}
+              {item.armorHp > 0 && <li><span>Vida da armadura</span><strong>+{item.armorHp} PV</strong></li>}
+              {stats.map(([key, value]) => <li key={key}><span>{statLabels[key] || key}</span><strong>{Number(value) > 0 ? "+" : ""}{value}</strong></li>)}
+            </ul>
+          </div>
+        )}
+        {item.price > 0 && <p className="item-modal__price">Valor: {item.price} moedas</p>}
+        <div className="item-modal__actions">
+          {canEquip && !equipped && <button type="button" onClick={onEquip}>Equipar</button>}
+          {canEquip && equipped && <button type="button" onClick={onUnequip}>Desequipar</button>}
+          {item.type === "consumable" && !equipped && <button type="button" onClick={onUse}>Usar item</button>}
+          <button type="button" className="item-modal__secondary" onClick={onClose}>Fechar</button>
+        </div>
+      </section>
     </div>
   );
 }

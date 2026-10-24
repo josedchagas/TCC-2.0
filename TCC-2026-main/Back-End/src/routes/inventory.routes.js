@@ -4,6 +4,7 @@ import {
   addToInventory,
   updateInventoryItem,
   removeFromInventory,
+  sellInventoryItem,
 } from "../controllers/inventory.controller.js";
 import {
   addInventorySchema,
@@ -20,5 +21,6 @@ router.get("/", asyncHandler(listInventory));
 router.post("/", validate(addInventorySchema), asyncHandler(addToInventory));
 router.put("/:id", validate(updateInventorySchema), asyncHandler(updateInventoryItem));
 router.delete("/:id", asyncHandler(removeFromInventory));
+router.post("/:id/sell", asyncHandler(sellInventoryItem));
 
 export default router;

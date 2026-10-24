@@ -97,8 +97,10 @@
   @apply font-semibold text-[#e8c25a];
 }
 
+.inventory-slot-cell { @apply relative min-w-0; }
+.inventory-slot__sell { @apply absolute -right-1 -top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-[#b8923f] bg-[#241a10] text-[10px] text-[#e8c25a] shadow hover:bg-[#b8923f] hover:text-[#241a10] disabled:opacity-50; }
 .slot {
-  @apply aspect-square rounded bg-[#4a3520] border border-[#6b4f30] shadow-inner flex items-center justify-center relative;
+  @apply w-full aspect-square rounded bg-[#4a3520] border border-[#6b4f30] shadow-inner flex items-center justify-center relative;
 }
 
 .slot__icon {
@@ -127,4 +129,88 @@
 
 .icon-drop--empty {
   @apply fill-[#3a3320];
+}
+
+.slot {
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+  transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease;
+}
+.slot:hover, .slot:focus-visible {
+  border-color: #d8b85f;
+  background-color: #5b4228;
+  outline: none;
+}
+.slot--equipped {
+  border-color: #b8923f;
+  box-shadow: inset 0 0 0 1px #b8923f;
+}
+.slot__fallback {
+  @apply text-xs font-semibold text-[#e9dcc0];
+}
+.item-modal__backdrop {
+  @apply fixed inset-0 z-[100] flex items-center justify-center p-4;
+  background: rgb(12 8 4 / 78%);
+}
+.item-modal {
+  @apply relative w-full max-w-sm rounded-lg border-2 border-[#b8923f] p-5 text-[#e9dcc0] shadow-2xl;
+  background: linear-gradient(145deg, #3f2d1b, #21170f);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.item-modal__close {
+  @apply absolute right-3 top-2 flex h-8 w-8 items-center justify-center rounded text-2xl text-[#d9c69a] hover:bg-[#5b4228] cursor-pointer;
+}
+.item-modal__header {
+  @apply flex items-center gap-3 pr-7;
+}
+.item-modal__icon {
+  @apply flex h-16 w-16 shrink-0 items-center justify-center rounded border border-[#80613a] bg-[#241a10] p-2 text-sm font-semibold;
+}
+.item-modal__icon img {
+  @apply max-h-full max-w-full object-contain;
+}
+.item-modal__rarity {
+  @apply mb-1 text-xs uppercase tracking-widest text-[#c7b48d];
+}
+.item-modal__rarity--incomum { color: #76c893; }
+.item-modal__rarity--raro { color: #78b7f4; }
+.item-modal__rarity--epico, .item-modal__rarity--épico { color: #c5a0ff; }
+.item-modal__rarity--lendario, .item-modal__rarity--lendário { color: #f1cb67; }
+.item-modal__header h2 {
+  @apply text-lg font-semibold leading-tight;
+}
+.item-modal__quantity {
+  @apply mt-1 text-xs text-[#c7b48d];
+}
+.item-modal__description {
+  @apply my-4 text-sm leading-relaxed text-[#e1d0ad];
+}
+.item-modal__stats {
+  @apply rounded border border-[#6b4f30] bg-[#241a10] p-3;
+}
+.item-modal__stats h3 {
+  @apply mb-2 text-sm font-semibold text-[#d9c69a];
+}
+.item-modal__stats ul {
+  @apply flex flex-col gap-1.5;
+}
+.item-modal__stats li {
+  @apply flex items-center justify-between text-sm;
+}
+.item-modal__stats strong {
+  @apply font-semibold text-[#a9c96a];
+}
+.item-modal__price {
+  @apply mt-3 text-sm text-[#e8c25a];
+}
+.item-modal__actions {
+  @apply mt-5 flex flex-wrap gap-2;
+}
+.item-modal__actions button {
+  @apply flex-1 rounded border border-[#b8923f] bg-[#b8923f] px-3 py-2 text-sm font-semibold text-[#241a10] hover:bg-[#d1ad52] cursor-pointer;
+}
+.item-modal__actions .item-modal__secondary {
+  @apply border-[#6b4f30] bg-transparent text-[#e9dcc0] hover:bg-[#4a3520];
 }

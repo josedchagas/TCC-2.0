@@ -5,6 +5,9 @@
 .shop-header h2 { @apply text-2xl font-bold text-[#e8c25a]; }
 .shop-kicker { @apply text-xs uppercase tracking-[0.2em] text-[#b8923f]; }
 .shop-close { @apply rounded px-3 py-1 text-3xl hover:bg-[#4a3520]; }
+.shop-wallet { @apply flex items-center justify-between border-b border-[#6b4f30] bg-[#3f2f1c] px-5 py-3 text-sm; }
+.shop-wallet span { @apply text-[#d9c69a]; }
+.shop-wallet strong { @apply font-bold text-[#e8c25a]; }
 .shop-greeting { @apply border-b border-[#6b4f30] px-5 py-3 text-sm italic text-[#d9c69a]; }
 .shop-items { @apply grid max-h-[62vh] gap-2 overflow-y-auto p-4 md:grid-cols-2; }
 .shop-item { @apply flex min-h-32 flex-col justify-between gap-3 rounded-lg border border-[#6b4f30] bg-[#241a10] p-3; }
@@ -20,3 +23,27 @@
 .rarity--raro { @apply border-sky-500 text-sky-300; }
 .rarity--epico { @apply border-violet-500 text-violet-300; }
 .rarity--lendario { @apply border-amber-400 text-amber-300; }
+
+.shop-tabs { @apply flex gap-2 border-b border-[#6b4f30] px-4 pt-3; }
+.shop-tab { @apply rounded-t border border-b-0 border-[#6b4f30] px-4 py-2 text-sm text-[#d9c69a] hover:bg-[#3f2f1c]; }
+.shop-tab--active { @apply bg-[#b8923f] font-bold text-[#241a10]; }
+.shop-sell-layout { @apply grid max-h-[62vh] min-h-64 gap-4 overflow-y-auto p-4 md:grid-cols-2; }
+.shop-sell-list { @apply flex flex-col gap-2; }
+.shop-sell-choice { @apply flex items-center justify-between gap-3 rounded-lg border border-[#6b4f30] bg-[#241a10] p-3 text-left hover:border-[#b8923f]; }
+.shop-sell-choice--active { @apply border-[#e8c25a] bg-[#3f2f1c]; }
+.shop-sell-choice strong { @apply block text-sm text-[#e8c25a]; }
+.shop-sell-choice small { @apply mt-1 block text-xs text-[#a8926c]; }
+.shop-sell-choice b { @apply shrink-0 text-xs text-[#e8c25a]; }
+.shop-empty { @apply self-center text-sm italic text-[#a8926c]; }
+.shop-sell-detail { @apply flex flex-col gap-3 rounded-lg border border-[#6b4f30] bg-[#241a10] p-4; }
+.shop-sell-detail h3 { @apply text-lg font-bold text-[#e8c25a]; }
+.shop-sell-detail p { @apply text-sm text-[#d9c69a]; }
+.shop-sell-price { @apply border-t border-[#4a3520] pt-3; }
+.shop-quantity { @apply flex items-center justify-between gap-3; }
+.shop-quantity > span { @apply text-sm text-[#d9c69a]; }
+.shop-quantity > div { @apply flex items-center gap-3; }
+.shop-quantity button { @apply h-8 w-8 rounded border border-[#b8923f] text-lg hover:bg-[#b8923f] hover:text-[#241a10] disabled:opacity-40; }
+.shop-quantity strong { @apply min-w-5 text-center; }
+.shop-sell-total { @apply flex items-center justify-between border-t border-[#4a3520] pt-3 font-semibold; }
+.shop-sell-total strong { @apply text-[#e8c25a]; }
+.shop-sell-submit { @apply rounded border border-[#b8923f] bg-[#3f2f1c] px-4 py-2 font-bold text-[#e8c25a] hover:bg-[#b8923f] hover:text-[#241a10] disabled:cursor-not-allowed disabled:opacity-40; }

@@ -72,7 +72,7 @@ export const items = pgTable("items", {
   description: text("description"),
 });
 
-// Itens dentro do inventário de um save (os 8 slots de inventário).
+// Itens dentro do inventário de um save. O limite de 16 slots é validado pela camada de aplicação.
 export const inventoryItems = pgTable(
   "inventory_items",
   {
