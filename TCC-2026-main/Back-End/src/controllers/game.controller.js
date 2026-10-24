@@ -4,7 +4,7 @@ import { defeatedEncounters, equippedItems, inventoryItems, items, saves } from 
 import { CHAPTERS, ITEMS, SHOPS, getEnemyById, getItemByCode } from "../game/Content.js";
 import { SIDE_QUESTS, getChapterSideQuests, getSideQuest } from "../game/SideQuests.js";
 
-const MAX_INVENTORY_SLOTS = 8;
+const MAX_INVENTORY_SLOTS = 16;
 const MAX_STACK = 99;
 
 export async function listDefeatedEncounters(req, res) {
