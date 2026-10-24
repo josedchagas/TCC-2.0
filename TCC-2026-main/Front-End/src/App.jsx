@@ -161,7 +161,7 @@ export default function App() {
       },
       ordinaryEnemies[0] && {
         key: ordinaryEnemies[0].id, type: "enemy", enemy: ordinaryEnemies[0],
-        intro: sceneNarration(chapterData.number, ordinaryEnemies[0].name, ordinaryEnemies[0].description || chapterData.encounterText, false, chapterData.stages?.[1], 1),
+        intro: sceneNarration(chapterData.number, ordinaryEnemies[0].name, ordinaryEnemies[0].description || "", false, chapterData.stages?.[1], 1),
         stageIndex: 1,
         dialogue: null,
       },
@@ -173,13 +173,13 @@ export default function App() {
       },
       ordinaryEnemies[1] && {
         key: ordinaryEnemies[1].id, type: "enemy", enemy: ordinaryEnemies[1],
-        intro: sceneNarration(chapterData.number, ordinaryEnemies[1].name, ordinaryEnemies[1].description || chapterData.encounterText, false, chapterData.stages?.[3], 3),
+        intro: sceneNarration(chapterData.number, ordinaryEnemies[1].name, ordinaryEnemies[1].description || "", false, chapterData.stages?.[3], 3),
         stageIndex: 3,
         dialogue: null,
       },
       boss && {
         key: boss.id, type: "enemy", enemy: boss,
-        intro: sceneNarration(chapterData.number, boss.name, boss.description || chapterData.encounterText, false, chapterData.encounterText, 4),
+        intro: sceneNarration(chapterData.number, boss.name, boss.description || "", false, chapterData.stages?.[4] || chapterData.encounterText, 4),
         stageIndex: 4,
         dialogue: null,
       },
