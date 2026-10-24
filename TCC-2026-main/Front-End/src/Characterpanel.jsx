@@ -26,6 +26,7 @@ export default function CharacterPanel({
   statusOpen = false,
   onToggleStatus,
   onUseItem,
+  onSellItem,
   onEquipItem,
   onUnequipItem,
 }) {
@@ -178,7 +179,20 @@ export default function CharacterPanel({
           <h3 className="char-panel__section-title">Inventário</h3>
           <div className="char-panel__grid">
             {inventorySlots.map((item, i) => (
-              <Slot key={i} item={item} onUseItem={onUseItem} onEquipItem={onEquipItem} />
+              <div className="inventory-slot-cell" key={i}>
+                <Slot item={item} onUseItem={onUseItem} onEquipItem={onEquipItem} />
+                {item && item.sellPrice > 0 && onSellItem && (
+                  <button
+                    type="button"
+                    className="inventory-slot__sell"
+                    title={"Vender 1 unidade por " + item.sellPrice + " moedas"}
+                    aria-label={"Vender uma unidade de " + item.name + " por " + item.sellPrice + " moedas"}
+                    onClick={() => onSellItem(item)}
+                  >
+                    🪙
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>
