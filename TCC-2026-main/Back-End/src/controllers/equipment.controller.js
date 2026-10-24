@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { equippedItems, inventoryItems, items } from "../db/schema.js";
 import { parseId } from "../utils/params.js";
+import { ITEMS } from "../game/Content.js";
 
 // Quantos itens cabem em cada slot (anel tem 2, o resto só 1).
 const SLOT_LIMITS = { ring: 2 };
@@ -96,7 +97,16 @@ export async function listEquipment(req, res) {
     .innerJoin(items, eq(equippedItems.itemId, items.id))
     .where(eq(equippedItems.saveId, req.save.id));
 
-  res.json(rows.map((row) => ({ ...row, type: normalizedEquipmentType(row) })));
+  res.json(rows.map((row) => {
+    const definition = ITEMS.find((item) => item.name === row.name);
+    return {
+      ...row,
+      type: normalizedEquipmentType(row),
+      rarity: definition?.rarity ?? "comum",
+      stats: definition?.stats ?? {},
+      price: definition?.price ?? 0,
+    };
+  }));
 }
 
 // POST /saves/:saveId/equipment — equipa um item num slot
