@@ -95,6 +95,16 @@ export async function resolveEncounter(req, res) {
   const enemy = getEnemyById(req.params.enemyId);
   if (!enemy) return res.status(404).json({ error: "Inimigo não encontrado." });
   if (enemy.chapter !== save.chapterCurrent) return res.status(409).json({ error: "Esse inimigo não pertence ao capítulo atual." });
+  if (save.completed) return res.status(409).json({ error: "Este save já foi encerrado e não pode continuar." });
+  if (save.hpCurrent <= 0 || save.energyCurrent <= 0) {
+    const [lostSave] = await db.update(saves).set({ completed: true, updatedAt: new Date(), lastPlayedAt: new Date() })
+      .where(eq(saves.id, save.id)).returning();
+    return res.json({
+      victory: false, permanentDeath: true, enemy: { id: enemy.id, name: enemy.name, kind: enemy.kind },
+      rounds: 0, damageTaken: 0, save: lostSave,
+      message: "DERROTA PERMANENTE: a vida ou o vigor chegou a zero. Este save foi encerrado."
+    });
+  }
   if (enemy.kind === "boss") {
     const chapter = CHAPTERS.find((candidate) => candidate.number === enemy.chapter);
     const requiredEnemies = chapter.enemies.filter((candidate) => candidate.kind !== "boss").map((candidate) => candidate.id);
@@ -107,16 +117,6 @@ export async function resolveEncounter(req, res) {
     if (questCodes.some((prefix) => ![...defeatedSet].some((code) => code.startsWith(prefix)))) {
       return res.status(409).json({ error: "Decida o destino das duas missões opcionais deste capítulo antes do chefe (você pode recusá-las)." });
     }
-  }
-  if (save.completed) return res.status(409).json({ error: "Este save já foi encerrado e não pode continuar." });
-  if (save.hpCurrent <= 0 || save.energyCurrent <= 0) {
-    const [lostSave] = await db.update(saves).set({ completed: true, updatedAt: new Date(), lastPlayedAt: new Date() })
-      .where(eq(saves.id, save.id)).returning();
-    return res.json({
-      victory: false, permanentDeath: true, enemy: { id: enemy.id, name: enemy.name, kind: enemy.kind },
-      rounds: 0, damageTaken: 0, save: lostSave,
-      message: "DERROTA PERMANENTE: a vida ou o vigor chegou a zero. Este save foi encerrado."
-    });
   }
 
   const [alreadyDefeated] = await db.select().from(defeatedEncounters).where(and(eq(defeatedEncounters.saveId, save.id), eq(defeatedEncounters.enemyCode, enemy.id)));
