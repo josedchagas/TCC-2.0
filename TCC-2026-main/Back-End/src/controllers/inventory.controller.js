@@ -9,12 +9,12 @@ const MAX_STACK = 99;
 
 function normalizedEquipmentType(item) {
   if (item.type !== "armor") return item.type;
-  const name = String(item.name || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
-  if (/\\b(elmo|capacete|helmet)\\b/.test(name)) return "helmet";
-  if (/\\b(bota|botas|boot|boots)\\b/.test(name)) return "boots";
-  if (/\\b(calca|calcas|pants)\\b/.test(name)) return "pants";
-  if (/\\b(escudo|shield)\\b/.test(name)) return "shield";
-  if (/\\b(peitoral|cota|tunica|manto|armadura|chest|torso)\\b/.test(name)) return "chest";
+  const name = String(item.name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (/\b(elmo|capacete|helmet)\b/.test(name)) return "helmet";
+  if (/\b(bota|botas|boot|boots)\b/.test(name)) return "boots";
+  if (/\b(calca|calcas|pants)\b/.test(name)) return "pants";
+  if (/\b(escudo|shield)\b/.test(name)) return "shield";
+  if (/\b(peitoral|cota|tunica|manto|armadura|chest|torso)\b/.test(name)) return "chest";
   return "armor";
 }
 
