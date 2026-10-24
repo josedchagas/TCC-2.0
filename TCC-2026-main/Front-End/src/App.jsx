@@ -121,7 +121,6 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
   const result = battle.result;
   const playerPct = combat.playerMaxHp ? Math.max(0, Math.min(100, (combat.playerHp / combat.playerMaxHp) * 100)) : 100;
   const enemyPct = combat.enemyMaxHp ? Math.max(0, Math.min(100, (combat.enemyHp / combat.enemyMaxHp) * 100)) : 100;
-  const lastTurn = combat.turns?.[combat.turns.length - 1];
   const roll = battle.lastRoll;
   const multiplier = roll ? (roll / 10).toFixed(1) : null;
   const rollLabel = roll === 10 ? "Resultado normal" : roll < 10 ? "Falha: bônus reduzido" : roll === 20 ? "Crítico: bônus dobrado" : "Sucesso: bônus ampliado";
@@ -152,8 +151,8 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
           <div className="battle-modal__dice-wrap">
             <button className={`battle-modal__dice ${busy ? "battle-modal__dice--rolling" : ""}`} onClick={onRoll} disabled={busy || Boolean(result)} aria-label="Rolar dado de vinte lados">
               <svg viewBox="0 0 100 100" aria-hidden="true">
-                <polygon points="50,4 84,20 97,54 73,88 27,88 3,54 16,20" />
-                <path d="M16 20 L50 38 L84 20 M3 54 L50 38 L97 54 M27 88 L50 38 L73 88 M50 4 L50 38" />
+                <polygon points="50,3 77,11 94,32 89,61 70,84 50,96 30,84 11,61 6,32 23,11" />
+                <path d="M50 3 L50 50 L23 11 M77 11 L50 50 L94 32 M94 32 L50 50 L89 61 M89 61 L50 50 L70 84 M70 84 L50 50 L50 96 M50 96 L50 50 L30 84 M30 84 L50 50 L11 61 M11 61 L50 50 L6 32 M6 32 L50 50 L23 11 M23 11 L50 50 L77 11" />
                 <text x="50" y="68" textAnchor="middle">{roll ?? "D20"}</text>
               </svg>
             </button>
