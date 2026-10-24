@@ -58,6 +58,10 @@ function chapterLocation(chapter) {
   return CHAPTER_LOCATIONS[Math.max(0, Math.min(CHAPTER_LOCATIONS.length - 1, Number(chapter) - 1))];
 }
 
+function chapterRegion(chapter) {
+  return ["em Valedouro", "no Passo dos Corvos", "no Bosque de Miravéu", "na Ponte de Salmour", "em Miralume", "nas Minas de Vidro", "na Abadia de Santa Véspera", "no Pântano de Namar", "na Torre de Horolog", "na Praça da Lua Rubra", "nas Dunas de Cinza", "no Observatório de Arquen", "na Floresta Petrificada de Elarion", "na cidade soterrada de Asterion", "na Forja de Vhal", "no Mar Suspenso de Nimbária", "no Reino do Avesso", "no Bastião da Fenda", "no Coração da Estrela", "nas fronteiras de Valedouro"][Math.max(0, Math.min(CHAPTER_LOCATIONS.length - 1, Number(chapter) - 1))];
+}
+
 function sceneCharacter(chapter, subject, isQuest = false) {
   const key = String(subject || "mistério");
   const hash = [...key].reduce((sum, char) => sum + char.charCodeAt(0), Number(chapter) || 1);
@@ -100,7 +104,7 @@ function sceneNarration(chapter, subject, description, isQuest = false) {
   ];
   const ally = Number(chapter) === 1 ? CHAPTER_ONE_CAST[3] : character;
   return [
-    "A passagem adiante leva a " + place + ", mas " + subject + " surge entre você e o caminho, impedindo qualquer avanço.",
+    "Ao avançar " + chapterRegion(chapter) + ", você encontra " + subject + " bloqueando a passagem entre as ruínas.",
     detail,
     enemyLines[seed % enemyLines.length],
     ally.name + ", " + ally.role + ", observa a criatura de um abrigo próximo e revela o que sabe: “Ela não está caçando por fome; está protegendo alguma coisa.”",
@@ -163,7 +167,7 @@ export default function App() {
       quests[0] && {
         key: quests[0].id, type: "quest", quest: quests[0],
         intro: sceneNarration(chapterData.number, quests[0].title, quests[0].description, true),
-        dialogue: "— Não posso resolver isso sem ajuda — diz " + chapterCharacter.name + ", mantendo a voz baixa. — Você aceita me ajudar ou vai me deixar com essa pista?",
+        dialogue: "— Não posso resolver isso sem ajuda — diz " + sceneCharacter(chapterData.number, quests[0].title, true).name + ", mantendo a voz baixa. — Você aceita me ajudar ou vai me deixar com essa pista?",
       },
       ordinaryEnemies[0] && {
         key: ordinaryEnemies[0].id, type: "enemy", enemy: ordinaryEnemies[0],
@@ -173,7 +177,7 @@ export default function App() {
       quests[1] && {
         key: quests[1].id, type: "quest", quest: quests[1],
         intro: sceneNarration(chapterData.number, quests[1].title, quests[1].description, true),
-        dialogue: "— O tempo está acabando — diz " + chapterCharacter.name + ", olhando para a trilha atrás de você. — Ainda posso contar com sua ajuda?",
+        dialogue: "— O tempo está acabando — diz " + sceneCharacter(chapterData.number, quests[1].title, true).name + ", olhando para a trilha atrás de você. — Ainda posso contar com sua ajuda?",
       },
       ordinaryEnemies[1] && {
         key: ordinaryEnemies[1].id, type: "enemy", enemy: ordinaryEnemies[1],
@@ -359,6 +363,27 @@ export default function App() {
         ? [`O confronto contra ${enemy.name} termina quando a criatura perde o equilíbrio e a corrupção abandona seu corpo em fios de fumaça escura.`, `Por um breve instante, o lugar fica em silêncio; até o vento parece esperar para descobrir o que restou sob aquela ameaça.`, `Você percebe marcas antigas na pedra, antes escondidas pelos passos do inimigo, e entende que ele guardava a passagem por muito mais tempo do que imaginava.`, `${enemy.name} já não bloqueia a trilha, e os sobreviventes que aguardavam à distância finalmente podem se aproximar.`, result.message, "Com o caminho livre, você recolhe o que pode ser útil e se prepara para descobrir o que existe além das ruínas."].join("\n")
         : [`O golpe final de ${enemy.name} rompe sua defesa e obriga você a recuar, enquanto o mundo parece perder o som por alguns segundos.`, `Você alcança abrigo atrás de pedras antigas e tenta recuperar o fôlego, sem tirar os olhos da passagem bloqueada.`, `A criatura não persegue você; limita-se a guardar o caminho, como se obedecesse a uma ordem gravada muito antes de sua chegada.`, `A derrota dói, mas também revela o ritmo dos movimentos do adversário e os pontos frágeis que você não conseguiu aproveitar desta vez.`, result.message, "Você ainda poderá tentar novamente quando estiver preparado, mas a jornada não avançará enquanto essa ameaça permanecer de pé."].join("\n");
       const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}`, type: "outcome", text: battleText }];
+      if (result.victory && enemy.kind === "boss") {
+        const chapterNumber = Number(activeSave.chapterCurrent);
+        const chapterEnding = chapterNumber === 1
+          ? [
+              "Quando o Guardião do Sino cai, a névoa deixa de avançar e começa a recuar pelas ruas de Valedouro, como uma maré puxada para dentro da terra.",
+              "Bram corre até o marco da praça e ajuda você a remover as pedras que cobriam o mecanismo antigo; sob elas, o sino está rachado, mas ainda inteiro.",
+              "Maelis encontra entre os escombros a fita que pertencia a Tomas e ouve, pela primeira vez desde o desaparecimento, a voz do irmão sem a distorção da corrupção.",
+              "O eco revela que Tomas não provocou o desaparecimento: ele tentou selar algo que despertou sob a vila e foi arrastado para além da estrada.",
+              "Ao amanhecer, algumas portas se abrem e os sobreviventes voltam à praça. Valedouro não está salva por completo, mas agora seus moradores sabem que a névoa pode ser enfrentada.",
+              "Maelis marca no mapa a direção indicada pelo último eco do sino. A estrada dos corvos é o próximo passo, e ela entrega a você uma cópia do mapa antes de ficar para ajudar a reconstruir a vila."
+            ].join("\\n")
+          : [
+              "Com a queda do guardião, a ameaça que dominava " + chapterLocation(chapterNumber) + " perde sua força, e os sinais de corrupção começam a desaparecer das pedras.",
+              "Os moradores e viajantes que aguardavam escondidos deixam seus abrigos, ainda cautelosos, mas já sem ouvir os sussurros que os mantinham presos.",
+              "Entre os destroços, você encontra provas de que o inimigo protegia uma passagem ligada à mesma força que ameaça Valedouro.",
+              "Seu aliado reúne os sobreviventes e promete manter a rota aberta enquanto você segue adiante; ninguém confunde essa vitória com o fim da jornada.",
+              "Antes de partir, você registra no mapa o que aprendeu e guarda um símbolo retirado do local, uma nova pista sobre a origem da corrupção.",
+              "A estrada para o próximo destino se abre diante de você. O lugar ficou para trás, mas as consequências desta batalha continuarão acompanhando sua jornada."
+            ].join("\\n");
+        lines.push({ id: `chapter-ending-${chapterNumber}`, type: "narration", text: chapterEnding });
+      }
       if (result.victory && result.rewards) {
         lines.push({ id: `battle-reward-${enemy.id}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
       }
@@ -489,7 +514,7 @@ export default function App() {
   const actions = activeSave?.completed ? [] : !storyStarted
     ? [{ id: "continue-intro", label: "Continuar a história", disabled: chapterLoadedForSaveId !== activeSave?.id || !chapterData || storyEntries.length === 0, onClick: () => {
         setStoryStarted(true);
-        setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: [`Você deixa para trás o último abrigo e entra em ${chapterLocation(chapterData.number)}.`, chapterData?.encounterText || "A paisagem guarda sinais de uma ameaça antiga.", "Maelis marcou a rota no mapa com tinta azul, mas algumas linhas mudam de lugar sempre que a névoa se adensa.", "Entre as pedras, você encontra pegadas recentes e um pedaço de tecido preso a um galho; alguém passou por ali tentando fugir sem ser visto.", "O vento traz um som distante, quase uma voz chamando debaixo da terra, e a fita do sino vibra contra seu equipamento.", "Você segue em frente, decidido a descobrir quem está chamando os desaparecidos e por que a trilha parece reconhecer seus passos."].join("\n") }]);
+        setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: [`Você deixa para trás o último abrigo e segue até ${chapterLocation(chapterData.number)}.`, chapterData?.encounterText || "A paisagem guarda sinais de uma ameaça antiga.", "Maelis marcou a rota no mapa com tinta azul, mas algumas linhas mudam de lugar sempre que a névoa se adensa.", "Entre as pedras, você encontra pegadas recentes e um pedaço de tecido preso a um galho; alguém passou por ali tentando fugir sem ser visto.", "O vento traz um som distante, quase uma voz chamando debaixo da terra, e a fita do sino vibra contra seu equipamento.", "Você segue em frente, decidido a descobrir quem está chamando os desaparecidos e por que a trilha parece reconhecer seus passos."].join("\n") }]);
       } }]
     : currentEvent?.type === "quest"
       ? [
