@@ -115,7 +115,7 @@ function relativeTime(value) {
   return `há ${days} dia${days === 1 ? "" : "s"}`;
 }
 
-function BattleModal({ battle, busy, onRoll, onClose }) {
+function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   if (!battle) return null;
   const combat = battle.combat || {};
   const result = battle.result;
@@ -123,17 +123,18 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
   const enemyPct = combat.enemyMaxHp ? Math.max(0, Math.min(100, (combat.enemyHp / combat.enemyMaxHp) * 100)) : 100;
   const roll = battle.lastRoll;
   const multiplier = roll ? (roll / 10).toFixed(1) : null;
-  const rollLabel = roll === 10 ? "Resultado normal" : roll < 10 ? "Falha: bônus reduzido" : roll === 20 ? "Crítico: bônus dobrado" : "Sucesso: bônus ampliado";
+  const playerWins = Boolean(result?.victory);
+  const playerClass = battle.classRole || "Aventureiro";
+  const playerVisual = ({ Guerreiro: "🛡️", Arqueira: "🏹", Maga: "🪄", Ladino: "🗡️" })[playerClass] || "🧙";
+  const enemyVisual = battle.enemy.kind === "boss" ? "👹" : battle.enemy.kind === "elite" ? "👺" : "🐺";
+  const drops = result?.drops || [];
 
   return (
     <div className="battle-modal__backdrop" role="presentation">
       <section className="battle-modal" role="dialog" aria-modal="true" aria-labelledby="battle-modal-title">
         <header className="battle-modal__header">
-          <div>
-            <p className="battle-modal__eyebrow">COMBATE POR TURNOS · D20</p>
-            <h2 id="battle-modal-title">{battle.enemy.name}</h2>
-          </div>
-          <span className="battle-modal__round">Rodada {combat.rounds || 0}</span>
+          <div><p className="battle-modal__eyebrow">COMBATE · D20</p><h2 id="battle-modal-title">{battle.enemy.name}</h2></div>
+          <span className="battle-modal__round">{result ? (result.victory ? "Vitória" : "Derrota") : "Prepare-se"}</span>
         </header>
 
         <div className="battle-modal__fighters">
@@ -147,44 +148,52 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
           </div>
         </div>
 
-        <div className="battle-modal__middle">
-          <div className="battle-modal__dice-wrap">
-            <button className={`battle-modal__dice ${busy ? "battle-modal__dice--rolling" : ""}`} onClick={onRoll} disabled={busy || Boolean(result)} aria-label="Rolar dado de vinte lados">
-              <svg viewBox="0 0 100 100" aria-hidden="true">
-                <polygon points="50,3 77,11 94,32 89,61 70,84 50,96 30,84 11,61 6,32 23,11" />
-                <path d="M50 3 L50 50 L23 11 M77 11 L50 50 L94 32 M94 32 L50 50 L89 61 M89 61 L50 50 L70 84 M70 84 L50 50 L50 96 M50 96 L50 50 L30 84 M30 84 L50 50 L11 61 M11 61 L50 50 L6 32 M6 32 L50 50 L23 11 M23 11 L50 50 L77 11" />
-                <text x="50" y="68" textAnchor="middle">{roll ?? "D20"}</text>
-              </svg>
-            </button>
-            <p className="battle-modal__dice-caption">{busy ? "Resolvendo a rodada..." : result ? (result.victory ? "Vitória!" : "Derrota") : "Clique no dado para rolar"}</p>
-            {roll !== null && roll !== undefined && <p className={`battle-modal__roll-result ${roll < 10 ? "is-failure" : roll > 10 ? "is-success" : ""}`}>{roll} · ×{multiplier} · {rollLabel}</p>}
+        <div className={`battle-modal__arena ${result ? (playerWins ? "player-wins" : "enemy-wins") : ""}`}>
+          <article className="battle-modal__character-card battle-modal__character-card--player">
+            <div className="battle-modal__avatar" aria-hidden="true">{playerVisual}</div>
+            <strong>{battle.characterName || "Aventureiro"}</strong>
+            <span>{playerClass}</span>
+          </article>
+          <div className="battle-modal__arena-center" aria-live="polite">
+            {roll == null
+              ? <button className={`battle-modal__dice ${busy ? "battle-modal__dice--rolling" : ""}`} onClick={onRoll} disabled={busy || Boolean(result)} aria-label="Rolar dado de vinte lados">
+                  <svg viewBox="0 0 100 100" aria-hidden="true">
+                    <polygon points="50,3 77,11 94,32 89,61 70,84 50,96 30,84 11,61 6,32 23,11" />
+                    <path d="M50 3 L50 50 L23 11 M77 11 L50 50 L94 32 M94 32 L50 50 L89 61 M89 61 L50 50 L70 84 M70 84 L50 50 L50 96 M50 96 L50 50 L30 84 M30 84 L50 50 L11 61 M11 61 L50 50 L6 32 M6 32 L50 50 L23 11 M23 11 L50 50 L77 11" />
+                    <text x="50" y="68" textAnchor="middle">D20</text>
+                  </svg>
+                </button>
+              : <div className="battle-modal__final-roll"><span>D20</span><strong>{roll}</strong><small>×{multiplier}</small></div>}
+            <p className="battle-modal__dice-caption">{busy ? "A batalha está acontecendo..." : result ? (result.victory ? "Inimigo derrotado!" : "Combate encerrado") : "Clique uma vez para decidir a batalha"}</p>
+            {result && <p className={`battle-modal__roll-result ${result.victory ? "is-success" : "is-failure"}`}>{result.victory ? "Vitória" : "Derrota"}{combat.turns?.some((turn) => turn.playerCritical || turn.enemyCritical) ? " · Crítico no combate!" : ""}</p>}
           </div>
-          <div className="battle-modal__combat-stats">
-            <h3>Seu equipamento</h3>
-            <p><span>Dano da arma</span><strong>{combat.weaponDamage ?? 0}</strong></p>
-            <p><span>Força total</span><strong>{combat.strength ?? 0}</strong></p>
-            <p><span>Vida da armadura</span><strong>+{combat.armorHp ?? 0}</strong></p>
-            <p><span>Resistência</span><strong>{combat.resistance ?? 0}</strong></p>
-            <p className="battle-modal__formula">Dano = Força + (dano da arma × multiplicador). Vida = 100 PV base + ((armadura + resistência) × multiplicador).</p>
-          </div>
+          <article className="battle-modal__character-card battle-modal__character-card--enemy">
+            <div className="battle-modal__avatar" aria-hidden="true">{enemyVisual}</div>
+            <strong>{battle.enemy.name}</strong>
+            <span>{battle.enemy.kind === "boss" ? "Chefe" : battle.enemy.kind === "elite" ? "Elite" : "Inimigo"}</span>
+          </article>
         </div>
 
-        <div className="battle-modal__log" aria-live="polite">
-          <h3>Registro do combate</h3>
-          {!combat.turns?.length && <p className="battle-modal__log-empty">A batalha começou. Role o D20 para executar sua primeira ação.</p>}
-          {(combat.turns || []).slice(-5).map((turn) => (
-            <p key={turn.round} className="battle-modal__log-entry">
-              <strong>Rodada {turn.round}:</strong> você tirou {turn.playerRoll} (×{turn.playerMultiplier}), {turn.playerDamage} de dano{turn.playerCritical ? " — CRÍTICO!" : ""} e {turn.lifeAdjustment > 0 ? "+" : ""}{turn.lifeAdjustment} PV de ajuste pela armadura/resistência.
-              {turn.enemyRoll ? ` O inimigo tirou ${turn.enemyRoll} (×${turn.enemyMultiplier}) e causou ${turn.enemyDamage} de dano${turn.enemyCritical ? " — CRÍTICO!" : ""}.` : " O inimigo foi derrotado antes de contra-atacar."}
-            </p>
+        {result && <section className="battle-modal__drops">
+          <h3>{result.victory ? "Drops do inimigo" : "Resultado do combate"}</h3>
+          {!result.victory && <p className="battle-modal__drops-empty">Nenhum drop: você não venceu este confronto.</p>}
+          {result.victory && drops.length === 0 && <p className="battle-modal__drops-empty">Este inimigo não deixou itens desta vez.</p>}
+          {result.victory && drops.map((drop) => (
+            <div className="battle-modal__drop" key={drop.code}>
+              <div><strong>{drop.name}</strong><span>{drop.claimed ? "Adicionado ao inventário" : drop.discarded ? "Descartado" : drop.reason === "inventory_full" ? "Inventário cheio — libere espaço para pegar" : "Item encontrado"}</span></div>
+              {!drop.claimed && !drop.discarded && <div className="battle-modal__drop-actions">
+                <button onClick={() => onDropChoice(drop.code, "claim")} disabled={busy}>Pegar</button>
+                <button onClick={() => onDropChoice(drop.code, "discard")} disabled={busy}>Descartar</button>
+              </div>}
+            </div>
           ))}
-          {result && <p className={`battle-modal__outcome ${result.victory ? "is-victory" : "is-defeat"}`}>{result.victory ? "Inimigo derrotado! As recompensas foram aplicadas." : result.permanentDeath ? "Derrota permanente: a campanha foi encerrada." : "Você foi derrotado. A consequência foi registrada na campanha."}</p>}
-        </div>
+        </section>}
 
+        {result && <p className={`battle-modal__outcome ${result.victory ? "is-victory" : "is-defeat"}`}>{result.victory ? "Você venceu! XP e moedas foram contabilizados." : result.permanentDeath ? "Derrota permanente: a campanha foi encerrada." : "Você perdeu o combate e perdeu 1 ponto de Moral."}</p>}
         <footer className="battle-modal__footer">
-          {!result
-            ? <p className="battle-modal__footer-hint">A cada rolagem, você ataca e o inimigo pode contra-atacar.</p>
-            : <button className="battle-modal__primary" onClick={onClose} disabled={busy}>Fechar batalha</button>}
+          {!roll && !result
+            ? <span className="battle-modal__footer-hint">Uma única rolagem resolve toda a batalha.</span>
+            : <button className="battle-modal__primary" onClick={onClose} disabled={busy || (result?.victory && drops.some((drop) => !drop.claimed && !drop.discarded))}>{result?.victory && drops.some((drop) => !drop.claimed && !drop.discarded) ? "Escolha os drops para continuar" : "Fechar batalha"}</button>}
         </footer>
       </section>
     </div>
@@ -433,45 +442,32 @@ export default function App() {
     setBattleBusy(true);
     try {
       const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(enemy.id)}/resolve`, {
-        method: "POST",
-        body: JSON.stringify({ rolls: [] }),
+        method: "POST", body: JSON.stringify({ rolls: [] }),
       });
-      setBattle({ enemy, rolls: [], combat: result.combat, lastRoll: null, result: null });
+      setBattle({ enemy, rolls: [], combat: result.combat, lastRoll: null, result: null, characterName: activeSave.characterName, classRole: activeSave.classRole });
       setNotice("");
-    } catch (error) {
-      setNotice(error.message);
-    } finally {
-      setBattleBusy(false);
-    }
+    } catch (error) { setNotice(error.message); }
+    finally { setBattleBusy(false); }
   };
 
   const rollBattleDie = async () => {
-    if (!activeSave || !battle || battleBusy || battle.result) return;
+    if (!activeSave || !battle || battleBusy || battle.result || battle.lastRoll != null) return;
     const roll = Math.floor(Math.random() * 20) + 1;
-    const rolls = [...battle.rolls, roll];
     setBattleBusy(true);
+    setBattle((current) => current ? { ...current, lastRoll: roll } : current);
     try {
       const result = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(battle.enemy.id)}/resolve`, {
-        method: "POST",
-        body: JSON.stringify({ rolls }),
+        method: "POST", body: JSON.stringify({ rolls: [roll] }),
       });
-
-      if (result.inProgress) {
-        setBattle((current) => current ? { ...current, rolls, lastRoll: roll, combat: result.combat } : current);
-        return;
-      }
-
-      setBattle((current) => current ? { ...current, rolls, lastRoll: roll, combat: result.combat, result } : current);
-      updateSaveInLists(result.save);
+      setBattle((current) => current ? { ...current, rolls: [roll], lastRoll: roll, combat: result.combat, result } : current);
+      if (result.save) updateSaveInLists(result.save);
       const stamp = Date.now();
       const enemy = battle.enemy;
       const battleText = result.victory
-        ? `Após ${result.rounds} rodada(s), ${enemy.name} cai diante dos seus golpes. A rolagem e o equipamento fizeram a diferença neste confronto.`
+        ? `Após uma única rolagem de ${roll}, você derrotou ${enemy.name}.`
         : result.permanentDeath
-          ? `A batalha contra ${enemy.name} termina em derrota definitiva. A jornada foi encerrada.`
-          : result.chapterAdvanced
-            ? `Você recua diante de ${enemy.name}, mas encontra uma passagem para seguir adiante. A criatura permanece viva.`
-            : `Você não conseguiu superar ${enemy.name} desta vez e recua para recuperar o fôlego. A criatura permanece viva.`;
+          ? `A batalha contra ${enemy.name} terminou em derrota definitiva.`
+          : `A rolagem ${roll} não foi suficiente para derrotar ${enemy.name}; você perdeu 1 ponto de Moral.`;
       const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}-${stamp}`, type: "narration", text: battleText }];
       if ((result.victory || result.chapterAdvanced) && enemy.kind === "boss" && !result.permanentDeath) {
         const chapterNumber = Number(activeSave.chapterCurrent);
@@ -481,17 +477,31 @@ export default function App() {
       if (result.victory && result.rewards) {
         lines.push({ id: `battle-reward-${enemy.id}-${stamp}`, type: "outcome", text: `Recompensas: +${result.rewards.xp} XP e +${result.rewards.gold} moedas${result.rewards.levelsGained ? `; níveis ganhos: ${result.rewards.levelsGained}` : ""}.` });
       }
-      const drops = (result.drops ?? []).filter((drop) => drop.granted).map((drop) => drop.name);
-      if (drops.length) lines.push({ id: `battle-drops-${enemy.id}-${stamp}`, type: "outcome", text: `Você encontrou: ${drops.join(", ")}.` });
       setStoryEntries((entries) => [...entries, ...lines]);
       await refreshSaves();
-      await refreshGameData(result.save);
+      if (result.save) await refreshGameData(result.save);
       setNotice("");
     } catch (error) {
+      setBattle((current) => current ? { ...current, lastRoll: null } : current);
       setNotice(error.message);
-    } finally {
-      setBattleBusy(false);
-    }
+    } finally { setBattleBusy(false); }
+  };
+
+  const chooseBattleDrop = async (itemCode, action) => {
+    if (!activeSave || !battle?.enemy || battleBusy || !battle.result?.victory) return;
+    setBattleBusy(true);
+    try {
+      const response = await apiFetch(`/saves/${activeSave.id}/battle/${encodeURIComponent(battle.enemy.id)}/drops/${encodeURIComponent(itemCode)}/${action}`, {
+        method: "POST", body: JSON.stringify({}),
+      });
+      setBattle((current) => current ? {
+        ...current,
+        result: { ...current.result, drops: (current.result.drops || []).map((drop) => drop.code === itemCode ? { ...drop, claimed: action === "claim" && response.claimed, discarded: action === "discard" } : drop) },
+      } : current);
+      if (action === "claim") await refreshGameData(activeSave);
+      setNotice("");
+    } catch (error) { setNotice(error.message); }
+    finally { setBattleBusy(false); }
   };
 
   const openShop = async () => {
@@ -726,7 +736,7 @@ export default function App() {
 
       <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
       <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} onSell={sellItem} inventory={inventory} money={activeSave?.money ?? 0} busy={shopBusy} />
-      <BattleModal battle={battle} busy={battleBusy} onRoll={rollBattleDie} onClose={() => { if (!battleBusy && battle?.result) setBattle(null); }} />
+      <BattleModal battle={battle} busy={battleBusy} onRoll={rollBattleDie} onDropChoice={chooseBattleDrop} onClose={() => { if (!battleBusy && battle?.result && !(battle.result.victory && (battle.result.drops || []).some((drop) => !drop.claimed && !drop.discarded))) setBattle(null); }} />
       <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
   );
