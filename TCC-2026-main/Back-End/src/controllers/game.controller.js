@@ -166,7 +166,7 @@ export async function resolveEncounter(req, res) {
     // O dado modifica apenas o bônus de vida (armadura + resistência), não os 100 PV base.
     const adjustedLifeBonus = Math.floor(baseLifeBonus * playerMultiplier);
     const lifeAdjustment = adjustedLifeBonus - baseLifeBonus;
-    playerMaxHp = 100 + adjustedLifeBonus;
+    playerMaxHp = Math.max(playerMaxHp, 100 + adjustedLifeBonus);
     playerHp = Math.max(0, Math.min(playerMaxHp, playerHp + lifeAdjustment));
     const playerDamage = Math.max(1, Math.floor(strength + weaponDamage * playerMultiplier));
     enemyHp = Math.max(0, enemyHp - playerDamage);
