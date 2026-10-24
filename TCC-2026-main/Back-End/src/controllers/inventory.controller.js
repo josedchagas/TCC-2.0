@@ -7,6 +7,17 @@ import { parseId } from "../utils/params.js";
 const MAX_INVENTORY_SLOTS = 16; // deve corresponder à capacidade exibida no CharacterPanel
 const MAX_STACK = 99;
 
+function normalizedEquipmentType(item) {
+  if (item.type !== "armor") return item.type;
+  const name = String(item.name || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
+  if (/\\b(elmo|capacete|helmet)\\b/.test(name)) return "helmet";
+  if (/\\b(bota|botas|boot|boots)\\b/.test(name)) return "boots";
+  if (/\\b(calca|calcas|pants)\\b/.test(name)) return "pants";
+  if (/\\b(escudo|shield)\\b/.test(name)) return "shield";
+  if (/\\b(peitoral|cota|tunica|manto|armadura|chest|torso)\\b/.test(name)) return "chest";
+  return "armor";
+}
+
 // GET /saves/:saveId/inventory — já traz os dados do item (nome, ícone...)
 export async function listInventory(req, res) {
   const rows = await db
@@ -28,7 +39,7 @@ export async function listInventory(req, res) {
     const sellPrice = definition && definition.type !== "quest" && definition.price > 0
       ? Math.max(1, Math.floor(definition.price / 2))
       : 0;
-    return { ...row, sellPrice };
+    return { ...row, type: normalizedEquipmentType(row), sellPrice };
   }));
 }
 
