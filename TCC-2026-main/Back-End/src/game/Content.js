@@ -159,7 +159,9 @@ const chapterNarratives = [
 export const CHAPTERS = chaptersRaw.map((row, index) => ({
   number: index + 1,
   title: row[0],
-  story: chapterNarratives[index] || row[1],
+  story: (chapterNarratives[index] || row[1]).split("\n")[0],
+  stages: (chapterNarratives[index] || row[1]).split("\n").slice(1, 5),
+  ending: (chapterNarratives[index] || row[1]).split("\n")[5] || row[1].split("\n").slice(-1)[0],
   encounterText: row[2],
   objective: row[3],
   shopAvailable: [5, 10, 15, 20].includes(index + 1),
