@@ -287,10 +287,14 @@ function ItemDetailsModal({ item, equipped, onClose, onEquip, onUnequip, onUse }
           </div>
         </div>
         <p className="item-modal__description">{item.description || "Nenhuma descrição disponível para este item."}</p>
-        {stats.length > 0 && (
+        {(stats.length > 0 || item.damage > 0 || item.armorHp > 0) && (
           <div className="item-modal__stats">
             <h3>Atributos do item</h3>
-            <ul>{stats.map(([key, value]) => <li key={key}><span>{statLabels[key] || key}</span><strong>{Number(value) > 0 ? "+" : ""}{value}</strong></li>)}</ul>
+            <ul>
+              {item.damage > 0 && <li><span>Dano da arma</span><strong>+{item.damage}</strong></li>}
+              {item.armorHp > 0 && <li><span>Vida da armadura</span><strong>+{item.armorHp} PV</strong></li>}
+              {stats.map(([key, value]) => <li key={key}><span>{statLabels[key] || key}</span><strong>{Number(value) > 0 ? "+" : ""}{value}</strong></li>)}
+            </ul>
           </div>
         )}
         {item.price > 0 && <p className="item-modal__price">Valor: {item.price} moedas</p>}
