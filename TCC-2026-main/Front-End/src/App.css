@@ -144,9 +144,17 @@
 .battle-modal__character-card--player { border-color: #6d9852; }
 .battle-modal__character-card--enemy { border-color: #a44d3f; }
 .battle-modal__avatar {
-  @apply mb-2 flex h-16 w-16 items-center justify-center rounded-full border text-4xl;
+  @apply mb-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border text-4xl;
   border-color: #b8923f;
   background: radial-gradient(circle, #5b432a, #21170f 72%);
+}
+.battle-modal__avatar--image {
+  @apply h-28 w-28 rounded-lg;
+  background: #17110c;
+}
+.battle-modal__avatar--image img {
+  @apply h-full w-full object-contain;
+  image-rendering: pixelated;
 }
 .battle-modal__character-card strong { @apply text-sm text-[#f4e5c4]; }
 .battle-modal__character-card span { @apply mt-1 text-xs text-[#c7b48d]; }
