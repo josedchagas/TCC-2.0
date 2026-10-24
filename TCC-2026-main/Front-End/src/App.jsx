@@ -142,7 +142,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
       setAnimationAction("player");
       schedule(() => {
         setAnimationAction(null);
-        setAnimatedHp({ playerHp: turns[index]?.playerHp ?? battle.combat.playerMaxHp, enemyHp: turns[index]?.enemyHp ?? battle.combat.enemyMaxHp });
+        setAnimatedHp({ playerHp: index === 0 ? battle.combat.playerMaxHp : (turns[index - 1]?.playerHp ?? battle.combat.playerMaxHp), enemyHp: turns[index]?.enemyHp ?? battle.combat.enemyMaxHp });
         if (turns[index]?.enemyRoll) {
           schedule(() => {
             setAnimationAction("enemy");
