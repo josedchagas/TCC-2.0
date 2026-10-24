@@ -122,12 +122,17 @@ export async function removeFromInventory(req, res) {
 
   res.status(204).send();
 }
-// POST /saves/:saveId/inventory/:id/sell — vende uma unidade da pilha.
+// POST /saves/:saveId/inventory/:id/sell — vende a quantidade escolhida de uma pilha.
 export async function sellInventoryItem(req, res) {
   const id = parseId(req.params.id);
   if (id === null) return res.status(400).json({ error: "ID inválido." });
   if (req.save.completed || req.save.hpCurrent <= 0 || req.save.energyCurrent <= 0) {
     return res.status(409).json({ error: "Este save foi encerrado e não pode vender itens." });
+  }
+
+  const quantity = Number(req.body?.quantity ?? 1);
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    return res.status(400).json({ error: "A quantidade para venda deve ser um número inteiro positivo." });
   }
 
   const [row] = await db
@@ -142,18 +147,23 @@ export async function sellInventoryItem(req, res) {
     return res.status(400).json({ error: "Este item não pode ser vendido." });
   }
 
-  const sellPrice = Math.max(1, Math.floor(definition.price / 2));
+  if (quantity > row.quantity) {
+    return res.status(400).json({ error: `Você só possui ${row.quantity} unidade(s) deste item.` });
+  }
+
+  const unitPrice = Math.max(1, Math.floor(definition.price / 2));
+  const sellPrice = unitPrice * quantity;
   const [updatedSave] = await db.update(saves)
     .set({ money: sql`${saves.money} + ${sellPrice}`, updatedAt: new Date(), lastPlayedAt: new Date() })
     .where(eq(saves.id, req.save.id))
     .returning();
 
-  if (row.quantity <= 1) {
+  if (row.quantity <= quantity) {
     await db.delete(inventoryItems).where(and(eq(inventoryItems.id, row.inventoryId), eq(inventoryItems.saveId, req.save.id)));
   } else {
-    await db.update(inventoryItems).set({ quantity: row.quantity - 1 })
+    await db.update(inventoryItems).set({ quantity: row.quantity - quantity })
       .where(and(eq(inventoryItems.id, row.inventoryId), eq(inventoryItems.saveId, req.save.id)));
   }
 
-  res.json({ message: `Você vendeu 1x ${row.name} por ${sellPrice} moedas.`, sellPrice, save: updatedSave });
+  res.json({ message: `Você vendeu ${quantity}x ${row.name} por ${sellPrice} moedas.`, sellPrice, save: updatedSave });
 }
