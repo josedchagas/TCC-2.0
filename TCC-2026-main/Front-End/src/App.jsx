@@ -465,7 +465,8 @@ export default function App() {
     }
     try {
       const current = equipment.filter((entry) => entry.slot === slot);
-      const target = current[0];
+      // O slot "ring" aceita dois anéis: preenche o espaço livre antes de substituir um já equipado.
+      const target = slot === "ring" && current.length < 2 ? null : current[0];
       const result = target
         ? await apiFetch(`/saves/${activeSave.id}/equipment/${target.id}`, { method: "PUT", body: JSON.stringify({ itemId: item.itemId }) })
         : await apiFetch(`/saves/${activeSave.id}/equipment`, { method: "POST", body: JSON.stringify({ itemId: item.itemId, slot }) });
