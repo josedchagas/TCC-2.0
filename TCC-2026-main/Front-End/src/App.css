@@ -83,7 +83,7 @@
   font-size: 22px;
   font-weight: 700;
 }
-.battle-modal__dice--rolling { animation: battle-dice-roll .45s ease-in-out; }
+.battle-modal__dice--rolling { animation: battle-dice-roll .45s ease-in-out infinite; }
 @keyframes battle-dice-roll {
   0% { transform: rotate(0deg) scale(1); }
   50% { transform: rotate(16deg) scale(.94); }
@@ -160,7 +160,7 @@
 .battle-modal__dice polygon { fill: #8b302b; stroke: #e8c25a; stroke-width: 3; stroke-linejoin: round; }
 .battle-modal__dice path { fill: none; stroke: #f1d98c; stroke-width: 1.5; opacity: .9; }
 .battle-modal__dice text { fill: #fff0c9; font-family: Spectral, serif; font-size: 18px; font-weight: 700; }
-.battle-modal__dice--rolling { animation: battle-dice-roll .45s ease-in-out; }
+.battle-modal__dice--rolling { animation: battle-dice-roll .45s ease-in-out infinite; }
 .battle-modal__final-roll {
   @apply flex h-20 w-20 flex-col items-center justify-center rounded-2xl border-2;
   border-color: #e8c25a;
