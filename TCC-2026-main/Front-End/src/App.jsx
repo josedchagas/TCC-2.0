@@ -457,12 +457,12 @@ export default function App() {
       : null;
 
     if (!slot && item.type === "armor") {
-      const name = String(item.name || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
-      if (/\\b(elmo|capacete|helmet)\\b/.test(name)) slot = "helmet";
-      else if (/\\b(bota|botas|boot|boots)\\b/.test(name)) slot = "boots";
-      else if (/\\b(calca|calcas|pants)\\b/.test(name)) slot = "pants";
-      else if (/\\b(escudo|shield)\\b/.test(name)) slot = "shield";
-      else if (/\\b(peitoral|cota|tunica|manto|armadura|chest|torso)\\b/.test(name)) slot = "chest";
+      const name = String(item.name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      if (/\b(elmo|capacete|helmet)\b/.test(name)) slot = "helmet";
+      else if (/\b(bota|botas|boot|boots)\b/.test(name)) slot = "boots";
+      else if (/\b(calca|calcas|pants)\b/.test(name)) slot = "pants";
+      else if (/\b(escudo|shield)\b/.test(name)) slot = "shield";
+      else if (/\b(peitoral|cota|tunica|manto|armadura|chest|torso)\b/.test(name)) slot = "chest";
     }
 
     if (!slot) {
