@@ -182,7 +182,7 @@ const chapterStages = [
 export const CHAPTERS = chaptersRaw.map((row, index) => ({
   number: index + 1,
   title: row[0],
-  story: (chapterNarratives[index] || row[1]).split("\n")[0],
+  story: (chapterNarratives[index] || row[1]).split("\n").slice(0, 2).join("\n"),
   stages: chapterStages[index] || (chapterNarratives[index] || row[1]).split("\n").slice(1, 5),
   ending: (chapterNarratives[index] || row[1]).split("\n").slice(-1)[0] || row[1].split("\n").slice(-1)[0],
   encounterText: row[2],
