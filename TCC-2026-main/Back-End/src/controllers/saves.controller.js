@@ -10,13 +10,25 @@ const CHARACTER_PRESETS = {
   toren: { characterName: "Toren", classRole: "Ladino", forca: 8, destreza: 15, inteligencia: 11, resistencia: 9, agilidade: 16 },
 };
 
+async function normalizeFixedPips(save) {
+  const hpCurrent = Math.min(5, save.hpCurrent);
+  const energyCurrent = Math.min(5, save.energyCurrent);
+  if (save.hpMax === 5 && save.energyMax === 5 && hpCurrent === save.hpCurrent && energyCurrent === save.energyCurrent) return save;
+  const [updated] = await db.update(saves).set({
+    hpCurrent, hpMax: 5, energyCurrent, energyMax: 5,
+    updatedAt: new Date(),
+  }).where(eq(saves.id, save.id)).returning();
+  return updated;
+}
+
 export async function listSaves(req, res) {
   const rows = await db.select().from(saves).where(eq(saves.userId, req.user.id)).orderBy(asc(saves.slotNumber));
-  res.json(rows);
+  const normalized = await Promise.all(rows.map(normalizeFixedPips));
+  res.json(normalized);
 }
 
 export async function getSave(req, res) {
-  res.json(req.save);
+  res.json(await normalizeFixedPips(req.save));
 }
 
 export async function createSave(req, res) {
