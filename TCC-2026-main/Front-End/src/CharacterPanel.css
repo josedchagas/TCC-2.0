@@ -97,8 +97,10 @@
   @apply font-semibold text-[#e8c25a];
 }
 
+.inventory-slot-cell { @apply relative min-w-0; }
+.inventory-slot__sell { @apply absolute -right-1 -top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-[#b8923f] bg-[#241a10] text-[10px] shadow hover:bg-[#b8923f] disabled:opacity-50; }
 .slot {
-  @apply aspect-square rounded bg-[#4a3520] border border-[#6b4f30] shadow-inner flex items-center justify-center relative;
+  @apply w-full aspect-square rounded bg-[#4a3520] border border-[#6b4f30] shadow-inner flex items-center justify-center relative;
 }
 
 .slot__icon {
