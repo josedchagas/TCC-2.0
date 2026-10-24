@@ -281,7 +281,12 @@ export default function App() {
   const slots = useMemo(() => Array.from({ length: 8 }, (_, index) => {
     const save = saves.find((row) => row.slotNumber === index + 1);
     if (!save) return null;
-    return { ...save, chapterLabel: `Capítulo ${save.chapterCurrent}`, lastPlayed: relativeTime(save.lastPlayedAt) };
+    const permanentlyLost = save.hpCurrent <= 0 || save.energyCurrent <= 0;
+    return {
+      ...save,
+      chapterLabel: permanentlyLost ? "DERROTA PERMANENTE" : save.completed ? "Campanha concluída" : `Capítulo ${save.chapterCurrent}`,
+      lastPlayed: relativeTime(save.lastPlayedAt),
+    };
   }), [saves]);
 
   const updateSaveInLists = (updated) => {
