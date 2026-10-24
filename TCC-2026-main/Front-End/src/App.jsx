@@ -163,7 +163,9 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
       cancelled = true;
       timers.forEach(clearTimeout);
     };
-  }, [battle?.result, battle?.combat?.turns]);
+  // A escolha de pegar/descartar altera battle.result.drops, mas não deve reiniciar a animação.
+  // Dependemos apenas do estado final do combate e da sequência de turnos.
+  }, [battle?.result?.victory, battle?.result?.permanentDeath, battle?.combat?.turns]);
   if (!battle) return null;
   const combat = battle.combat || {};
   const result = battle.result;
