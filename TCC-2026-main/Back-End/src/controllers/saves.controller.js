@@ -1,8 +1,41 @@
 import { asc, eq, gt, lt, and, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { saves } from "../db/schema.js";
+import { equippedItems, items, saves } from "../db/schema.js";
+import { ITEMS } from "../game/Content.js";
 
 const MAX_SAVES_PER_USER = 8;
+
+// Cada personagem começa com arma e quatro peças comuns já equipadas.
+const STARTER_LOADOUTS = {
+  elyra: [
+    { code: "arco_freixo", slot: "weapon" },
+    { code: "inicial_arqueira_elmo", slot: "helmet" },
+    { code: "inicial_arqueira_peitoral", slot: "chest" },
+    { code: "inicial_arqueira_calcas", slot: "pants" },
+    { code: "inicial_arqueira_botas", slot: "boots" },
+  ],
+  bram: [
+    { code: "espada_aventureiro", slot: "weapon" },
+    { code: "inicial_guerreiro_elmo", slot: "helmet" },
+    { code: "inicial_guerreiro_peitoral", slot: "chest" },
+    { code: "inicial_guerreiro_calcas", slot: "pants" },
+    { code: "inicial_guerreiro_botas", slot: "boots" },
+  ],
+  sora: [
+    { code: "cajado_cobre", slot: "weapon" },
+    { code: "inicial_maga_elmo", slot: "helmet" },
+    { code: "inicial_maga_peitoral", slot: "chest" },
+    { code: "inicial_maga_calcas", slot: "pants" },
+    { code: "inicial_maga_botas", slot: "boots" },
+  ],
+  toren: [
+    { code: "adaga_lua", slot: "weapon" },
+    { code: "inicial_ladino_elmo", slot: "helmet" },
+    { code: "inicial_ladino_peitoral", slot: "chest" },
+    { code: "inicial_ladino_calcas", slot: "pants" },
+    { code: "inicial_ladino_botas", slot: "boots" },
+  ],
+};
 const CHARACTER_PRESETS = {
   elyra: { characterName: "Elyra", classRole: "Arqueira", forca: 6, destreza: 16, inteligencia: 9, resistencia: 8, agilidade: 14 },
   bram: { characterName: "Bram", classRole: "Guerreiro", forca: 15, destreza: 8, inteligencia: 6, resistencia: 17, agilidade: 7 },
@@ -44,22 +77,41 @@ export async function createSave(req, res) {
   const preset = CHARACTER_PRESETS[req.body.characterId];
   if (!preset) return res.status(400).json({ error: "Personagem inicial inválido." });
 
-  // Valores iniciais e atributos vêm do servidor, não do payload do cliente.
-  const [save] = await db.insert(saves).values({
-    userId,
-    slotNumber: req.body.slotNumber,
-    ...preset,
-    chapterCurrent: 1,
-    chapterMax: 1,
-    xpCurrent: 0,
-    xpMax: 100,
-    hpCurrent: 5,
-    hpMax: 5,
-    energyCurrent: 5,
-    energyMax: 5,
-    money: 0,
-    availablePoints: 0,
-  }).returning();
+  // Valores iniciais, atributos e equipamento vêm do servidor, não do cliente.
+  const loadout = STARTER_LOADOUTS[req.body.characterId];
+  const save = await db.transaction(async (tx) => {
+    const [createdSave] = await tx.insert(saves).values({
+      userId,
+      slotNumber: req.body.slotNumber,
+      ...preset,
+      chapterCurrent: 1,
+      chapterMax: 20,
+      xpCurrent: 0,
+      xpMax: 100,
+      hpCurrent: 5,
+      hpMax: 5,
+      energyCurrent: 5,
+      energyMax: 5,
+      money: 0,
+      availablePoints: 0,
+    }).returning();
+
+    const initialEquipment = [];
+    for (const piece of loadout) {
+      const definition = ITEMS.find((candidate) => candidate.code === piece.code);
+      if (!definition) throw new Error(`Equipamento inicial ausente no catálogo: ${piece.code}`);
+      const [catalogItem] = await tx.select({ id: items.id }).from(items).where(eq(items.name, definition.name));
+      if (!catalogItem) throw new Error(`Equipamento inicial não encontrado no banco: ${definition.name}`);
+      initialEquipment.push({
+        saveId: createdSave.id,
+        itemId: catalogItem.id,
+        slot: piece.slot,
+      });
+    }
+    await tx.insert(equippedItems).values(initialEquipment);
+    return createdSave;
+  });
+
   res.status(201).json(save);
 }
 
