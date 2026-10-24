@@ -50,7 +50,7 @@ async function canStoreItem(saveId, itemId, removingItemId = null) {
   const oldStack = rows.find((row) => row.itemId === itemId);
   if (oldStack) return oldStack.quantity < 99;
   const slotsAfterRemoval = rows.length - (removingItemId && rows.some((row) => row.itemId === removingItemId && row.quantity === 1) ? 1 : 0);
-  return slotsAfterRemoval < 8;
+  return slotsAfterRemoval < 16;
 }
 
 async function addOneToInventory(saveId, itemId) {
@@ -61,7 +61,7 @@ async function addOneToInventory(saveId, itemId) {
     await db.update(inventoryItems).set({ quantity: existing.quantity + 1 }).where(eq(inventoryItems.id, existing.id));
     return;
   }
-  if (rows.length >= 8) throw new Error("Inventário cheio.");
+  if (rows.length >= 16) throw new Error("Inventário cheio.");
   await db.insert(inventoryItems).values({ saveId, itemId, quantity: 1 });
 }
 
