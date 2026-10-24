@@ -171,10 +171,10 @@
 .battle-modal__final-roll span { @apply text-[9px] font-bold tracking-widest text-[#f1d98c]; }
 .battle-modal__final-roll strong { @apply text-3xl font-bold text-[#fff0c9]; font-family: Spectral, serif; }
 .battle-modal__final-roll small { @apply text-[10px] text-[#f1d98c]; }
-.battle-modal__arena.player-wins .battle-modal__character-card--player { animation: player-strike .62s ease-out; }
-.battle-modal__arena.player-wins .battle-modal__character-card--enemy { animation: enemy-hit .62s ease-out; }
-.battle-modal__arena.enemy-wins .battle-modal__character-card--enemy { animation: enemy-strike .62s ease-out; }
-.battle-modal__arena.enemy-wins .battle-modal__character-card--player { animation: player-hit .62s ease-out; }
+.battle-modal__arena.player-attacking .battle-modal__character-card--player { animation: player-strike .36s ease-out; }
+.battle-modal__arena.player-attacking .battle-modal__character-card--enemy { animation: enemy-hit .36s ease-out; }
+.battle-modal__arena.enemy-attacking .battle-modal__character-card--enemy { animation: enemy-strike .36s ease-out; }
+.battle-modal__arena.enemy-attacking .battle-modal__character-card--player { animation: player-hit .36s ease-out; }
 @keyframes player-strike { 0%,100% { transform: translateX(0); } 38% { transform: translateX(28px) scale(1.04); } 55% { transform: translateX(20px) scale(1.02); } }
 @keyframes enemy-hit { 0%,100% { transform: translateX(0); } 42% { transform: translateX(10px) rotate(1deg); } 58% { transform: translateX(-5px) rotate(-1deg); } }
 @keyframes enemy-strike { 0%,100% { transform: translateX(0); } 38% { transform: translateX(-28px) scale(1.04); } 55% { transform: translateX(-20px) scale(1.02); } }
@@ -202,6 +202,6 @@
   .battle-modal__arena { @apply gap-2; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .battle-modal__arena.player-wins .battle-modal__character-card,
-  .battle-modal__arena.enemy-wins .battle-modal__character-card { animation: none; }
+  .battle-modal__arena.player-attacking .battle-modal__character-card,
+  .battle-modal__arena.enemy-attacking .battle-modal__character-card { animation: none; }
 }
