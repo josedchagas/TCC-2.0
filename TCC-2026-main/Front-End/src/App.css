@@ -17,3 +17,112 @@
 .app-stage {
   @apply flex w-full h-screen;
 }
+
+.battle-modal__backdrop {
+  @apply fixed inset-0 z-[120] flex items-center justify-center p-4;
+  background: rgb(8 6 4 / 86%);
+  backdrop-filter: blur(5px);
+}
+.battle-modal {
+  @apply w-full max-w-2xl overflow-y-auto rounded-xl border-2 border-[#b8923f] p-5 text-[#eadfc7] shadow-2xl;
+  background: radial-gradient(ellipse at top, #4c3520 0%, #2b1d12 55%, #1a120c 100%);
+  max-height: 92vh;
+}
+.battle-modal__header {
+  @apply flex items-start justify-between gap-4 border-b border-[#6b4f30] pb-3;
+}
+.battle-modal__eyebrow {
+  @apply text-[10px] font-bold tracking-[0.22em] text-[#d8b85f];
+}
+.battle-modal__header h2 {
+  @apply mt-1 text-2xl font-bold text-[#f4e5c4];
+  font-family: Spectral, serif;
+}
+.battle-modal__round {
+  @apply rounded border border-[#80613a] bg-[#21170f] px-3 py-1 text-xs text-[#d9c69a];
+}
+.battle-modal__fighters {
+  @apply mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2;
+}
+.battle-modal__fighter-title {
+  @apply mb-1.5 flex items-center justify-between gap-2 text-xs;
+}
+.battle-modal__fighter-title strong { @apply text-[#e9dcc0]; }
+.battle-modal__bar {
+  @apply h-3 overflow-hidden rounded-full border border-[#6b4f30] bg-[#150e09];
+}
+.battle-modal__bar-fill {
+  @apply block h-full rounded-full transition-[width] duration-300;
+}
+.battle-modal__bar-fill--player { background: linear-gradient(90deg, #497d3b, #a9c96a); }
+.battle-modal__bar-fill--enemy { background: linear-gradient(90deg, #842e2e, #d85d46); }
+.battle-modal__middle {
+  @apply mt-5 grid grid-cols-1 items-center gap-5 sm:grid-cols-2;
+}
+.battle-modal__dice-wrap { @apply flex flex-col items-center justify-center text-center; }
+.battle-modal__dice {
+  @apply w-36 max-w-full cursor-pointer rounded-xl p-1 transition-transform hover:scale-105 disabled:cursor-wait disabled:opacity-60;
+  filter: drop-shadow(0 8px 12px rgb(0 0 0 / 45%));
+}
+.battle-modal__dice svg { @apply w-full; }
+.battle-modal__dice polygon {
+  fill: #8b302b;
+  stroke: #e8c25a;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.battle-modal__dice path {
+  fill: none;
+  stroke: #f1d98c;
+  stroke-width: 1.5;
+  opacity: .9;
+}
+.battle-modal__dice text {
+  fill: #fff0c9;
+  font-family: Spectral, serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+.battle-modal__dice--rolling { animation: battle-dice-roll .45s ease-in-out; }
+@keyframes battle-dice-roll {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(16deg) scale(.94); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+.battle-modal__dice-caption { @apply mt-1 text-xs text-[#c7b48d]; }
+.battle-modal__roll-result { @apply mt-2 text-sm font-bold text-[#e8c25a]; }
+.battle-modal__roll-result.is-failure { color: #e58a77; }
+.battle-modal__roll-result.is-success { color: #a9c96a; }
+.battle-modal__combat-stats {
+  @apply rounded-lg border border-[#6b4f30] bg-[#21170f]/90 p-4;
+}
+.battle-modal__combat-stats h3, .battle-modal__log h3 {
+  @apply mb-2 text-sm font-bold tracking-wide text-[#d9c69a];
+}
+.battle-modal__combat-stats p:not(.battle-modal__formula) {
+  @apply flex items-center justify-between border-b border-[#4a3520] py-1.5 text-xs;
+}
+.battle-modal__combat-stats strong { @apply text-[#e8c25a]; }
+.battle-modal__formula { @apply mt-3 text-[10px] leading-relaxed text-[#bda982]; }
+.battle-modal__log {
+  @apply mt-5 rounded-lg border border-[#6b4f30] bg-[#170f09]/80 p-4;
+}
+.battle-modal__log-empty { @apply text-xs text-[#bda982]; }
+.battle-modal__log-entry {
+  @apply border-t border-[#3d2b1b] py-2 text-xs leading-relaxed text-[#d9c69a];
+}
+.battle-modal__log-entry strong { @apply text-[#f0dfb8]; }
+.battle-modal__outcome {
+  @apply mt-3 rounded border p-3 text-sm font-bold;
+}
+.battle-modal__outcome.is-victory { @apply border-[#6b8c4e] bg-[#26351d] text-[#c5e5a2]; }
+.battle-modal__outcome.is-defeat { @apply border-[#8a3c32] bg-[#3c201b] text-[#f0b1a1]; }
+.battle-modal__footer { @apply mt-4 flex justify-end; }
+.battle-modal__primary {
+  @apply rounded border border-[#d8b85f] bg-[#b8923f] px-5 py-2.5 text-sm font-bold text-[#21170f] transition hover:bg-[#d8b85f] disabled:cursor-wait disabled:opacity-60;
+}
+@media (max-width: 640px) {
+  .battle-modal { @apply p-4; max-height: 95vh; }
+  .battle-modal__header h2 { @apply text-xl; }
+  .battle-modal__dice { @apply w-28; }
+}
