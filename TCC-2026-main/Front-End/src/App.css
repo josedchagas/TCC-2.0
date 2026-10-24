@@ -128,3 +128,80 @@
 }
 
 .battle-modal__footer-hint { @apply text-xs text-[#bda982]; }
+
+
+/* Arena de combate: cartões dos lutadores e D20 centralizado na parte inferior. */
+.battle-modal__arena {
+  @apply mt-5 grid grid-cols-2 items-stretch gap-4;
+}
+.battle-modal__character-card {
+  @apply flex min-h-40 flex-col items-center justify-center rounded-xl border p-4 text-center;
+  background: linear-gradient(160deg, rgb(50 37 25 / 96%), rgb(24 17 12 / 98%));
+  border-color: #80613a;
+  box-shadow: inset 0 0 22px rgb(0 0 0 / 25%), 0 8px 18px rgb(0 0 0 / 20%);
+  transform: translateX(0);
+}
+.battle-modal__character-card--player { border-color: #6d9852; }
+.battle-modal__character-card--enemy { border-color: #a44d3f; }
+.battle-modal__avatar {
+  @apply mb-2 flex h-16 w-16 items-center justify-center rounded-full border text-4xl;
+  border-color: #b8923f;
+  background: radial-gradient(circle, #5b432a, #21170f 72%);
+}
+.battle-modal__character-card strong { @apply text-sm text-[#f4e5c4]; }
+.battle-modal__character-card span { @apply mt-1 text-xs text-[#c7b48d]; }
+.battle-modal__arena-center {
+  @apply col-span-2 flex flex-col items-center justify-center text-center;
+  grid-row: 2;
+  min-height: 130px;
+}
+.battle-modal__dice { @apply w-24 max-w-full cursor-pointer rounded-xl p-1 transition-transform hover:scale-105 disabled:cursor-wait disabled:opacity-60; }
+.battle-modal__dice svg { @apply w-full; }
+.battle-modal__dice polygon { fill: #8b302b; stroke: #e8c25a; stroke-width: 3; stroke-linejoin: round; }
+.battle-modal__dice path { fill: none; stroke: #f1d98c; stroke-width: 1.5; opacity: .9; }
+.battle-modal__dice text { fill: #fff0c9; font-family: Spectral, serif; font-size: 18px; font-weight: 700; }
+.battle-modal__dice--rolling { animation: battle-dice-roll .45s ease-in-out; }
+.battle-modal__final-roll {
+  @apply flex h-20 w-20 flex-col items-center justify-center rounded-2xl border-2;
+  border-color: #e8c25a;
+  background: linear-gradient(145deg, #a43c31, #4c201b);
+  box-shadow: 0 0 25px rgb(232 194 90 / 20%);
+  transform: rotate(-4deg);
+}
+.battle-modal__final-roll span { @apply text-[9px] font-bold tracking-widest text-[#f1d98c]; }
+.battle-modal__final-roll strong { @apply text-3xl font-bold text-[#fff0c9]; font-family: Spectral, serif; }
+.battle-modal__final-roll small { @apply text-[10px] text-[#f1d98c]; }
+.battle-modal__arena.player-wins .battle-modal__character-card--player { animation: player-strike .62s ease-out; }
+.battle-modal__arena.player-wins .battle-modal__character-card--enemy { animation: enemy-hit .62s ease-out; }
+.battle-modal__arena.enemy-wins .battle-modal__character-card--enemy { animation: enemy-strike .62s ease-out; }
+.battle-modal__arena.enemy-wins .battle-modal__character-card--player { animation: player-hit .62s ease-out; }
+@keyframes player-strike { 0%,100% { transform: translateX(0); } 38% { transform: translateX(28px) scale(1.04); } 55% { transform: translateX(20px) scale(1.02); } }
+@keyframes enemy-hit { 0%,100% { transform: translateX(0); } 42% { transform: translateX(10px) rotate(1deg); } 58% { transform: translateX(-5px) rotate(-1deg); } }
+@keyframes enemy-strike { 0%,100% { transform: translateX(0); } 38% { transform: translateX(-28px) scale(1.04); } 55% { transform: translateX(-20px) scale(1.02); } }
+@keyframes player-hit { 0%,100% { transform: translateX(0); } 42% { transform: translateX(-10px) rotate(-1deg); } 58% { transform: translateX(5px) rotate(1deg); } }
+.battle-modal__drops { @apply mt-4 rounded-lg border border-[#6b4f30] bg-[#170f09]/80 p-4; }
+.battle-modal__drops h3 { @apply mb-2 text-sm font-bold tracking-wide text-[#d9c69a]; }
+.battle-modal__drops-empty { @apply text-xs text-[#bda982]; }
+.battle-modal__drop { @apply flex flex-wrap items-center justify-between gap-3 border-t border-[#4a3520] py-3; }
+.battle-modal__drop > div:first-child { @apply flex flex-col gap-1; }
+.battle-modal__drop strong { @apply text-sm text-[#f4e5c4]; }
+.battle-modal__drop span { @apply text-xs text-[#c7b48d]; }
+.battle-modal__drop-actions { @apply flex gap-2; }
+.battle-modal__drop-actions button { @apply rounded border border-[#80613a] px-3 py-1.5 text-xs font-bold text-[#f4e5c4] transition hover:bg-[#6b4f30] disabled:opacity-50; }
+.battle-modal__drop-actions button:first-child { @apply border-[#6d9852] text-[#c5e5a2]; }
+.battle-modal__outcome { @apply mt-3 rounded border p-3 text-sm font-bold; }
+.battle-modal__outcome.is-victory { @apply border-[#6b8c4e] bg-[#26351d] text-[#c5e5a2]; }
+.battle-modal__outcome.is-defeat { @apply border-[#8a3c32] bg-[#3c201b] text-[#f0b1a1]; }
+.battle-modal__footer-hint { @apply text-xs text-[#bda982]; }
+@media (max-width: 640px) {
+  .battle-modal { @apply p-3; max-height: 95vh; }
+  .battle-modal__character-card { @apply min-h-32 p-2; }
+  .battle-modal__avatar { @apply h-12 w-12 text-3xl; }
+  .battle-modal__final-roll { @apply h-16 w-16; }
+  .battle-modal__final-roll strong { @apply text-2xl; }
+  .battle-modal__arena { @apply gap-2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle-modal__arena.player-wins .battle-modal__character-card,
+  .battle-modal__arena.enemy-wins .battle-modal__character-card { animation: none; }
+}
