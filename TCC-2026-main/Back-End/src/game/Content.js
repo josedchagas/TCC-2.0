@@ -1,21 +1,21 @@
 
 // Cada peça de armadura usa um tipo exclusivo, compatível somente com seu slot.
-const armorSet = (prefix, className, setName, rarity, price, stats) => [
-  { code: `${prefix}_elmo`, name: `Elmo ${setName}`, type: "helmet", rarity, price, description: `Elmo do conjunto ${setName}, criado para ${className.toLowerCase()}.`, stats: { ...stats.helmet } },
-  { code: `${prefix}_peitoral`, name: `Peitoral ${setName}`, type: "chest", rarity, price: price * 2, description: `Peitoral do conjunto ${setName}, criado para ${className.toLowerCase()}.`, stats: { ...stats.chest } },
-  { code: `${prefix}_calcas`, name: `Calças ${setName}`, type: "pants", rarity, price: Math.floor(price * 0.8), description: `Calças do conjunto ${setName}, criadas para ${className.toLowerCase()}.`, stats: { ...stats.pants } },
-  { code: `${prefix}_botas`, name: `Botas ${setName}`, type: "boots", rarity, price: Math.floor(price * 0.7), description: `Botas do conjunto ${setName}, criadas para ${className.toLowerCase()}.`, stats: { ...stats.boots } },
+const armorLineage = (prefix, className, setName, rarity, price, stats) => [
+  { code: `${prefix}_elmo`, name: `Elmo ${setName}`, type: "helmet", rarity, price, description: `Elmo da linhagem ${setName}, criado para ${className.toLowerCase()}.`, stats: { ...stats.helmet } },
+  { code: `${prefix}_peitoral`, name: `Peitoral ${setName}`, type: "chest", rarity, price: price * 2, description: `Peitoral da linhagem ${setName}, criado para ${className.toLowerCase()}.`, stats: { ...stats.chest } },
+  { code: `${prefix}_calcas`, name: `Calças ${setName}`, type: "pants", rarity, price: Math.floor(price * 0.8), description: `Calças da linhagem ${setName}, criadas para ${className.toLowerCase()}.`, stats: { ...stats.pants } },
+  { code: `${prefix}_botas`, name: `Botas ${setName}`, type: "boots", rarity, price: Math.floor(price * 0.7), description: `Botas da linhagem ${setName}, criadas para ${className.toLowerCase()}.`, stats: { ...stats.boots } },
 ];
 
 const classArmor = [
-  ...armorSet("arqueira_trilha", "Arqueira", "da Trilha Lunar", "incomum", 120, { helmet: { destreza: 2 }, chest: { resistencia: 2, destreza: 2 }, pants: { agilidade: 2 }, boots: { agilidade: 3 } }),
-  ...armorSet("arqueira_falcao", "Arqueira", "do Falcão Celeste", "epico", 420, { helmet: { destreza: 4, agilidade: 1 }, chest: { resistencia: 4, destreza: 3 }, pants: { destreza: 2, agilidade: 3 }, boots: { agilidade: 5 } }),
-  ...armorSet("guerreiro_bastiao", "Guerreiro", "do Bastião", "incomum", 130, { helmet: { resistencia: 3 }, chest: { resistencia: 4, forca: 1 }, pants: { resistencia: 2 }, boots: { resistencia: 2, forca: 1 } }),
-  ...armorSet("guerreiro_colosso", "Guerreiro", "do Colosso", "epico", 460, { helmet: { resistencia: 5, forca: 1 }, chest: { resistencia: 7, forca: 3 }, pants: { resistencia: 4, forca: 2 }, boots: { resistencia: 3, forca: 2 } }),
-  ...armorSet("maga_astrolabio", "Maga", "do Astrolábio", "incomum", 125, { helmet: { inteligencia: 3 }, chest: { inteligencia: 3, resistencia: 1 }, pants: { inteligencia: 2 }, boots: { agilidade: 1, inteligencia: 1 } }),
-  ...armorSet("maga_cometa", "Maga", "do Cometa Arcano", "epico", 450, { helmet: { inteligencia: 5 }, chest: { inteligencia: 6, resistencia: 2 }, pants: { inteligencia: 3, agilidade: 1 }, boots: { inteligencia: 2, agilidade: 2 } }),
-  ...armorSet("ladino_sombra", "Ladino", "da Sombra", "incomum", 120, { helmet: { destreza: 2, agilidade: 1 }, chest: { resistencia: 2, destreza: 2 }, pants: { destreza: 2 }, boots: { agilidade: 3 } }),
-  ...armorSet("ladino_espectro", "Ladino", "do Espectro", "epico", 440, { helmet: { destreza: 4, agilidade: 2 }, chest: { resistencia: 3, destreza: 4 }, pants: { destreza: 3, agilidade: 2 }, boots: { agilidade: 5, destreza: 1 } }),
+  ...armorLineage("arqueira_trilha", "Arqueira", "da Trilha Lunar", "incomum", 120, { helmet: { destreza: 2 }, chest: { resistencia: 2, destreza: 2 }, pants: { agilidade: 2 }, boots: { agilidade: 3 } }),
+  ...armorLineage("arqueira_falcao", "Arqueira", "do Falcão Celeste", "epico", 420, { helmet: { destreza: 4, agilidade: 1 }, chest: { resistencia: 4, destreza: 3 }, pants: { destreza: 2, agilidade: 3 }, boots: { agilidade: 5 } }),
+  ...armorLineage("guerreiro_bastiao", "Guerreiro", "do Bastião", "incomum", 130, { helmet: { resistencia: 3 }, chest: { resistencia: 4, forca: 1 }, pants: { resistencia: 2 }, boots: { resistencia: 2, forca: 1 } }),
+  ...armorLineage("guerreiro_colosso", "Guerreiro", "do Colosso", "epico", 460, { helmet: { resistencia: 5, forca: 1 }, chest: { resistencia: 7, forca: 3 }, pants: { resistencia: 4, forca: 2 }, boots: { resistencia: 3, forca: 2 } }),
+  ...armorLineage("maga_astrolabio", "Maga", "do Astrolábio", "incomum", 125, { helmet: { inteligencia: 3 }, chest: { inteligencia: 3, resistencia: 1 }, pants: { inteligencia: 2 }, boots: { agilidade: 1, inteligencia: 1 } }),
+  ...armorLineage("maga_cometa", "Maga", "do Cometa Arcano", "epico", 450, { helmet: { inteligencia: 5 }, chest: { inteligencia: 6, resistencia: 2 }, pants: { inteligencia: 3, agilidade: 1 }, boots: { inteligencia: 2, agilidade: 2 } }),
+  ...armorLineage("ladino_sombra", "Ladino", "da Sombra", "incomum", 120, { helmet: { destreza: 2, agilidade: 1 }, chest: { resistencia: 2, destreza: 2 }, pants: { destreza: 2 }, boots: { agilidade: 3 } }),
+  ...armorLineage("ladino_espectro", "Ladino", "do Espectro", "epico", 440, { helmet: { destreza: 4, agilidade: 2 }, chest: { resistencia: 3, destreza: 4 }, pants: { destreza: 3, agilidade: 2 }, boots: { agilidade: 5, destreza: 1 } }),
 ];
 
 export const ITEMS = [
