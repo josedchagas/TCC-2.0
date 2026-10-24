@@ -61,6 +61,9 @@ export async function updateSave(req, res) {
 
 // Ação segura de evolução: um ponto disponível, atributo abaixo de 20, e alteração no servidor.
 export async function spendPoint(req, res) {
+  if (req.save.completed || req.save.hpCurrent <= 0 || req.save.energyCurrent <= 0) {
+    return res.status(409).json({ error: "Este save foi encerrado e não pode mais ser alterado." });
+  }
   const { stat } = req.body;
   if (req.save.availablePoints < 1) {
     return res.status(409).json({ error: "Você não possui pontos disponíveis." });
