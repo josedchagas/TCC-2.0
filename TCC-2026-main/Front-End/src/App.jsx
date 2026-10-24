@@ -208,7 +208,7 @@ export default function App() {
     ]);
     setChapterData(chapter);
     setChapterLoadedForSaveId(save.id);
-    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, qty: item.quantity })));
+    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, qty: item.quantity, sellPrice: item.sellPrice ?? 0 })));
     setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, slot: item.slot })));
     setDefeatedEnemies(defeated.filter((code) => !String(code).startsWith("sidequest:")));
     setSideQuests(quests);
@@ -415,6 +415,23 @@ export default function App() {
     finally { setShopBusy(false); }
   };
 
+  const sellItem = async (item) => {
+    if (!activeSave || !item?.id) return;
+    const confirmed = window.confirm("Vender 1 unidade de " + item.name + " por " + item.sellPrice + " moedas?");
+    if (!confirmed) return;
+    try {
+      const result = await apiFetch("/saves/" + activeSave.id + "/inventory/" + item.id + "/sell", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      updateSaveInLists(result.save);
+      await refreshGameData(result.save);
+      setNotice(result.message);
+    } catch (error) {
+      setNotice(error.message);
+    }
+  };
+
   const equipItem = async (item) => {
     if (!activeSave || !item?.itemId) return;
     const slots = item.type === "weapon" ? ["weapon"]
@@ -555,6 +572,7 @@ export default function App() {
           statusOpen={statusOpen}
           onToggleStatus={() => setStatusOpen((value) => !value)}
           onUseItem={useItem}
+          onSellItem={sellItem}
           onEquipItem={equipItem}
           onUnequipItem={unequipItem}
         />
@@ -567,7 +585,7 @@ export default function App() {
       </div>
 
       <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
-      <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} busy={shopBusy} />
+      <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} money={activeSave?.money ?? 0} busy={shopBusy} />
       <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
   );
