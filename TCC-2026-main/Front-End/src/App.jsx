@@ -6,12 +6,10 @@ import StoryPanel from "./Storypanel";
 import GameMenu from "./GameMenu";
 import ShopModal from "./ShopModal";
 import { apiFetch, ensureGuestSession } from "./api";
-import loboDasSombras from "../imagens/lobo das sombras.png";
-import espantalho from "../imagens/Espantalho.png";
-import corvoFerrugem from "../imagens/Corvo Ferrugem.png";
-import saqueadorDaEstrada from "../imagens/Saqueador da Estrada.png";
-import capitaoDosCorvos from "../imagens/Capitão dos corvos.png";
-import guardiaoDoSino from "../imagens/Guardião do Sino.png";
+const ENEMY_IMAGE_FILES = import.meta.glob("../imagens/*.png", {
+  eager: true,
+  import: "default",
+});
 import "./App.css";
 
 const STAT_KEYS = ["forca", "destreza", "inteligencia", "resistencia", "agilidade"];
@@ -24,15 +22,20 @@ function normalizeEnemyName(name) {
     .trim();
 }
 
-const ENEMY_IMAGES = {
-  "lobo das sombras": loboDasSombras,
-  "vulto de palha": espantalho,
-  espantalho,
-  "corvo ferrugem": corvoFerrugem,
-  "saqueador da estrada": saqueadorDaEstrada,
-  "capitao dos corvos": capitaoDosCorvos,
-  "guardiao do sino": guardiaoDoSino,
-};
+const ENEMY_IMAGES = Object.fromEntries(
+  Object.entries(ENEMY_IMAGE_FILES).map(([path, imageUrl]) => [
+    normalizeEnemyName(path.split("/").pop().replace(/\.png$/i, "")),
+    imageUrl,
+  ])
+);
+
+// Alguns nomes do catálogo são diferentes dos nomes usados nos arquivos.
+ENEMY_IMAGES[normalizeEnemyName("Vulto de Palha")] =
+  ENEMY_IMAGES[normalizeEnemyName("Espantalho")];
+ENEMY_IMAGES[normalizeEnemyName("A Noite Sem Fim")] =
+  ENEMY_IMAGES[normalizeEnemyName("A Notie Sem Fim")];
+ENEMY_IMAGES[normalizeEnemyName("Cobrador da Guilda")] =
+  ENEMY_IMAGES[normalizeEnemyName("Cobradorda Guilda")];
 
 function chapterLabel(save, chapterData) {
   return `Capítulo ${save.chapterCurrent} — ${chapterData?.title ?? "A Vila Esquecida"}`;
