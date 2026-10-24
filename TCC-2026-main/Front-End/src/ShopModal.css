@@ -5,6 +5,9 @@
 .shop-header h2 { @apply text-2xl font-bold text-[#e8c25a]; }
 .shop-kicker { @apply text-xs uppercase tracking-[0.2em] text-[#b8923f]; }
 .shop-close { @apply rounded px-3 py-1 text-3xl hover:bg-[#4a3520]; }
+.shop-wallet { @apply flex items-center justify-between border-b border-[#6b4f30] bg-[#3f2f1c] px-5 py-3 text-sm; }
+.shop-wallet span { @apply text-[#d9c69a]; }
+.shop-wallet strong { @apply font-bold text-[#e8c25a]; }
 .shop-greeting { @apply border-b border-[#6b4f30] px-5 py-3 text-sm italic text-[#d9c69a]; }
 .shop-items { @apply grid max-h-[62vh] gap-2 overflow-y-auto p-4 md:grid-cols-2; }
 .shop-item { @apply flex min-h-32 flex-col justify-between gap-3 rounded-lg border border-[#6b4f30] bg-[#241a10] p-3; }
