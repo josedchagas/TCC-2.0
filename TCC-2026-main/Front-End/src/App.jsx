@@ -448,31 +448,50 @@ export default function App() {
 
   const equipItem = async (item) => {
     if (!activeSave || !item?.itemId) return;
-    const slots = item.type === "weapon" ? ["weapon"]
-      : item.type === "accessory" ? ["ring"]
-      : ["helmet", "chest", "pants", "shield", "boots"].includes(item.type) ? [item.type]
-      : item.type === "armor" ? ["helmet", "chest", "pants", "shield", "boots"]
-      : [];
-    const promptText = slots.length === 1
-      ? `Digite "${slots[0]}" para equipar ${item.name}.`
-      : `Escolha o slot para ${item.name}: ${slots.join(", ")}. Digite exatamente um deles.`;
-    const chosen = window.prompt(promptText, slots[0]);
-    if (!chosen) return;
-    const slot = chosen.trim().toLowerCase();
-    if (!slots.includes(slot)) {
-      setNotice("Slot inválido para este item.");
+
+    // Itens novos já informam o slot exato. Para armaduras antigas (type="armor"),
+    // inferimos o slot pelo nome para manter compatibilidade com saves existentes.
+    let slot = item.type === "weapon" ? "weapon"
+      : item.type === "accessory" ? "ring"
+      : ["helmet", "chest", "pants", "shield", "boots"].includes(item.type) ? item.type
+      : null;
+
+    if (!slot && item.type === "armor") {
+      const name = String(item.name || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
+      if (/\\b(elmo|capacete|helmet)\\b/.test(name)) slot = "helmet";
+      else if (/\\b(bota|botas|boot|boots)\\b/.test(name)) slot = "boots";
+      else if (/\\b(calca|calcas|pants)\\b/.test(name)) slot = "pants";
+      else if (/\\b(escudo|shield)\\b/.test(name)) slot = "shield";
+      else if (/\\b(peitoral|cota|tunica|manto|armadura|chest|torso)\\b/.test(name)) slot = "chest";
+    }
+
+    if (!slot) {
+      setNotice(`Não foi possível identificar o espaço de equipamento de ${item.name}. Atualize o jogo e tente novamente.`);
       return;
     }
+
     try {
       const current = equipment.filter((entry) => entry.slot === slot);
-      // O slot "ring" aceita dois anéis: preenche o espaço livre antes de substituir um já equipado.
+      // Os dois espaços de anel são independentes; os demais slots aceitam uma peça cada.
       const target = slot === "ring" && current.length < 2 ? null : current[0];
-      const result = target
-        ? await apiFetch(`/saves/${activeSave.id}/equipment/${target.id}`, { method: "PUT", body: JSON.stringify({ itemId: item.itemId }) })
-        : await apiFetch(`/saves/${activeSave.id}/equipment`, { method: "POST", body: JSON.stringify({ itemId: item.itemId, slot }) });
+      if (target) {
+        await apiFetch(`/saves/${activeSave.id}/equipment/${target.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ itemId: item.itemId }),
+        });
+      } else {
+        await apiFetch(`/saves/${activeSave.id}/equipment`, {
+          method: "POST",
+          body: JSON.stringify({ itemId: item.itemId, slot }),
+        });
+      }
       await refreshGameData(activeSave);
-      setNotice(target ? `${item.name} equipado; equipamento anterior devolvido ao inventário.` : `${item.name} equipado.`);
-    } catch (error) { setNotice(error.message); }
+      setNotice(target
+        ? `${item.name} equipado; equipamento anterior devolvido ao inventário.`
+        : `${item.name} equipado no espaço de ${slot}.`);
+    } catch (error) {
+      setNotice(`Não foi possível equipar ${item.name}: ${error.message}`);
+    }
   };
 
   const unequipItem = async (item) => {
