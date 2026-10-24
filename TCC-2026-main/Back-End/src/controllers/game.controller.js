@@ -168,16 +168,13 @@ export async function resolveEncounter(req, res) {
     // A única rolagem escolhida pelo jogador determina seus ataques em toda a simulação.
     const playerRoll = submittedRolls[0];
     const playerMultiplier = playerRoll / 10;
-    const adjustedLifeBonus = Math.floor(baseLifeBonus * playerMultiplier);
-    const lifeAdjustment = adjustedLifeBonus - baseLifeBonus;
-    playerMaxHp = Math.max(playerMaxHp, 100 + adjustedLifeBonus);
-    playerHp = Math.max(0, Math.min(playerMaxHp, playerHp + lifeAdjustment));
+    // A rolagem do jogador altera o ataque, nunca a vida atual.
     const playerCritRoll = seededRoll(`player-crit-${playerRoll}`, round);
     const playerCritical = playerRoll === 20 || playerCritRoll <= playerCritChance;
     const playerBaseDamage = Math.max(1, Math.floor(strength + weaponDamage * playerMultiplier));
     const playerDamage = Math.max(1, Math.floor(playerBaseDamage * (playerCritical ? 1.5 : 1)));
     enemyHp = Math.max(0, enemyHp - playerDamage);
-    const turn = { round, playerRoll, playerMultiplier: Number(playerMultiplier.toFixed(1)), playerCritChance, playerCritRoll, playerCritical, lifeAdjustment, playerMaxHp, playerBaseDamage, playerDamage, enemyHp, enemyRoll: null, enemyCritChance, enemyCritRoll: null, enemyCritical: false, enemyDamage: 0, playerHp };
+    const turn = { round, playerRoll, playerMultiplier: Number(playerMultiplier.toFixed(1)), playerCritChance, playerCritRoll, playerCritical, playerMaxHp, playerBaseDamage, playerDamage, enemyHp, enemyRoll: null, enemyCritChance, enemyCritRoll: null, enemyCritical: false, enemyDamage: 0, playerHp };
     if (enemyHp > 0) {
       const enemyRoll = enemyRollForTurn(round);
       const enemyMultiplier = enemyRoll / 10;
