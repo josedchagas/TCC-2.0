@@ -183,7 +183,7 @@ function BattleModal({ battle, busy, onRoll, onClose }) {
 
         <footer className="battle-modal__footer">
           {!result
-            ? <button className="battle-modal__primary" onClick={onRoll} disabled={busy}>Rolar D20 e agir</button>
+            ? <p className="battle-modal__footer-hint">A cada rolagem, você ataca e o inimigo pode contra-atacar.</p>
             : <button className="battle-modal__primary" onClick={onClose} disabled={busy}>Fechar batalha</button>}
         </footer>
       </section>
