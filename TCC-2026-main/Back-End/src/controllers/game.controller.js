@@ -122,28 +122,93 @@ export async function resolveEncounter(req, res) {
   const [alreadyDefeated] = await db.select().from(defeatedEncounters).where(and(eq(defeatedEncounters.saveId, save.id), eq(defeatedEncounters.enemyCode, enemy.id)));
   if (alreadyDefeated) return res.status(409).json({ error: "Este inimigo já foi derrotado neste save." });
 
-  const gearRows = await db.select({ name: items.name }).from(equippedItems)
-    .innerJoin(items, eq(equippedItems.itemId, items.id)).where(eq(equippedItems.saveId, save.id));
+  const submittedRolls = Array.isArray(req.body?.rolls) ? req.body.rolls : [];
+  if (submittedRolls.length > 40 || submittedRolls.some((roll) => !Number.isInteger(roll) || roll < 1 || roll > 20)) {
+    return res.status(400).json({ error: "As rolagens devem ser números inteiros de 1 a 20, com no máximo 40 turnos." });
+  }
+
+  const gearRows = await db.select({ name: items.name, slot: equippedItems.slot })
+    .from(equippedItems).innerJoin(items, eq(equippedItems.itemId, items.id))
+    .where(eq(equippedItems.saveId, save.id));
   const gearStats = gearRows.reduce((total, row) => {
     const definition = ITEMS.find((item) => item.name === row.name);
     for (const [stat, value] of Object.entries(definition?.stats || {})) total[stat] = (total[stat] || 0) + value;
     return total;
   }, {});
   const strength = save.forca + (gearStats.forca || 0);
-  const dexterity = save.destreza + (gearStats.destreza || 0);
   const resistance = save.resistencia + (gearStats.resistencia || 0);
-  const level = Math.max(0, Math.floor((save.xpMax - 100) / 50));
-  const playerAttack = 12 + strength * 2 + dexterity + (gearStats.inteligencia || 0) * 0.5 + level * 7 + Math.floor(Math.random() * 6);
-  const playerDefense = Math.floor(resistance * 1.35 + level * 4 + (gearStats.agilidade || 0) * 0.5);
+  const weaponDamage = gearRows.reduce((total, row) => {
+    if (row.slot !== "weapon") return total;
+    return total + (ITEMS.find((item) => item.name === row.name)?.damage || 0);
+  }, 0);
+  const armorHp = gearRows.reduce((total, row) => {
+    if (!["helmet", "chest", "pants", "boots", "shield"].includes(row.slot)) return total;
+    return total + (ITEMS.find((item) => item.name === row.name)?.armorHp || 0);
+  }, 0);
+  const playerMaxHp = 100 + armorHp + resistance * 5;
   let enemyHp = enemy.hp;
-  let playerHp = save.hpCurrent;
-  let rounds = 0;
-  while (enemyHp > 0 && playerHp > 0 && rounds < 40) {
-    rounds += 1;
-    enemyHp -= playerAttack;
-    if (enemyHp > 0) playerHp -= Math.max(1, enemy.attack + Math.floor(Math.random() * 5) - playerDefense);
+  let playerHp = playerMaxHp;
+  const turns = [];
+
+  // Os dados inimigos são reproduzíveis para que o servidor possa revalidar
+  // toda a sequência enviada pelo cliente sem armazenar uma sessão temporária.
+  const enemyRollForTurn = (turn) => {
+    const seed = `${save.id}:${enemy.id}:${turn}`;
+    let hash = 0;
+    for (const character of seed) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+    return (hash % 20) + 1;
+  };
+
+  for (let index = 0; index < submittedRolls.length && enemyHp > 0 && playerHp > 0; index += 1) {
+    const playerRoll = submittedRolls[index];
+    const playerMultiplier = playerRoll / 10;
+    const playerDamage = Math.max(1, Math.floor(strength + weaponDamage * playerMultiplier));
+    enemyHp = Math.max(0, enemyHp - playerDamage);
+    const turn = {
+      round: index + 1,
+      playerRoll,
+      playerMultiplier: Number(playerMultiplier.toFixed(1)),
+      playerDamage,
+      enemyHp,
+      enemyRoll: null,
+      enemyDamage: 0,
+      playerHp,
+    };
+
+    if (enemyHp > 0) {
+      const enemyRoll = enemyRollForTurn(index + 1);
+      const enemyMultiplier = enemyRoll / 10;
+      const rawEnemyDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier));
+      const effectiveDefense = Math.floor((armorHp * 0.25 + resistance * 3) * playerMultiplier);
+      const enemyDamage = Math.max(1, rawEnemyDamage - effectiveDefense);
+      playerHp = Math.max(0, playerHp - enemyDamage);
+      turn.enemyRoll = enemyRoll;
+      turn.enemyMultiplier = Number(enemyMultiplier.toFixed(1));
+      turn.enemyDamage = enemyDamage;
+      turn.playerHp = playerHp;
+    }
+    turns.push(turn);
   }
+
+  const rounds = turns.length;
   const victory = enemyHp <= 0;
+  const combat = {
+    playerHp, playerMaxHp, enemyHp, enemyMaxHp: enemy.hp,
+    rounds, turns, weaponDamage, armorHp, strength, resistance,
+  };
+
+  if (submittedRolls.length === 0 || (!victory && playerHp > 0 && rounds < 40)) {
+    return res.json({
+      inProgress: true,
+      victory: false,
+      enemy: { id: enemy.id, name: enemy.name, hp: enemy.hp, hpCurrent: enemyHp, kind: enemy.kind },
+      combat,
+    });
+  }
+  if (!victory && playerHp > 0) {
+    playerHp = 0;
+    combat.playerHp = 0;
+  }
   if (!victory) {
     // A derrota custa exatamente um coração; o dano calculado durante o combate não é descontado.
     const remainingHp = Math.max(0, save.hpCurrent - 1);
