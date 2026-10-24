@@ -39,7 +39,7 @@ export async function listInventory(req, res) {
     const sellPrice = definition && definition.type !== "quest" && definition.price > 0
       ? Math.max(1, Math.floor(definition.price / 2))
       : 0;
-    return { ...row, type: normalizedEquipmentType(row), sellPrice };
+    return { ...row, type: normalizedEquipmentType(row), rarity: definition?.rarity ?? "comum", stats: definition?.stats ?? {}, price: definition?.price ?? 0, sellPrice };
   }));
 }
 
