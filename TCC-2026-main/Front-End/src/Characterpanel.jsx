@@ -10,7 +10,7 @@ import "./CharacterPanel.css";
  * - hp: { current: number, max: number }        // max define quantos "corações" aparecem
  * - energy: { current: number, max: number }     // max define quantos "pingos" aparecem
  * - money: number
- * - inventory: Array<{ id, icon, qty }>          // até 8 slots
+ * - inventory: Array<{ id, icon, qty }>          // até 16 slots
  * - equipment: Array<{ id, slot, icon }>          // slot: 'helmet' | 'weapon' | 'chest' | 'pants' | 'shield' | 'boots' | 'ring'
  * - statusOpen: boolean                           // vem do App — se o StatusModal está aberto
  * - onToggleStatus: () => void                    // avisa o App pra abrir/fechar o StatusModal
@@ -116,7 +116,7 @@ export default function CharacterPanel({
     scrollFromClientY(e.clientY);
   };
 
-  const inventorySlots = Array.from({ length: 8 }, (_, i) => inventory[i] ?? null);
+  const inventorySlots = Array.from({ length: 16 }, (_, i) => inventory[i] ?? null);
 
   const equipmentLayout = [
     null, "helmet", null,
