@@ -578,8 +578,8 @@ export default function App() {
       <div className="app-stage">
         <CharacterPanel
           xp={{ current: activeSave?.xpCurrent ?? 0, max: activeSave?.xpMax ?? 100 }}
-          hp={{ current: activeSave?.hpCurrent ?? 0, max: activeSave?.hpMax ?? 100 }}
-          energy={{ current: activeSave?.energyCurrent ?? 0, max: activeSave?.energyMax ?? 50 }}
+          hp={{ current: Math.min(5, activeSave?.hpCurrent ?? 0), max: 5 }}
+          energy={{ current: Math.min(5, activeSave?.energyCurrent ?? 0), max: 5 }}
           money={activeSave?.money ?? 0}
           inventory={inventory}
           equipment={equipment}
