@@ -355,9 +355,11 @@ export default function App() {
       const stamp = Date.now();
       const battleText = result.victory
         ? [`O confronto contra ${enemy.name} termina quando a criatura perde o equilíbrio e a corrupção abandona seu corpo em fios de fumaça escura.`, `Por um breve instante, o lugar fica em silêncio; até o vento parece esperar para descobrir o que restou sob aquela ameaça.`, `Você percebe marcas antigas na pedra, antes escondidas pelos passos do inimigo, e entende que ele guardava a passagem por muito mais tempo do que imaginava.`, `${enemy.name} já não bloqueia a trilha, e os sobreviventes que aguardavam à distância finalmente podem se aproximar.`, result.message, "Com o caminho livre, você recolhe o que pode ser útil e se prepara para descobrir o que existe além das ruínas."].join("\n")
-        : [`O golpe final de ${enemy.name} rompe sua defesa e obriga você a recuar, enquanto o mundo parece perder o som por alguns segundos.`, `Você alcança abrigo atrás de pedras antigas e tenta recuperar o fôlego, sem tirar os olhos da passagem bloqueada.`, `A criatura não persegue você; limita-se a guardar o caminho, como se obedecesse a uma ordem gravada muito antes de sua chegada.`, `A derrota dói, mas também revela o ritmo dos movimentos do adversário e os pontos frágeis que você não conseguiu aproveitar desta vez.`, result.message, "Você ainda poderá tentar novamente quando estiver preparado, mas a jornada não avançará enquanto essa ameaça permanecer de pé."].join("\n");
+        : result.permanentDeath
+          ? [`Você cai diante de ${enemy.name}; o último coração se apaga e já não resta vigor para continuar.`, "A jornada termina aqui. Nenhum item pode reverter o destino deste personagem, e este save ficará marcado como uma derrota permanente.", result.message].join("\n")
+          : [`O confronto contra ${enemy.name} termina com sua retirada; a criatura vence esta luta, mas não consegue impedir que você encontre uma passagem adiante.`, "A derrota custa exatamente um coração. O vigor não é recuperado automaticamente, e você não recebe XP, moedas nem drops por este confronto.", result.message, result.chapterAdvanced ? "Mesmo sem vencer o chefe, você encontra uma rota para a próxima região. A campanha continua, mas a criatura permanece viva." : "A história continua para o próximo acontecimento; a criatura permanece viva e este encontro não concede recompensas."].join("\n");
       const lines = [{ id: `battle-${enemy.id}-${result.victory ? "victory" : "defeat"}`, type: "outcome", text: battleText }];
-      if (result.victory && enemy.kind === "boss") {
+      if ((result.victory || result.chapterAdvanced) && enemy.kind === "boss" && !result.permanentDeath) {
         const chapterNumber = Number(activeSave.chapterCurrent);
         const chapterEnding = chapterData?.ending || ("A ameaça em " + chapterLocation(chapterNumber) + " foi derrotada. Os sobreviventes começam a reconstruir o caminho, e as pistas reunidas apontam para a próxima região da campanha.");
         lines.push({ id: `chapter-ending-${chapterNumber}`, type: "narration", text: chapterEnding });
@@ -494,12 +496,17 @@ export default function App() {
   }
 
   const stats = Object.fromEntries(STAT_KEYS.map((key) => [key, activeSave?.[key] ?? 0]));
-  const storyText = activeSave?.completed
+  const permanentlyLost = Boolean(activeSave && (activeSave.hpCurrent <= 0 || activeSave.energyCurrent <= 0));
+  const storyText = permanentlyLost
     ? [
-        { id: "ending", type: "narration", text: "A Fenda foi encerrada e a aurora voltou a Valedouro. O futuro do reino agora depende das escolhas que você fez durante a jornada." },
-        { id: "ending-note", type: "outcome", text: "Campanha concluída. Você ainda pode revisar seu personagem e os itens encontrados." },
+        { id: "permadeath", type: "outcome", text: "DERROTA PERMANENTE — este save foi perdido porque a vida ou o vigor chegou a zero. Não é possível continuar esta campanha nem recuperar o personagem com itens." },
       ]
-    : storyEntries;
+    : activeSave?.completed
+      ? [
+          { id: "ending", type: "narration", text: "A Fenda foi encerrada e a aurora voltou a Valedouro. O futuro do reino agora depende das escolhas que você fez durante a jornada." },
+          { id: "ending-note", type: "outcome", text: "Campanha concluída. Você ainda pode revisar seu personagem e os itens encontrados." },
+        ]
+      : storyEntries;
 
   const actions = activeSave?.completed ? [] : !storyStarted
     ? [{ id: "continue-intro", label: "Continuar a história", disabled: chapterLoadedForSaveId !== activeSave?.id || !chapterData || storyEntries.length === 0, onClick: () => {
