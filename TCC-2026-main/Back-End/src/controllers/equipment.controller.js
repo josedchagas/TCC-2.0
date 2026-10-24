@@ -9,11 +9,11 @@ const SLOT_LIMITS = { ring: 2 };
 // Qual tipo de item (items.type) cada slot aceita.
 const ALLOWED_TYPES = {
   weapon: ["weapon"],
-  shield: ["armor"],
-  helmet: ["armor"],
-  chest: ["armor"],
-  pants: ["armor"],
-  boots: ["armor"],
+  shield: ["shield"],
+  helmet: ["helmet"],
+  chest: ["chest"],
+  pants: ["pants"],
+  boots: ["boots"],
   ring: ["accessory"],
 };
 
