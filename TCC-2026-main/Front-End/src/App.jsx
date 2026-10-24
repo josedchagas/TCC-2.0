@@ -208,8 +208,8 @@ export default function App() {
     ]);
     setChapterData(chapter);
     setChapterLoadedForSaveId(save.id);
-    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", qty: item.quantity, sellPrice: item.sellPrice ?? 0 })));
-    setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, slot: item.slot })));
+    setInventory(inv.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", rarity: item.rarity ?? "comum", stats: item.stats ?? {}, price: item.price ?? 0, qty: item.quantity, sellPrice: item.sellPrice ?? 0 })));
+    setEquipment(eqp.map((item) => ({ id: item.id, itemId: item.itemId, name: item.name, type: item.type, icon: item.iconUrl, description: item.description ?? "", rarity: item.rarity ?? "comum", stats: item.stats ?? {}, price: item.price ?? 0, slot: item.slot })));
     setDefeatedEnemies(defeated.filter((code) => !String(code).startsWith("sidequest:")));
     setSideQuests(quests);
   }, []);
