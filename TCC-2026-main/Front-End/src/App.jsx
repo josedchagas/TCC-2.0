@@ -14,6 +14,52 @@ function chapterLabel(save, chapterData) {
   return `Capítulo ${save.chapterCurrent} — ${chapterData?.title ?? "A Vila Esquecida"}`;
 }
 
+const CHAPTER_LOCATIONS = [
+  "as vielas de Valedouro",
+  "a Estrada dos Corvos",
+  "o Bosque das Vozes",
+  "a Ponte Partida",
+  "o Mercado das Lanternas",
+  "as Minas de Vidro",
+  "a Abadia Silenciosa",
+  "o Pântano dos Nomes",
+  "a Torre Afundada",
+  "a Praça da Lua Rubra",
+  "o Deserto de Cinzas",
+  "o Observatório Partido",
+  "a Floresta Petrificada",
+  "a Cidade Submersa",
+  "a Forja dos Juramentos",
+  "o Mar Suspenso",
+  "o Reino do Avesso",
+  "o Cerco da Fenda",
+  "o Coração da Estrela",
+  "a última fronteira"
+];
+
+function chapterLocation(chapter) {
+  return CHAPTER_LOCATIONS[Math.max(0, Math.min(CHAPTER_LOCATIONS.length - 1, Number(chapter) - 1))];
+}
+
+function sceneNarration(chapter, subject, description, isQuest = false) {
+  const place = chapterLocation(chapter);
+  const detail = description || "O silêncio ao redor parece esconder algo que ainda não compreendemos.";
+  if (isQuest) return [
+    `Ao deixar o caminho principal, você percebe sinais recentes de passagem em ${place}.`,
+    `Uma pessoa sem nome espera perto de um marco quebrado, tentando esconder o medo sob uma postura firme.`,
+    `${detail}`,
+    `Ela mostra um objeto ou uma marca que pode explicar parte do mistério, mas não parece disposta a agir sem ajuda.`,
+    `A decisão é sua: aceitar o pedido pode revelar uma pista importante, enquanto partir talvez deixe alguém para trás.`,
+  ].join("\\n");
+  return [
+    `O vento muda de direção em ${place}, trazendo um cheiro de terra molhada e metal antigo.`,
+    `${detail}`,
+    `À frente, ${subject} se move entre as sombras e ocupa a passagem mais segura.`,
+    `O som de seus passos cessa; por um instante, até os ruídos distantes parecem desaparecer.`,
+    `Não há rota livre sem uma escolha: enfrentar a ameaça ou recuar até encontrar outra oportunidade.`,
+  ].join("\\n");
+}
+
 function relativeTime(value) {
   if (!value) return "Ainda não jogado";
   const elapsed = Date.now() - new Date(value).getTime();
@@ -66,28 +112,28 @@ export default function App() {
     const sequence = [
       quests[0] && {
         key: quests[0].id, type: "quest", quest: quests[0],
-        intro: "Durante a travessia de " + quests[0].chapterTitle + ", uma cena chama sua atenção: " + quests[0].title + ". " + quests[0].description,
-        dialogue: "— Não sei se conseguirei resolver isso sozinho — diz a pessoa. — Você vai me ajudar ou seguirá seu caminho?",
+        intro: sceneNarration(chapterData.number, quests[0].title, quests[0].description, true),
+        dialogue: "— Não posso resolver isso sem ajuda — diz a pessoa, mantendo a voz baixa. — Você aceita me ajudar ou prefere seguir viagem?",
       },
       ordinaryEnemies[0] && {
         key: ordinaryEnemies[0].id, type: "enemy", enemy: ordinaryEnemies[0],
-        intro: (ordinaryEnemies[0].description || chapterData.encounterText || "Um ruído interrompe sua caminhada.") + " " + ordinaryEnemies[0].name + " aparece à sua frente e bloqueia o caminho.",
-        dialogue: "A criatura se prepara para atacar. Você precisa decidir se enfrenta o perigo ou recua.",
+        intro: sceneNarration(chapterData.number, ordinaryEnemies[0].name, ordinaryEnemies[0].description || chapterData.encounterText),
+        dialogue: "A criatura inclina o corpo e observa cada movimento seu. Se quiser continuar, terá de decidir como reagir.",
       },
       quests[1] && {
         key: quests[1].id, type: "quest", quest: quests[1],
-        intro: "Mais adiante, um novo acontecimento interrompe a viagem: " + quests[1].title + ". " + quests[1].description,
-        dialogue: "— Cada minuto importa — explica quem pediu ajuda. — Posso contar com você ou devo procurar outra pessoa?",
+        intro: sceneNarration(chapterData.number, quests[1].title, quests[1].description, true),
+        dialogue: "— O tempo está acabando — diz a pessoa, olhando para a trilha atrás de você. — Ainda posso contar com sua ajuda?",
       },
       ordinaryEnemies[1] && {
         key: ordinaryEnemies[1].id, type: "enemy", enemy: ordinaryEnemies[1],
-        intro: (ordinaryEnemies[1].description || chapterData.encounterText || "Uma presença hostil se aproxima.") + " " + ordinaryEnemies[1].name + " surge e fecha a passagem.",
-        dialogue: "O confronto parece inevitável para quem deseja continuar pela trilha. O que você faz?",
+        intro: sceneNarration(chapterData.number, ordinaryEnemies[1].name, ordinaryEnemies[1].description || chapterData.encounterText),
+        dialogue: "A passagem fica bloqueada e a criatura avança um passo. O próximo movimento determinará se você seguirá adiante.",
       },
       boss && {
         key: boss.id, type: "enemy", enemy: boss,
-        intro: "Ao fim do caminho, a verdadeira ameaça deste capítulo se revela: " + boss.name + ". " + (boss.description || chapterData.encounterText || ""),
-        dialogue: "— Você chegou longe demais para voltar agora — declara o inimigo, preparando-se para o confronto decisivo.",
+        intro: sceneNarration(chapterData.number, boss.name, boss.description || chapterData.encounterText),
+        dialogue: "Uma voz grave rompe o silêncio: — Você chegou até aqui. Agora terá de provar que consegue atravessar esta última barreira.",
       },
     ].filter(Boolean);
     return sequence.find((event) => {
@@ -387,7 +433,7 @@ export default function App() {
   const actions = activeSave?.completed ? [] : !storyStarted
     ? [{ id: "continue-intro", label: "Continuar a história", disabled: chapterLoadedForSaveId !== activeSave?.id || !chapterData || storyEntries.length === 0, onClick: () => {
         setStoryStarted(true);
-        setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: chapterData?.encounterText || "Você segue pela trilha, atento ao que pode surgir adiante." }]);
+        setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: [`Você deixa para trás o último abrigo e entra em ${chapterLocation(chapterData.number)}.`, chapterData?.encounterText || "A paisagem guarda sinais de uma ameaça antiga.", "O caminho se estreita e o silêncio torna cada ruído mais próximo.", "Marcas recentes no chão indicam que alguém passou por ali pouco antes de você.", "Você respira fundo e segue, sabendo que a próxima decisão pode mudar o rumo da jornada."].join("\\n") }]);
       } }]
     : currentEvent?.type === "quest"
       ? [
