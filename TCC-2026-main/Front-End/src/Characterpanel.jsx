@@ -164,8 +164,8 @@ export default function CharacterPanel({
           </button>
         </div>
 
-        {/* Vida */}
-        <StatRow label={`Vida ${hp.current}/${hp.max}`}>
+        {/* Corações representam a moral e a perseverança do personagem */}
+        <StatRow label={`Moral ${hp.current}/${hp.max}`}>
           {hp.max <= 10 ? Array.from({ length: hp.max }, (_, i) => <Heart key={i} filled={i < hp.current} />) : <Meter current={hp.current} max={hp.max} kind="hp" />}
         </StatRow>
 
