@@ -17,13 +17,28 @@ const ALLOWED_TYPES = {
   ring: ["accessory"],
 };
 
+
+// Compatibilidade com armaduras antigas salvas no banco com type="armor".
+// O nome identifica o slot correto sem permitir equipar uma peça em qualquer lugar.
+function normalizedEquipmentType(item) {
+  if (item.type !== "armor") return item.type;
+  const name = String(item.name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (/\b(elmo|capacete|helmet)\b/.test(name)) return "helmet";
+  if (/\b(bota|botas|boot|boots)\b/.test(name)) return "boots";
+  if (/\b(calca|calcas|pants)\b/.test(name)) return "pants";
+  if (/\b(escudo|shield)\b/.test(name)) return "shield";
+  if (/\b(peitoral|cota|tunica|manto|armadura|chest|torso)\b/.test(name)) return "chest";
+  return "armor";
+}
+
 function limitFor(slot) {
   return SLOT_LIMITS[slot] ?? 1;
 }
 
-function typeProblem(slot, itemType) {
-  if (ALLOWED_TYPES[slot].includes(itemType)) return null;
-  return `O slot "${slot}" só aceita itens do tipo: ${ALLOWED_TYPES[slot].join(", ")}.`;
+function typeProblem(slot, item) {
+  const itemType = normalizedEquipmentType(item);
+  if (ALLOWED_TYPES[slot]?.includes(itemType)) return null;
+  return `O slot "${slot}" só aceita itens do tipo: ${(ALLOWED_TYPES[slot] ?? []).join(", ")}. Tipo identificado: ${itemType}.`;
 }
 
 
@@ -81,7 +96,7 @@ export async function listEquipment(req, res) {
     .innerJoin(items, eq(equippedItems.itemId, items.id))
     .where(eq(equippedItems.saveId, req.save.id));
 
-  res.json(rows);
+  res.json(rows.map((row) => ({ ...row, type: normalizedEquipmentType(row) })));
 }
 
 // POST /saves/:saveId/equipment — equipa um item num slot
@@ -94,7 +109,7 @@ export async function equipItem(req, res) {
     return res.status(404).json({ error: "Item não encontrado no catálogo." });
   }
 
-  const problem = typeProblem(slot, item.type);
+  const problem = typeProblem(slot, item);
   if (problem) {
     return res.status(400).json({ error: problem });
   }
@@ -145,7 +160,7 @@ export async function swapEquippedItem(req, res) {
     return res.status(404).json({ error: "Item não encontrado no catálogo." });
   }
 
-  const problem = typeProblem(equipped.slot, item.type);
+  const problem = typeProblem(equipped.slot, item);
   if (problem) {
     return res.status(400).json({ error: problem });
   }
