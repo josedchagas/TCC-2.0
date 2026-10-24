@@ -76,6 +76,16 @@ export const ITEMS = [
   { code: "selo_primordial", name: "Selo Primordial", type: "quest", rarity: "lendario", price: 0, description: "Um fragmento essencial para selar a Fenda." },
 ];
 
+// Valores de combate por raridade. Cada item recebe seu valor próprio no catálogo.
+const WEAPON_DAMAGE_BY_RARITY = { comum: 14, incomum: 24, raro: 36, epico: 52, lendario: 75 };
+const ARMOR_HP_BY_RARITY = { comum: 12, incomum: 22, raro: 34, epico: 48, lendario: 65 };
+for (const item of ITEMS) {
+  if (item.type === "weapon") item.damage = item.damage ?? WEAPON_DAMAGE_BY_RARITY[item.rarity] ?? 14;
+  if (["helmet", "chest", "pants", "boots", "shield", "armor"].includes(item.type)) {
+    item.armorHp = item.armorHp ?? ARMOR_HP_BY_RARITY[item.rarity] ?? 12;
+  }
+}
+
 const enemy = (id, name, kind, hp, attack, xp, gold, drops, description = "") => ({
   id, name, kind, hp, attack, xp, gold, drops, description
 });
