@@ -62,6 +62,7 @@ export const ITEMS = [
   { code: "elmo_vigia", name: "Elmo do Vigia", type: "helmet", rarity: "comum", price: 70, description: "Um elmo simples que protege a cabeça.", stats: { resistencia: 2 } },
   { code: "calcas_couro", name: "Calças de Couro", type: "pants", rarity: "comum", price: 65, description: "Calças resistentes para longas jornadas.", stats: { agilidade: 1, resistencia: 1 } },
   { code: "escudo_carvalho", name: "Escudo de Carvalho", type: "shield", rarity: "comum", price: 80, description: "Escudo robusto, feito de madeira antiga.", stats: { resistencia: 3 } },
+  { code: "escudo_lendario", name: "Égide do Último Guardião", type: "shield", rarity: "lendario", price: 1050, description: "Um escudo ancestral envolto por runas luminosas, capaz de resistir a golpes que quebrariam muralhas.", stats: { resistencia: 8, forca: 3 } },
   { code: "anel_vigor", name: "Anel do Vigor", type: "accessory", rarity: "incomum", price: 190, description: "Um anel simples que fortalece o corpo.", stats: { resistencia: 2 } },
   { code: "anel_sabio", name: "Anel do Sábio", type: "accessory", rarity: "raro", price: 330, description: "Amplifica a concentração e o raciocínio.", stats: { inteligencia: 4 } },
 
