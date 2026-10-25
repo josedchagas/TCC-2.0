@@ -183,7 +183,7 @@ export async function resolveEncounter(req, res) {
       const enemyCritRoll = seededRoll("enemy-crit", round);
       const enemyCritical = enemyCritRoll <= enemyCritChance;
       const enemyBaseDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier * enemyDamageMultiplier));
-      const enemyDamage = Math.max(1, Math.floor(enemyBaseDamage * (enemyCritical ? 1.5 : 1)));
+      const enemyDamage = Math.max(1, Math.floor(enemyBaseDamage * (enemyCritical ? 1.25 : 1)));
       playerHp = Math.max(0, playerHp - enemyDamage);
       turn.enemyRoll = enemyRoll;
       turn.enemyMultiplier = Number(enemyMultiplier.toFixed(1));
