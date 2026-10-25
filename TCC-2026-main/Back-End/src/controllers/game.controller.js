@@ -162,6 +162,8 @@ export async function resolveEncounter(req, res) {
   const critByClass = { Guerreiro: 10, Arqueira: 15, Maga: 12, Ladino: 20 };
   const playerCritChance = critByClass[save.classRole] ?? 10;
   const enemyCritChance = enemy.kind === "boss" ? 18 : enemy.kind === "elite" ? 13 : 8;
+  // Ajuste de dificuldade: inimigos comuns pressionam, elites punem erros e chefes são ameaças reais.
+  const enemyDamageMultiplier = enemy.kind === "boss" ? 1.9 : enemy.kind === "elite" ? 1.7 : 1.5;
 
   for (let index = 0; index < 40 && submittedRolls.length > 0 && enemyHp > 0 && playerHp > 0; index += 1) {
     const round = index + 1;
@@ -180,7 +182,7 @@ export async function resolveEncounter(req, res) {
       const enemyMultiplier = enemyRoll / 10;
       const enemyCritRoll = seededRoll("enemy-crit", round);
       const enemyCritical = enemyCritRoll <= enemyCritChance;
-      const enemyBaseDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier));
+      const enemyBaseDamage = Math.max(1, Math.floor(enemy.attack * enemyMultiplier * enemyDamageMultiplier));
       const enemyDamage = Math.max(1, Math.floor(enemyBaseDamage * (enemyCritical ? 1.5 : 1)));
       playerHp = Math.max(0, playerHp - enemyDamage);
       turn.enemyRoll = enemyRoll;
