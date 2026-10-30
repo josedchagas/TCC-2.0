@@ -50,7 +50,7 @@ async function grantItem(saveId, itemDef, quantity = 1) {
     await db.update(inventoryItems).set({ quantity: existing.quantity + quantity }).where(eq(inventoryItems.id, existing.id));
     return { granted: true, item: itemDef.name, quantity };
   }
-  if (current.length >= MAX_INVENTORY_SLOTS) return { granted: false, reason: "inventory_full" };
+  if (current.length >= MAX_INVENTORY_SLOTS && itemDef.type !== "quest") return { granted: false, reason: "inventory_full" };
   await db.insert(inventoryItems).values({ saveId, itemId: dbItem.id, quantity });
   return { granted: true, item: itemDef.name, quantity };
 }
@@ -144,11 +144,35 @@ export async function resolveEncounter(req, res) {
   }
   if (enemy.id === "c20_noite") {
     const sealItem = await getOrCreateDbItem(getItemByCode("selo_primordial"));
-    const [sealStack] = await db.select({ quantity: inventoryItems.quantity }).from(inventoryItems)
+    const [sealStack] = await db.select({ id: inventoryItems.id, quantity: inventoryItems.quantity }).from(inventoryItems)
       .where(and(eq(inventoryItems.saveId, save.id), eq(inventoryItems.itemId, sealItem.id)));
-    const sealCount = sealStack?.quantity ?? 0;
+    let sealCount = sealStack?.quantity ?? 0;
+
+    // Compatibilidade com saves antigos: chefes já derrotados nos marcos da campanha
+    // contam como selos conquistados, mesmo que o drop antigo não tenha sido coletado.
+    const milestoneBosses = ["c10_conselheiro", "c15_mestre", "c19_coracao"];
+    const defeatedMilestones = await db.select({ enemyCode: defeatedEncounters.enemyCode })
+      .from(defeatedEncounters).where(eq(defeatedEncounters.saveId, save.id));
+    const earnedByProgress = milestoneBosses.filter((code) => defeatedMilestones.some((row) => row.enemyCode === code)).length;
+    const missingSeals = Math.max(0, earnedByProgress - sealCount);
+    if (missingSeals > 0) {
+      if (sealStack) {
+        await db.update(inventoryItems).set({ quantity: sealCount + missingSeals }).where(eq(inventoryItems.id, sealStack.id));
+      } else {
+        await db.insert(inventoryItems).values({ saveId: save.id, itemId: sealItem.id, quantity: missingSeals });
+      }
+      sealCount += missingSeals;
+      // Remove drops pendentes desses marcos para não duplicar selos recuperados.
+      for (const bossCode of milestoneBosses) {
+        await db.delete(defeatedEncounters).where(and(
+          eq(defeatedEncounters.saveId, save.id),
+          eq(defeatedEncounters.enemyCode, `pending-drop:${bossCode}:selo_primordial`)
+        ));
+      }
+    }
+
     if (sealCount < 3) {
-      return res.status(409).json({ error: `A proteção da Fenda ainda resiste. Você precisa reunir os três Selos Primordiais (possui ${sealCount}/3).` });
+      return res.status(409).json({ error: `A proteção da Fenda ainda resiste. Você precisa concluir os capítulos 10, 15 e 19 e reunir os três Selos Primordiais (possui ${sealCount}/3).` });
     }
   }
 
