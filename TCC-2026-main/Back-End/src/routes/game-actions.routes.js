@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { buyItem, resolveEncounter, resolveBattleDrop, useItem, listDefeatedEncounters, listSideQuests, resolveSideQuest } from "../controllers/game.controller.js";
+import { buyItem, resolveEncounter, resolveBattleDrop, useItem, listDefeatedEncounters, listSideQuests, resolveSideQuest, openRuinsPassage } from "../controllers/game.controller.js";
 import { buyItemSchema } from "../controllers/game.schemas.js";
 import { validate } from "../middlewares/validate.js";
 import { asyncHandler } from "../middlewares/errorHandler.js";
 const router = Router({ mergeParams: true });
 router.get("/encounters/defeated", asyncHandler(listDefeatedEncounters));
+router.post("/story-events/ruins-passage", asyncHandler(openRuinsPassage));
 router.get("/side-quests", asyncHandler(listSideQuests));
 router.post("/side-quests/:questId/resolve", asyncHandler(resolveSideQuest));
 router.post("/shop/purchase", validate(buyItemSchema), asyncHandler(buyItem));
