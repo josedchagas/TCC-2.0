@@ -380,7 +380,7 @@ export default function App() {
       if (event.type === "enemy") return !defeatedEnemies.includes(event.enemy.id);
       return false;
     }) ?? null;
-  }, [activeSave, chapterData, chapterLoadedForSaveId, storyStarted, visitedShopChapters, sideQuests, defeatedEnemies]);
+  }, [activeSave, chapterData, chapterLoadedForSaveId, storyStarted, visitedShopChapters, sideQuests, defeatedEnemies, inventory]);
 
   const refreshSaves = useCallback(async () => {
     const rows = await apiFetch("/saves");
