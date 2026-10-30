@@ -330,6 +330,15 @@ export default function App() {
         dialogue: "— Tenho provisões para quem ainda pretende seguir viagem — diz a comerciante. — Quer olhar meus produtos ou prefere continuar?",
       };
     }
+    const ruinsKey = inventory.find((item) => item.type === "quest" && item.name === "Chave das Ruínas");
+    if (ruinsKey && !defeatedEnemies.includes("story:ruins_passage_opened")) {
+      return {
+        key: "story:ruins-passage",
+        type: "story",
+        intro: "A Chave das Ruínas vibra perto de uma parede coberta por raízes. Atrás da pedra, você percebe o contorno de uma fechadura antiga. Maelis havia mencionado passagens construídas antes da fundação de Valedouro.",
+        dialogue: "A chave parece encaixar perfeitamente. A passagem pode guardar suprimentos esquecidos — mas, ao girá-la, você não poderá voltar a trancá-la.",
+      };
+    }
     const quests = [...sideQuests].sort((a, b) => a.id.localeCompare(b.id));
     const enemies = chapterData.enemies ?? [];
     const ordinaryEnemies = enemies.filter((enemy) => enemy.kind !== "boss");
@@ -714,6 +723,23 @@ export default function App() {
     } catch (error) { setNotice(error.message); }
   };
 
+  const openStoryEvent = async (eventKey) => {
+    if (!activeSave || eventKey !== "ruins-passage" || questBusy) return;
+    setQuestBusy(true);
+    try {
+      const result = await apiFetch(`/saves/${activeSave.id}/story-events/ruins-passage`, { method: "POST", body: JSON.stringify({}) });
+      if (result.save) updateSaveInLists(result.save);
+      setStoryEntries((entries) => [...entries, { id: "ruins-passage-" + Date.now(), type: "outcome", text: result.message }]);
+      await refreshGameData(result.save ?? activeSave);
+      if (result.save) await refreshSaves();
+      setNotice("");
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setQuestBusy(false);
+    }
+  };
+
   const resolveQuest = async (quest, action) => {
     if (!activeSave || questBusy) return;
     setQuestBusy(true);
@@ -785,7 +811,12 @@ export default function App() {
         setStoryStarted(true);
         setStoryEntries((entries) => [...entries, { id: "chapter-" + activeSave.chapterCurrent + "-path-" + Date.now(), type: "narration", text: [`Você deixa para trás o último abrigo e segue até ${chapterLocation(chapterData.number)}.`, chapterData?.encounterText || "A paisagem guarda sinais de uma ameaça antiga.", "Maelis marcou a rota no mapa com tinta azul, mas algumas linhas mudam de lugar sempre que a névoa se adensa.", "Entre as pedras, você encontra pegadas recentes e um pedaço de tecido preso a um galho; alguém passou por ali tentando fugir sem ser visto.", "O vento traz um som distante, quase uma voz chamando debaixo da terra, e a fita do sino vibra contra seu equipamento.", "Você segue em frente, decidido a descobrir quem está chamando os desaparecidos e por que a trilha parece reconhecer seus passos."].join("\n") }]);
       } }]
-    : currentEvent?.type === "quest"
+    : currentEvent?.type === "story"
+      ? [
+          { id: currentEvent.key + "-open", label: "Usar a Chave das Ruínas", disabled: questBusy, onClick: () => openStoryEvent("ruins-passage") },
+          { id: currentEvent.key + "-leave", label: "Deixar a passagem para depois", onClick: () => setNotice("A passagem continua aguardando a Chave das Ruínas.") },
+        ]
+      : currentEvent?.type === "quest"
       ? [
           { id: currentEvent.key + "-accept", label: "Aceitar missão", disabled: questBusy, onClick: () => resolveQuest(currentEvent.quest, "accept") },
           { id: currentEvent.key + "-decline", label: "Fugir e seguir caminho", disabled: questBusy, onClick: () => resolveQuest(currentEvent.quest, "decline") },
