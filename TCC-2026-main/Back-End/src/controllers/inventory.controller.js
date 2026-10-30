@@ -122,15 +122,21 @@ export async function removeFromInventory(req, res) {
     return res.status(400).json({ error: "ID inválido." });
   }
 
-  const [removed] = await db
-    .delete(inventoryItems)
-    .where(and(eq(inventoryItems.id, id), eq(inventoryItems.saveId, req.save.id)))
-    .returning();
+  const [row] = await db
+    .select({ inventoryId: inventoryItems.id, type: items.type, name: items.name })
+    .from(inventoryItems)
+    .innerJoin(items, eq(inventoryItems.itemId, items.id))
+    .where(and(eq(inventoryItems.id, id), eq(inventoryItems.saveId, req.save.id)));
 
-  if (!removed) {
+  if (!row) {
     return res.status(404).json({ error: "Item não encontrado no inventário." });
   }
+  if (row.type === "quest") {
+    return res.status(409).json({ error: `${row.name} é um item de história e não pode ser descartado.` });
+  }
 
+  await db.delete(inventoryItems)
+    .where(and(eq(inventoryItems.id, row.inventoryId), eq(inventoryItems.saveId, req.save.id)));
   res.status(204).send();
 }
 // POST /saves/:saveId/inventory/:id/sell — vende a quantidade escolhida de uma pilha.
