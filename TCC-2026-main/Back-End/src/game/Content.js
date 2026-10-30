@@ -73,8 +73,8 @@ export const ITEMS = [
   { code: "presa_sombria", name: "Presa Sombria", type: "material", rarity: "comum", price: 18, description: "Presa de uma criatura corrompida." },
   { code: "escama_draconica", name: "Escama Dracônica", type: "material", rarity: "raro", price: 95, description: "Escama resistente, valorizada por ferreiros." },
   { code: "flor_lua", name: "Flor-da-Lua", type: "material", rarity: "comum", price: 12, description: "Planta luminosa usada em poções." },
-  { code: "chave_ruinas", name: "Chave das Ruínas", type: "quest", rarity: "raro", price: 0, description: "Uma chave antiga ligada aos segredos da campanha." },
-  { code: "selo_primordial", name: "Selo Primordial", type: "quest", rarity: "lendario", price: 0, description: "Um fragmento essencial para selar a Fenda." },
+  { code: "chave_ruinas", name: "Chave das Ruínas", type: "quest", rarity: "raro", price: 0, description: "Abre a passagem esquecida sob as ruínas, revelando um esconderijo antigo." },
+  { code: "selo_primordial", name: "Selo Primordial", type: "quest", rarity: "lendario", price: 0, description: "Um dos três selos necessários para romper a proteção da Fenda e alcançar seu núcleo." },
 ];
 
 // Valores de combate por raridade. Cada item recebe seu valor próprio no catálogo.
@@ -190,7 +190,7 @@ const chaptersRaw = [
   ["A Última Aurora", "O reino prende a respiração enquanto os três selos se encaixam e o sino de Valedouro toca através de montanhas, pântanos e cidades esquecidas.\nA corrupção reúne tudo o que roubou das pessoas desaparecidas e assume uma forma que muda a cada lembrança recuperada.\nDiante da estrela, as vozes dos sobreviventes ecoam como se estivessem ao seu lado, embora você esteja sozinho no centro da luz.\nHá mais de uma maneira de encerrar a Fenda, e nenhuma delas promete salvar tudo sem perdas.\nQuando a aurora surgir, o mundo será diferente; cabe a você escolher o que merece atravessar para o outro lado.", "A corrupção final toma forma para impedir sua decisão.", "Enfrente a manifestação final e determine o futuro de Valedouro.", [
     enemy("c20_guardiao", "Último Guardião", "normal", 520, 70, 245, 180, [{item:"escama_draconica",chance:0.6}]),
     enemy("c20_devorador", "Devorador de Auroras", "elite", 680, 80, 340, 250, [{item:"espada_aurora",chance:0.16}]),
-    enemy("c20_noite", "A Noite Sem Fim", "boss", 1350, 110, 1200, 1000, [{item:"espada_aurora",chance:0.35},{item:"escudo_lendario",chance:0.35},{item:"selo_primordial",chance:1}], "A forma final da corrupção, nascida do medo de perder o mundo.")
+    enemy("c20_noite", "A Noite Sem Fim", "boss", 1350, 110, 1200, 1000, [{item:"espada_aurora",chance:0.35},{item:"escudo_lendario",chance:0.35}], "A forma final da corrupção, nascida do medo de perder o mundo.")
   ]],
 ];
 
