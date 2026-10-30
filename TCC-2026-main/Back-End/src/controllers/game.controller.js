@@ -90,6 +90,43 @@ export async function buyItem(req, res) {
   res.json({ message: `Comprou ${quantity}x ${itemDef.name}.`, item: itemDef, save: updatedSave });
 }
 
+export async function openRuinsPassage(req, res) {
+  const save = req.save;
+  if (save.completed || save.hpCurrent <= 0 || save.energyCurrent <= 0) {
+    return res.status(409).json({ error: "Este save não pode realizar esta ação." });
+  }
+  const flag = "story:ruins_passage_opened";
+  const [alreadyOpened] = await db.select().from(defeatedEncounters)
+    .where(and(eq(defeatedEncounters.saveId, save.id), eq(defeatedEncounters.enemyCode, flag)));
+  if (alreadyOpened) return res.status(409).json({ error: "A passagem das ruínas já foi explorada neste save." });
+
+  const keyItem = await getOrCreateDbItem(getItemByCode("chave_ruinas"));
+  const [keyStack] = await db.select().from(inventoryItems)
+    .where(and(eq(inventoryItems.saveId, save.id), eq(inventoryItems.itemId, keyItem.id)));
+  if (!keyStack || keyStack.quantity < 1) {
+    return res.status(409).json({ error: "Você precisa da Chave das Ruínas para abrir esta passagem." });
+  }
+
+  const [registered] = await db.insert(defeatedEncounters).values({ saveId: save.id, enemyCode: flag })
+    .onConflictDoNothing().returning();
+  if (!registered) return res.status(409).json({ error: "A passagem já foi explorada." });
+
+  // A chave é consumida uma única vez; o prêmio principal é concedido mesmo com inventário cheio.
+  if (keyStack.quantity === 1) await db.delete(inventoryItems).where(eq(inventoryItems.id, keyStack.id));
+  else await db.update(inventoryItems).set({ quantity: keyStack.quantity - 1 }).where(eq(inventoryItems.id, keyStack.id));
+  const [updatedSave] = await db.update(saves)
+    .set({ money: sql`${saves.money} + 180`, updatedAt: new Date(), lastPlayedAt: new Date() })
+    .where(eq(saves.id, save.id)).returning();
+  const bonus = await grantItem(save.id, getItemByCode("cristal_arcano"), 1);
+  return res.json({
+    opened: true,
+    message: bonus.granted
+      ? "A Chave das Ruínas gira na fechadura ancestral. Você encontra 180 moedas e um Cristal Arcano no esconderijo."
+      : "A Chave das Ruínas gira na fechadura ancestral. Você encontra 180 moedas; o esconderijo também continha um Cristal Arcano, mas seu inventário está cheio.",
+    save: updatedSave,
+  });
+}
+
 export async function resolveEncounter(req, res) {
   const save = req.save;
   const enemy = getEnemyById(req.params.enemyId);
@@ -105,6 +142,16 @@ export async function resolveEncounter(req, res) {
       message: "DERROTA PERMANENTE: a vida ou o vigor chegou a zero. Este save foi encerrado."
     });
   }
+  if (enemy.id === "c20_noite") {
+    const sealItem = await getOrCreateDbItem(getItemByCode("selo_primordial"));
+    const [sealStack] = await db.select({ quantity: inventoryItems.quantity }).from(inventoryItems)
+      .where(and(eq(inventoryItems.saveId, save.id), eq(inventoryItems.itemId, sealItem.id)));
+    const sealCount = sealStack?.quantity ?? 0;
+    if (sealCount < 3) {
+      return res.status(409).json({ error: `A proteção da Fenda ainda resiste. Você precisa reunir os três Selos Primordiais (possui ${sealCount}/3).` });
+    }
+  }
+
   if (enemy.kind === "boss") {
     const chapter = CHAPTERS.find((candidate) => candidate.number === enemy.chapter);
     const requiredEnemies = chapter.enemies.filter((candidate) => candidate.kind !== "boss").map((candidate) => candidate.id);
