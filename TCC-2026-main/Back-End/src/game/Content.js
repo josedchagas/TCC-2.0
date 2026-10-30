@@ -252,49 +252,58 @@ export const CHAPTERS = chaptersRaw.map((row, index) => ({
   enemies: row[4],
 }));
 
-export const SHOPS = {
-  5: {
-    name: "Mercado das Lanternas",
-    greeting: "Nara abre seu baú de mercadorias: 'A estrada cobra caro de quem viaja despreparado.'",
-    itemCodes: ["pocao_vida", "pocao_grande", "tonico_energia", "espada_aventureiro", "arco_freixo", "cajado_cobre", "tunica_couro", "escudo_carvalho", "anel_vigor"]
-  },
-  10: {
-    name: "Bazar da Lua Rubra",
-    greeting: "Nara voltou com artefatos raros. 'A partir daqui, cada passo pode ser o último.'",
-    itemCodes: ["pocao_vida", "pocao_grande", "tonico_energia", "elixir_total", "adaga_lua", "cota_batedor", "manto_arcanista", "botas_cacador", "anel_sabio"]
-  },
-  15: {
-    name: "Forja dos Juramentos",
-    greeting: "O ferreiro oferece armas e armaduras feitas com materiais das regiões corrompidas.",
-    itemCodes: ["pocao_grande", "elixir_total", "lamina_rubi", "armadura_guardiao", "anel_sabio", "botas_cacador", "escudo_carvalho"]
-  },
-  20: {
-    name: "Último Refúgio",
-    greeting: "Antes do confronto final, os aliados dividem seus últimos suprimentos com você.",
-    itemCodes: ["pocao_grande", "elixir_total", "espada_aurora", "escudo_lendario", "armadura_guardiao", "anel_sabio", "manto_arcanista"]
-  },
+// O estoque é cumulativo: cada marco da campanha libera uma nova faixa de raridade.
+const SHOP_STOCK = {
+  early: [
+    "pocao_vida", "tonico_energia", "presa_sombria", "flor_lua",
+    "espada_aventureiro", "arco_freixo", "cajado_cobre", "adaga_lua",
+    "tunica_couro", "elmo_vigia", "calcas_couro", "escudo_carvalho", "anel_vigor",
+  ],
+  uncommon: [
+    "pocao_grande", "cristal_arcano", "arqueira_arco_tempestade",
+    "guerreiro_martelo_batalha", "maga_orbe_estelar", "ladino_laminas_gemeas",
+    "cota_batedor", "manto_arcanista", "botas_cacador",
+    "arqueira_trilha_elmo", "arqueira_trilha_peitoral", "arqueira_trilha_calcas", "arqueira_trilha_botas",
+    "guerreiro_bastiao_elmo", "guerreiro_bastiao_peitoral", "guerreiro_bastiao_calcas", "guerreiro_bastiao_botas",
+    "maga_astrolabio_elmo", "maga_astrolabio_peitoral", "maga_astrolabio_calcas", "maga_astrolabio_botas",
+    "ladino_sombra_elmo", "ladino_sombra_peitoral", "ladino_sombra_calcas", "ladino_sombra_botas",
+  ],
+  rare: [
+    "elixir_total", "escama_draconica", "anel_sabio",
+    "arqueira_arco_raiz_antiga", "lamina_rubi", "maga_cajado_cristal", "ladino_faca_silencio",
+    "armadura_guardiao",
+  ],
+  epic: [
+    "arqueira_falcao_elmo", "arqueira_falcao_peitoral", "arqueira_falcao_calcas", "arqueira_falcao_botas",
+    "guerreiro_colosso_elmo", "guerreiro_colosso_peitoral", "guerreiro_colosso_calcas", "guerreiro_colosso_botas",
+    "maga_cometa_elmo", "maga_cometa_peitoral", "maga_cometa_calcas", "maga_cometa_botas",
+    "ladino_espectro_elmo", "ladino_espectro_peitoral", "ladino_espectro_calcas", "ladino_espectro_botas",
+  ],
+  legendary: [
+    "arqueira_arco_fenix", "espada_aurora", "maga_cetro_cosmico", "ladino_adaga_vazio",
+    "escudo_lendario",
+  ],
 };
 
-// Haverá uma loja no início de cada capítulo, exceto no primeiro.
-// Os estoques evoluem conforme a progressão; os capítulos 5, 10, 15 e 20
-// mantêm suas lojas especiais definidas acima.
-const earlyShopItems = ["pocao_vida", "tonico_energia", "espada_aventureiro", "arco_freixo", "cajado_cobre", "tunica_couro", "escudo_carvalho"];
+const shopMilestones = [
+  { chapter: 5, name: "Mercado das Lanternas", greeting: "Nara abre seu baú de mercadorias: 'A estrada cobra caro de quem viaja despreparado.'", tiers: ["early", "uncommon"] },
+  { chapter: 10, name: "Bazar da Lua Rubra", greeting: "Nara voltou com artefatos raros. 'A partir daqui, cada passo pode ser o último.'", tiers: ["early", "uncommon", "rare"] },
+  { chapter: 15, name: "Forja dos Juramentos", greeting: "O ferreiro oferece equipamentos raros e peças épicas feitas com materiais das regiões corrompidas.", tiers: ["early", "uncommon", "rare", "epic"] },
+  { chapter: 20, name: "Último Refúgio", greeting: "Antes do confronto final, os aliados oferecem o arsenal mais poderoso que conseguiram reunir.", tiers: ["early", "uncommon", "rare", "epic", "legendary"] },
+];
+
+export const SHOPS = {};
 for (const chapter of CHAPTERS) {
-  if (chapter.number === 1 || SHOPS[chapter.number]) continue;
-  const stock = chapter.number < 5
-    ? earlyShopItems
-    : chapter.number < 10
-      ? SHOPS[5].itemCodes
-      : chapter.number < 15
-        ? SHOPS[10].itemCodes
-        : SHOPS[15].itemCodes;
+  if (chapter.number === 1) continue;
+  const milestone = [...shopMilestones].reverse().find((entry) => chapter.number >= entry.chapter);
+  const tiers = milestone?.tiers ?? ["early"];
+  const itemCodes = [...new Set(tiers.flatMap((tier) => SHOP_STOCK[tier]))];
   SHOPS[chapter.number] = {
-    name: "Mercador itinerante",
-    greeting: "O comerciante organiza seus suprimentos antes de você seguir viagem.",
-    itemCodes: [...stock],
+    name: milestone?.name ?? "Mercador itinerante",
+    greeting: milestone?.greeting ?? "O comerciante organiza suprimentos básicos antes de você seguir viagem.",
+    itemCodes,
   };
 }
-
 export function getItemByCode(code) {
   return ITEMS.find((item) => item.code === code);
 }
