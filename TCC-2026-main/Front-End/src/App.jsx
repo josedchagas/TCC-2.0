@@ -6,7 +6,7 @@ import StoryPanel from "./Storypanel";
 import GameMenu from "./GameMenu";
 import ShopModal from "./ShopModal";
 import { apiFetch, ensureGuestSession } from "./api";
-import { getItemImage } from "./itemImages";
+import { getItemImage, getCharacterImage } from "./itemImages";
 const ENEMY_IMAGE_FILES = import.meta.glob("../imagens/*.png", {
   eager: true,
   import: "default",
@@ -251,6 +251,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   const multiplier = roll ? (roll / 10).toFixed(1) : null;
   const playerClass = battle.classRole || "Aventureiro";
   const playerVisual = ({ Guerreiro: "🛡️", Arqueira: "🏹", Maga: "🪄", Ladino: "🗡️" })[playerClass] || "🧙";
+  const playerImage = getCharacterImage(playerClass);
   const enemyVisual = battle.enemy.kind === "boss" ? "👹" : battle.enemy.kind === "elite" ? "👺" : "🐺";
   const enemyImage = ENEMY_IMAGES[normalizeEnemyName(battle.enemy.name)];
   const drops = result?.drops || [];
@@ -276,7 +277,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
 
         <div className={`battle-modal__arena ${animationAction ? `${animationAction}-attacking` : ""}`}>
           <article className="battle-modal__character-card battle-modal__character-card--player">
-            <div className="battle-modal__avatar" aria-hidden="true">{playerVisual}</div>
+            <div className={`battle-modal__avatar ${playerImage ? "battle-modal__avatar--image" : ""}`}>{playerImage ? <img src={playerImage} alt={battle.characterName || playerClass} /> : <span aria-hidden="true">{playerVisual}</span>}</div>
             <strong>{battle.characterName || "Aventureiro"}</strong>
             <span>{playerClass}</span>
           </article>
@@ -889,6 +890,7 @@ export default function App() {
       {notice && <p role="status" className="app-notice">{notice}</p>}
       <div className="app-stage">
         <CharacterPanel
+          avatarUrl={getCharacterImage(activeSave?.classRole)}
           xp={{ current: activeSave?.xpCurrent ?? 0, max: activeSave?.xpMax ?? 100 }}
           hp={{ current: Math.min(5, activeSave?.hpCurrent ?? 0), max: 5 }}
           energy={{ current: Math.min(5, activeSave?.energyCurrent ?? 0), max: 5 }}
