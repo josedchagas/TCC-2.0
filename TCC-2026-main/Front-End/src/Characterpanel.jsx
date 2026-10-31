@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./CharacterPanel.css";
+import { getItemImage } from "./itemImages";
 
 /**
  * Painel lateral do personagem.
@@ -253,7 +254,7 @@ function StatRow({ label, children }) {
 
 function Slot({ item, placeholderLabel, onItemClick, isEquipped = false }) {
   const contents = <>
-    {item?.icon ? <img src={item.icon} alt={item.name ?? item.id} className="slot__icon" /> : item && <span className="slot__fallback">{(item.name ?? item.id ?? "?").slice(0, 2).toUpperCase()}</span>}
+    {item && getItemImage(item) ? <img src={getItemImage(item)} alt={item.name ?? item.id} className="slot__icon" /> : item && <span className="slot__fallback" aria-label={item.name ?? "Item"}>◆</span>}
     {item?.qty > 1 && <span className="slot__qty">{item.qty}</span>}
     {!item && placeholderLabel && <span className="slot__placeholder">{placeholderLabel === "helmet" && "elmo"}{placeholderLabel === "weapon" && "arma"}{placeholderLabel === "chest" && "peito"}{placeholderLabel === "pants" && "calça"}{placeholderLabel === "shield" && "escudo"}{placeholderLabel === "boots" && "botas"}{placeholderLabel === "ring" && "anel"}</span>}
   </>;
@@ -278,7 +279,7 @@ function ItemDetailsModal({ item, equipped, onClose, onEquip, onUnequip, onUse }
         <button type="button" className="item-modal__close" onClick={onClose} aria-label="Fechar detalhes">×</button>
         <div className="item-modal__header">
           <div className="item-modal__icon">
-            {item.icon ? <img src={item.icon} alt="" /> : <span>{(item.name || "?").slice(0, 2).toUpperCase()}</span>}
+            {getItemImage(item) ? <img src={getItemImage(item)} alt={item.name || "Item"} /> : <span aria-label={item.name || "Item"}>◆</span>}
           </div>
           <div>
             <p className={`item-modal__rarity item-modal__rarity--${rarity.toLowerCase()}`}>{rarity}</p>
