@@ -148,7 +148,7 @@ function EndingScreen({ type, characterName, onReturnToMenu }) {
     <main className={`ending-screen ${victory ? "ending-screen--victory" : "ending-screen--defeat"}`}>
       <div className="ending-screen__stars" aria-hidden="true" />
       <section className="ending-screen__content">
-        <p className="ending-screen__eyebrow">{victory ? "A LENDA DE VALedouro" : "O FIM DE UMA ERA"}</p>
+        <p className="ending-screen__eyebrow">{victory ? "A LENDA DE VALEDOURO" : "O FIM DE UMA ERA"}</p>
         <div className="ending-screen__emblem" aria-hidden="true">{victory ? "✦" : "☠"}</div>
         <h1>{victory ? "O mundo foi salvo" : "A escuridão venceu"}</h1>
         <h2>{victory ? "Um novo herói para uma nova era" : "Os monstros agora governam"}</h2>
