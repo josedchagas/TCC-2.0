@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./CharacterSelect.css";
+import { getCharacterImage } from "./itemImages";
 
 // Dados de exemplo só pra visualização — troque pelos personagens reais depois.
 const EXAMPLE_CHARACTERS = [
@@ -88,7 +89,7 @@ export default function CharacterSelect({
                 onBlur={() => setHoveredId(null)}
                 onClick={() => setSelectedId(c.id)}
               >
-                <span className="char-select__avatar-circle">{c.name.charAt(0)}</span>
+                <span className="char-select__avatar-circle">{getCharacterImage(c.role) ? <img src={getCharacterImage(c.role)} alt={c.name} /> : c.name.charAt(0)}</span>
                 <span className="char-select__avatar-name">{c.name}</span>
               </button>
             ))}
@@ -98,7 +99,7 @@ export default function CharacterSelect({
             {shown ? (
               <>
                 <div className="char-select__sheet-header">
-                  <span className="char-select__sheet-avatar">{shown.name.charAt(0)}</span>
+                  <span className="char-select__sheet-avatar">{getCharacterImage(shown.role) ? <img src={getCharacterImage(shown.role)} alt={shown.name} /> : shown.name.charAt(0)}</span>
                   <div>
                     <p className="char-select__sheet-name">{shown.name}</p>
                     <p className="char-select__sheet-role">{shown.role}</p>
