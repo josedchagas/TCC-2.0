@@ -1,4 +1,4 @@
-import "./StatusModal.css";
+import "./Statusmodal.css";
 
 const STAT_LABELS = {
   forca: "Força",
