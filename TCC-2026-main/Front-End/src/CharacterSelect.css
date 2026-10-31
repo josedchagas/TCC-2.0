@@ -104,3 +104,16 @@
 .char-select__confirm-btn {
   @apply font-[Cinzel,serif] tracking-wide px-8 py-2 rounded-md text-sm border-2 border-[#e8c25a] bg-gradient-to-b from-[#c9a44c] to-[#8a6a2e] text-[#241a10] cursor-pointer transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100;
 }
+
+.char-select__avatar-circle,
+.char-select__sheet-avatar {
+  overflow: hidden;
+}
+
+.char-select__avatar-circle img,
+.char-select__sheet-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
