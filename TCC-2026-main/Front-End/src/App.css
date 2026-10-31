@@ -344,3 +344,341 @@
     padding: .7rem 1rem;
   }
 }
+
+
+/* Ajustes gerais para tablets e celulares. */
+@media (max-width: 768px) {
+  .app-shell {
+    min-height: 100svh;
+    height: auto;
+    overflow: visible;
+  }
+
+  .app-stage {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    min-height: 100svh;
+  }
+
+  .char-panel {
+    width: 100%;
+    height: auto;
+    max-height: 38svh;
+    flex: 0 0 auto;
+    border-right: 0;
+    border-bottom: 2px solid #6b4f30;
+  }
+
+  .char-panel__scroll {
+    height: auto;
+    max-height: 38svh;
+    padding: 1rem;
+    gap: .85rem;
+    overflow-y: auto;
+  }
+
+  .char-panel__money {
+    margin-top: .25rem;
+  }
+
+  .story-panel {
+    width: 100%;
+    min-width: 0;
+    min-height: 62svh;
+    height: auto;
+    flex: 1 0 auto;
+    padding: 1rem;
+    gap: .75rem;
+  }
+
+  .story-panel__header {
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: .65rem .75rem;
+  }
+
+  .story-panel__chapter {
+    min-width: 0;
+    font-size: .75rem;
+    line-height: 1.4;
+  }
+
+  .story-panel__progress {
+    width: min(100%, 10rem);
+  }
+
+  .story-panel__text {
+    min-height: 32svh;
+    padding: 1rem;
+    gap: .85rem;
+    overflow-wrap: anywhere;
+  }
+
+  .story-panel__actions {
+    padding: .85rem;
+    gap: .6rem;
+  }
+
+  .story-panel__action-btn {
+    min-height: 42px;
+    flex: 1 1 140px;
+    padding: .65rem .8rem;
+  }
+
+  .game-menu-btn {
+    top: .65rem;
+    left: .65rem;
+  }
+
+  .battle-modal__backdrop,
+  .shop-overlay,
+  .char-select-overlay,
+  .save-slots-overlay,
+  .status-modal-overlay,
+  .game-menu-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: .65rem;
+    overflow-y: auto;
+  }
+
+  .battle-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 94svh;
+    padding: .85rem;
+    overflow-y: auto;
+  }
+
+  .battle-modal__header {
+    gap: .5rem;
+  }
+
+  .battle-modal__header h2 {
+    font-size: 1.15rem;
+    line-height: 1.25;
+  }
+
+  .battle-modal__character-card {
+    min-width: 0;
+    min-height: 7rem;
+    padding: .6rem;
+  }
+
+  .battle-modal__avatar--image {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .battle-modal__drops {
+    padding: .75rem;
+  }
+
+  .shop-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 94svh;
+    overflow-y: auto;
+  }
+
+  .shop-header,
+  .shop-wallet,
+  .shop-greeting {
+    padding-left: .85rem;
+    padding-right: .85rem;
+  }
+
+  .shop-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .shop-items,
+  .shop-sell-layout {
+    max-height: none;
+    min-height: 0;
+    padding: .75rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shop-tabs {
+    gap: .35rem;
+    padding-left: .65rem;
+    padding-right: .65rem;
+    overflow-x: auto;
+  }
+
+  .shop-tab {
+    flex: 0 0 auto;
+    padding: .55rem .7rem;
+    font-size: .75rem;
+  }
+
+  .char-select {
+    width: 100%;
+    max-width: 100%;
+    max-height: 94svh;
+    padding: .9rem;
+    overflow-y: auto;
+  }
+
+  .char-select__body {
+    flex-direction: column;
+    gap: .85rem;
+  }
+
+  .char-select__avatars {
+    flex-direction: row;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: .25rem;
+  }
+
+  .char-select__avatar-btn {
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: .3rem;
+    min-width: 4.5rem;
+    text-align: center;
+  }
+
+  .char-select__avatar-name {
+    font-size: .7rem;
+  }
+
+  .char-select__sheet {
+    width: 100%;
+    padding: .85rem;
+  }
+
+  .char-select__actions {
+    position: sticky;
+    bottom: 0;
+    padding-top: .65rem;
+    background: #2c2015;
+  }
+
+  .char-select__confirm-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .save-slots {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90svh;
+    padding: .9rem;
+  }
+
+  .save-slots__grid {
+    max-height: 55svh;
+  }
+
+  .status-modal {
+    width: min(100%, 24rem);
+    max-height: 90svh;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+
+  .game-menu {
+    width: min(100% - 1.5rem, 24rem);
+    max-height: 90svh;
+    overflow-y: auto;
+  }
+
+  .ending-screen {
+    min-height: 100svh;
+    padding: 1rem .75rem 5rem;
+    background-attachment: scroll;
+  }
+
+  .ending-screen__content {
+    padding: 1.25rem 1rem;
+  }
+
+  .ending-screen__content h1 {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  }
+
+  .ending-screen__controls {
+    position: fixed;
+    right: .65rem;
+    bottom: max(.65rem, env(safe-area-inset-bottom));
+    left: .65rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .ending-screen__toggle-button,
+  .ending-screen__controls .ending-screen__menu-button {
+    min-height: 44px;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .story-panel {
+    padding: .7rem;
+  }
+
+  .story-panel__text {
+    padding: .8rem;
+    font-size: .9rem;
+  }
+
+  .story-panel__actions {
+    padding: .65rem;
+  }
+
+  .battle-modal__arena {
+    gap: .45rem;
+  }
+
+  .battle-modal__character-card strong {
+    font-size: .75rem;
+  }
+
+  .battle-modal__character-card span {
+    font-size: .65rem;
+  }
+
+  .battle-modal__final-roll {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+
+  .battle-modal__drop {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    gap: .5rem;
+  }
+
+  .battle-modal__drop-image {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .battle-modal__drop-actions {
+    grid-column: 2;
+    flex-wrap: wrap;
+  }
+
+  .shop-item {
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    gap: .6rem;
+  }
+
+  .shop-item__image {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+
+  .save-slot__index {
+    width: 2rem;
+  }
+
+  .save-slot__character {
+    width: 4rem;
+  }
+}
