@@ -213,3 +213,55 @@
   .battle-modal__arena.player-attacking .battle-modal__character-card,
   .battle-modal__arena.enemy-attacking .battle-modal__character-card { animation: none; }
 }
+
+
+/* Telas de encerramento da campanha. */
+.ending-screen {
+  @apply relative flex min-h-screen w-full items-center justify-center overflow-hidden px-5 py-10 text-center;
+  color: #f4e8d0;
+  background: radial-gradient(ellipse at 50% 12%, #3e3421 0%, #17130f 48%, #090807 100%);
+}
+.ending-screen--victory { background: radial-gradient(ellipse at 50% 12%, #5b5128 0%, #1d2418 48%, #090b09 100%); }
+.ending-screen--defeat { background: radial-gradient(ellipse at 50% 12%, #55231f 0%, #251211 48%, #080707 100%); }
+.ending-screen__stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .28;
+  background-image: radial-gradient(#f2d98d 1px, transparent 1.5px), radial-gradient(#d7c59c 1px, transparent 1.5px);
+  background-size: 83px 83px, 127px 127px;
+  background-position: 0 0, 39px 51px;
+  mask-image: linear-gradient(to bottom, black, transparent 90%);
+}
+.ending-screen__content {
+  @apply relative z-10 w-full max-w-3xl rounded-2xl border px-6 py-9 shadow-2xl sm:px-12 sm:py-12;
+  border-color: rgb(205 174 104 / 55%);
+  background: rgb(16 13 10 / 88%);
+  box-shadow: 0 20px 80px rgb(0 0 0 / 45%), inset 0 0 35px rgb(190 154 83 / 7%);
+}
+.ending-screen--defeat .ending-screen__content { border-color: rgb(167 79 65 / 65%); }
+.ending-screen__eyebrow { @apply text-[10px] font-bold tracking-[.35em] text-[#d9bd73] sm:text-xs; }
+.ending-screen--defeat .ending-screen__eyebrow { @apply text-[#d58a7e]; }
+.ending-screen__emblem {
+  @apply mx-auto my-5 flex h-16 w-16 items-center justify-center rounded-full border text-3xl;
+  color: #f0d58b;
+  border-color: #b8923f;
+  background: radial-gradient(circle, #574326, #21170f);
+  box-shadow: 0 0 35px rgb(218 184 95 / 18%);
+}
+.ending-screen--defeat .ending-screen__emblem { color: #e3a095; border-color: #9c5146; background: radial-gradient(circle, #572622, #21100f); }
+.ending-screen__content h1 { @apply text-3xl font-bold leading-tight text-[#f5e7c6] sm:text-5xl; font-family: Spectral, Georgia, serif; }
+.ending-screen__content h2 { @apply mt-3 text-base font-semibold text-[#d9bd73] sm:text-xl; }
+.ending-screen--defeat .ending-screen__content h2 { @apply text-[#d58a7e]; }
+.ending-screen__content p:not(.ending-screen__last-line) { @apply mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#d5c8ae] sm:text-base; }
+.ending-screen__content p strong { @apply text-[#f3dfaa]; }
+.ending-screen__last-line { @apply mt-7 border-t border-[#80613a]/60 pt-6 text-base font-semibold italic text-[#f0d58b] sm:text-lg; }
+.ending-screen--defeat .ending-screen__last-line { @apply border-[#8e463c]/60 text-[#e5a197]; }
+.ending-screen__menu-button {
+  @apply mt-8 rounded-lg border px-7 py-3 text-sm font-bold transition hover:-translate-y-0.5;
+  color: #21170f;
+  border-color: #e0c16e;
+  background: linear-gradient(135deg, #e0c16e, #a9853b);
+}
+.ending-screen__menu-button:hover { filter: brightness(1.12); }
+.ending-screen--defeat .ending-screen__menu-button { border-color: #c17a6d; background: linear-gradient(135deg, #d99a8d, #a64f45); }
