@@ -47,3 +47,23 @@
 .shop-sell-total { @apply flex items-center justify-between border-t border-[#4a3520] pt-3 font-semibold; }
 .shop-sell-total strong { @apply text-[#e8c25a]; }
 .shop-sell-submit { @apply rounded border border-[#b8923f] bg-[#3f2f1c] px-4 py-2 font-bold text-[#e8c25a] hover:bg-[#b8923f] hover:text-[#241a10] disabled:cursor-not-allowed disabled:opacity-40; }
+
+
+/* Ilustrações dos itens */
+.shop-item { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.shop-item__image, .shop-sell-choice__image, .shop-sell-detail__image {
+  display: grid; place-items: center; overflow: hidden; border-radius: 10px;
+  background: rgba(10, 14, 25, .72); border: 1px solid rgba(205, 164, 91, .25);
+}
+.shop-item__image { width: 76px; height: 76px; }
+.shop-item__image img, .shop-sell-choice__image img, .shop-sell-detail__image img {
+  width: 100%; height: 100%; object-fit: contain; padding: 5px;
+}
+.shop-sell-choice { display: flex; align-items: center; gap: 10px; }
+.shop-sell-choice__image { width: 48px; height: 48px; flex: 0 0 48px; }
+.shop-sell-detail__image { width: 116px; height: 116px; margin: 0 auto 12px; }
+@media (max-width: 620px) {
+  .shop-item { grid-template-columns: 60px minmax(0, 1fr); }
+  .shop-item__image { width: 60px; height: 60px; }
+  .shop-item__buy { grid-column: 2; justify-self: end; }
+}
