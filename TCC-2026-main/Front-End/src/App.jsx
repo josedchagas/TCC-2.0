@@ -795,7 +795,7 @@ export default function App() {
         conclusion = "MISSÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.successText || "Você conclui a tarefa e consegue a pista que procurava.") + " " + aftermath;
       } else {
         const aftermath = QUEST_AFTERMATH[(Number(quest.chapter) || Number(activeSave.chapterCurrent) || 1) - 1]?.failure || "A tentativa não resolve tudo, mas você segue com o que conseguiu aprender.";
-        conclusion = "MISSÃO NÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.failureText || "A tentativa não sai como esperado.") + " " + aftermath;
+        conclusion = "MISSÃO NÃO CONCLUÍDA — " + questName + ". " + (result.message || quest.failureText || "A tentativa não sai como esperado.") + " " + aftermath + " Você perdeu 1 ponto de Energia (Vigor).";
       }
       setStoryEntries((entries) => [...entries, { id: "quest-result-" + quest.id + "-" + stamp, type: "outcome", text: conclusion }]);
       if (result.reward) {
@@ -805,6 +805,9 @@ export default function App() {
       }
       await refreshGameData(result.save ?? activeSave);
       if (result.save) await refreshSaves();
+      if (result.permanentDeath) {
+        setScreen("ending-defeat");
+      }
       setNotice("");
     } catch (error) {
       setNotice(error.message);
