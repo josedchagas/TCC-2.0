@@ -221,8 +221,24 @@
   color: #f4e8d0;
   background: radial-gradient(ellipse at 50% 12%, #3e3421 0%, #17130f 48%, #090807 100%);
 }
-.ending-screen--victory { background: radial-gradient(ellipse at 50% 12%, #5b5128 0%, #1d2418 48%, #090b09 100%); }
-.ending-screen--defeat { background: radial-gradient(ellipse at 50% 12%, #55231f 0%, #251211 48%, #080707 100%); }
+.ending-screen--victory {
+  background-image:
+    linear-gradient(180deg, rgb(8 13 10 / 38%) 0%, rgb(10 12 9 / 70%) 48%, rgb(8 9 8 / 94%) 100%),
+    url("https://www.medievalkingdomcraft.com/assets/images/medieval-fantasy-castle-kingdom-landscape-sunrise-.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+.ending-screen--defeat {
+  background-image:
+    linear-gradient(180deg, rgb(18 5 6 / 38%) 0%, rgb(18 7 8 / 72%) 48%, rgb(8 6 7 / 95%) 100%),
+    url("https://cdn.stunlock.com/blog/2024/04/25091751/3-1.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
 .ending-screen__stars {
   position: absolute;
   inset: 0;
