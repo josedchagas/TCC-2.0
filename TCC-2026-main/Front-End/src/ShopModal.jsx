@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./ShopModal.css";
+import { getItemImage } from "./itemImages";
 
 export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventory = [], money = 0, busy = false }) {
   const [tab, setTab] = useState("buy");
@@ -36,6 +37,7 @@ export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventor
         {tab === "buy" ? <div className="shop-items">
           {shop.items.map((item) => (
             <article className="shop-item" key={item.code}>
+              <div className="shop-item__image">{getItemImage(item) ? <img src={getItemImage(item)} alt={item.name} /> : <span aria-label={item.name}>◆</span>}</div>
               <div className="shop-item__info">
                 <div className="shop-item__title"><strong>{item.name}</strong><span className={`rarity rarity--${item.rarity}`}>{item.rarity}</span></div>
                 <p>{item.description}</p>
@@ -49,6 +51,7 @@ export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventor
           <div className="shop-sell-list">
             {sellableItems.length === 0 ? <p className="shop-empty">Você não tem itens que este comerciante possa comprar.</p> : sellableItems.map((item) => (
               <button key={item.id} type="button" className={selectedItem?.id === item.id ? "shop-sell-choice shop-sell-choice--active" : "shop-sell-choice"} onClick={() => { setSelectedId(item.id); setQuantity(1); }}>
+                <span className="shop-sell-choice__image">{getItemImage(item) ? <img src={getItemImage(item)} alt="" /> : "◆"}</span>
                 <span><strong>{item.name}</strong><small>Quantidade: {item.qty}</small></span>
                 <b>🪙 {item.sellPrice}/un.</b>
               </button>
@@ -56,6 +59,7 @@ export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventor
           </div>
           <section className="shop-sell-detail" aria-live="polite">
             {selectedItem ? <>
+              <div className="shop-sell-detail__image">{getItemImage(selectedItem) ? <img src={getItemImage(selectedItem)} alt={selectedItem.name} /> : <span>◆</span>}</div>
               <h3>{selectedItem.name}</h3>
               <p>{selectedItem.description || "Nenhuma descrição disponível para este item."}</p>
               <p className="shop-sell-price">Valor por unidade: 🪙 {selectedItem.sellPrice}</p>
