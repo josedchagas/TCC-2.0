@@ -70,3 +70,16 @@ export function getItemImage(item) {
   const fallback = (slotFallbacks[type] || []).map((name) => images[normalize(name)]).find(Boolean);
   return fallback || null;
 }
+
+
+const CHARACTER_IMAGE_FILES = {
+  Arqueira: "Elyra (arqueira)",
+  Guerreiro: "Bram (guerreiro)",
+  Maga: "Sora (Maga)",
+  Ladino: "Toren (ladino)",
+};
+
+export function getCharacterImage(role) {
+  const filename = CHARACTER_IMAGE_FILES[role];
+  return filename ? images[normalize(filename)] || null : null;
+}
