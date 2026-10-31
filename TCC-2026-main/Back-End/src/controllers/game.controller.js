@@ -451,6 +451,29 @@ export async function resolveSideQuest(req, res) {
 
   let updatedSave = save;
   let reward = null;
+  if (!success) {
+    // Falhar em uma side-quest custa 1 ponto de Energia (Vigor).
+    // Se chegar a zero, a campanha termina por derrota permanente.
+    const energyCurrent = Math.max(0, save.energyCurrent - 1);
+    const permanentDeath = energyCurrent <= 0;
+    const [updated] = await db.update(saves).set({
+      energyCurrent,
+      energyMax: 5,
+      completed: permanentDeath,
+      updatedAt: new Date(),
+      lastPlayedAt: new Date(),
+    }).where(eq(saves.id, save.id)).returning();
+    return res.json({
+      questId: quest.id,
+      status,
+      chance,
+      energyLost: 1,
+      permanentDeath,
+      message: quest.failureText,
+      save: updated,
+    });
+  }
+
   if (success) {
     let xpCurrent = save.xpCurrent + quest.xp;
     let xpMax = save.xpMax;
