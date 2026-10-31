@@ -61,11 +61,11 @@ const slotFallbacks = {
 
 export function getItemImage(item) {
   if (!item) return null;
-  if (item.icon && typeof item.icon === "string") return item.icon;
   const exact = images[normalize(item.name)];
   if (exact) return exact;
   const alias = aliases[item.name];
   if (alias && images[normalize(alias)]) return images[normalize(alias)];
+  if (item.icon && typeof item.icon === "string") return item.icon;
   const type = item.type === "accessory" ? "accessory" : item.type;
   const fallback = (slotFallbacks[type] || []).map((name) => images[normalize(name)]).find(Boolean);
   return fallback || null;
