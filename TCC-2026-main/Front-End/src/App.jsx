@@ -142,6 +142,37 @@ function relativeTime(value) {
   return `há ${days} dia${days === 1 ? "" : "s"}`;
 }
 
+function EndingScreen({ type, characterName, onReturnToMenu }) {
+  const victory = type === "victory";
+  return (
+    <main className={`ending-screen ${victory ? "ending-screen--victory" : "ending-screen--defeat"}`}>
+      <div className="ending-screen__stars" aria-hidden="true" />
+      <section className="ending-screen__content">
+        <p className="ending-screen__eyebrow">{victory ? "A LENDA DE VALedouro" : "O FIM DE UMA ERA"}</p>
+        <div className="ending-screen__emblem" aria-hidden="true">{victory ? "✦" : "☠"}</div>
+        <h1>{victory ? "O mundo foi salvo" : "A escuridão venceu"}</h1>
+        <h2>{victory ? "Um novo herói para uma nova era" : "Os monstros agora governam"}</h2>
+        {victory ? (
+          <>
+            <p>Quando o último golpe derrubou a criatura que guardava o Coração da Estrela, a Fenda se fechou. A energia que corrompia florestas, cidades e reinos se dissipou como névoa ao amanhecer.</p>
+            <p>As criaturas que ainda avançavam perderam sua força, e os povos que viviam escondidos finalmente puderam voltar para casa. Em Valedouro, o sino voltou a tocar — desta vez, não como um aviso, mas como anúncio de esperança.</p>
+            <p>Maelis e os sobreviventes contaram sua jornada por todas as terras. Em uma grande cerimônia, diante de representantes dos reinos, <strong>{characterName || "o aventureiro"}</strong> recebeu o título de <strong>Herói de Valedouro</strong>, aquele que enfrentou a escuridão e devolveu ao mundo o direito de escolher seu próprio futuro.</p>
+            <p className="ending-screen__last-line">A história não terminou com uma batalha. Ela começou de novo, em um mundo livre.</p>
+          </>
+        ) : (
+          <>
+            <p>Sem forças para continuar, sua jornada chegou ao fim antes que a ameaça pudesse ser detida. A última esperança dos povos livres se apagou, e a Fenda se abriu por completo.</p>
+            <p>Exércitos de monstros atravessaram as antigas fronteiras. Valedouro caiu, as cidades foram tomadas e os caminhos que antes ligavam os reinos passaram a servir aos invasores.</p>
+            <p>Com o passar dos anos, as criaturas dividiram as terras entre seus senhores e impuseram seu domínio sobre todos os sobreviventes. O sino de Valedouro silenciou, e o nome dos antigos reinos tornou-se apenas uma lembrança.</p>
+            <p className="ending-screen__last-line">O mundo que você tentou salvar agora pertence aos monstros.</p>
+          </>
+        )}
+        <button className="ending-screen__menu-button" onClick={onReturnToMenu}>Voltar ao menu principal</button>
+      </section>
+    </main>
+  );
+}
+
 function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
   const [animationAction, setAnimationAction] = useState(null);
   const [animatedHp, setAnimatedHp] = useState(null);
@@ -489,7 +520,9 @@ export default function App() {
     try {
       const fullSave = await apiFetch(`/saves/${save.id}`);
       setActiveSave(fullSave);
-      setScreen("game");
+      setScreen(fullSave.completed
+        ? (fullSave.hpCurrent <= 0 || fullSave.energyCurrent <= 0 ? "ending-defeat" : "ending-victory")
+        : "game");
       setNotice("");
     } catch (error) { setNotice(error.message); }
   };
@@ -792,6 +825,19 @@ export default function App() {
     return <Menu title="A Vila Esquecida" subtitle="Uma jornada por terras abandonadas" slots={slots} notice={booting ? "Conectando ao jogo..." : notice} onPlay={startMostRecent} onSelectCharacter={createCharacterSave} onSelectSlot={openSave} onDeleteSlot={deleteSave} />;
   }
 
+  if (screen === "ending-victory" || screen === "ending-defeat") {
+    return <EndingScreen
+      type={screen === "ending-victory" ? "victory" : "defeat"}
+      characterName={activeSave?.characterName}
+      onReturnToMenu={() => {
+        setBattle(null);
+        setActiveSave(null);
+        setScreen("menu");
+        setNotice("");
+      }}
+    />;
+  }
+
   const stats = Object.fromEntries(STAT_KEYS.map((key) => [key, activeSave?.[key] ?? 0]));
   const permanentlyLost = Boolean(activeSave && (activeSave.hpCurrent <= 0 || activeSave.energyCurrent <= 0));
   const storyText = permanentlyLost
@@ -864,7 +910,13 @@ export default function App() {
 
       <StatusModal open={statusOpen} onClose={() => setStatusOpen(false)} stats={stats} availablePoints={activeSave?.availablePoints ?? 0} onAddPoint={addStatusPoint} />
       <ShopModal shop={shop} open={shopOpen} onClose={() => setShopOpen(false)} onBuy={buyItem} onSell={sellItem} inventory={inventory} money={activeSave?.money ?? 0} busy={shopBusy} />
-      <BattleModal key={battle?.enemy?.id ?? "no-battle"} battle={battle} busy={battleBusy} onRoll={rollBattleDie} onDropChoice={chooseBattleDrop} onClose={() => { if (!battleBusy && battle?.result && !(battle.result.victory && (battle.result.drops || []).some((drop) => !drop.claimed && !drop.discarded))) setBattle(null); }} />
+      <BattleModal key={battle?.enemy?.id ?? "no-battle"} battle={battle} busy={battleBusy} onRoll={rollBattleDie} onDropChoice={chooseBattleDrop} onClose={() => {
+        if (battleBusy || !battle?.result || (battle.result.victory && (battle.result.drops || []).some((drop) => !drop.claimed && !drop.discarded))) return;
+        const result = battle.result;
+        setBattle(null);
+        if (result.permanentDeath || result.save?.completed && !result.victory) setScreen("ending-defeat");
+        else if (result.victory && result.save?.completed) setScreen("ending-victory");
+      }} />
       <GameMenu onSave={saveCurrentGame} onExitToMenu={() => { setScreen("menu"); setNotice(""); }} />
     </div>
   );
