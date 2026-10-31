@@ -295,3 +295,52 @@
   .battle-modal__drop-image { width: 52px; height: 52px; }
   .battle-modal__drop-actions { grid-column: 2; }
 }
+
+
+/* Controles para visualizar a arte de fundo nas telas de encerramento. */
+.ending-screen__controls {
+  position: fixed;
+  z-index: 20;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.ending-screen__toggle-button {
+  @apply rounded-lg border px-5 py-3 text-sm font-bold transition;
+  color: #f4e8d0;
+  border-color: rgb(224 193 110 / 75%);
+  background: rgb(16 13 10 / 88%);
+  backdrop-filter: blur(8px);
+}
+.ending-screen__toggle-button:hover {
+  background: rgb(65 48 27 / 94%);
+  border-color: #e0c16e;
+}
+.ending-screen--defeat .ending-screen__toggle-button {
+  border-color: rgb(193 122 109 / 80%);
+}
+.ending-screen--defeat .ending-screen__toggle-button:hover {
+  background: rgb(65 30 28 / 94%);
+}
+.ending-screen--story-hidden {
+  padding: 1rem;
+}
+.ending-screen--story-hidden .ending-screen__stars {
+  opacity: .12;
+}
+@media (max-width: 520px) {
+  .ending-screen__controls {
+    right: .75rem;
+    bottom: .75rem;
+    left: .75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .ending-screen__toggle-button,
+  .ending-screen__controls .ending-screen__menu-button {
+    margin-top: 0;
+    padding: .7rem 1rem;
+  }
+}
