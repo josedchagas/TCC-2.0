@@ -1,11 +1,11 @@
 const IMAGE_FILES = import.meta.glob("../imagens/*.png", { eager: true, import: "default" });
 
 const normalize = (value) => String(value || "")
-  .normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 const images = Object.fromEntries(Object.entries(IMAGE_FILES).map(([path, url]) => [
-  normalize(path.split("/").pop().replace(/\\.png$/i, "")), url
+  normalize(path.split("/").pop().replace(/\.png$/i, "")), url
 ]));
 
 const aliases = {
