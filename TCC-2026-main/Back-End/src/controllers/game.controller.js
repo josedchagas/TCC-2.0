@@ -289,7 +289,9 @@ export async function resolveEncounter(req, res) {
   if (!victory) {
     // A derrota custa exatamente um coração; o dano calculado durante o combate não é descontado.
     const remainingHp = Math.max(0, save.hpCurrent - 1);
-    const permanentDeath = remainingHp <= 0 || save.energyCurrent <= 0;
+    // Perder para o boss do capítulo final encerra a campanha mesmo que ainda reste Moral.
+    const isFinalBoss = enemy.kind === "boss" && save.chapterCurrent === CHAPTERS.length;
+    const permanentDeath = remainingHp <= 0 || save.energyCurrent <= 0 || isFinalBoss;
     // O encontro fica resolvido mesmo com a retirada, permitindo que a narrativa avance.
     await db.insert(defeatedEncounters).values({ saveId: save.id, enemyCode: enemy.id }).onConflictDoNothing();
     const isBoss = enemy.kind === "boss";
