@@ -144,11 +144,12 @@ function relativeTime(value) {
 }
 
 function EndingScreen({ type, characterName, onReturnToMenu }) {
+  const [storyVisible, setStoryVisible] = useState(true);
   const victory = type === "victory";
   return (
-    <main className={`ending-screen ${victory ? "ending-screen--victory" : "ending-screen--defeat"}`}>
+    <main className={`ending-screen ${victory ? "ending-screen--victory" : "ending-screen--defeat"} ${storyVisible ? "" : "ending-screen--story-hidden"}`}>
       <div className="ending-screen__stars" aria-hidden="true" />
-      <section className="ending-screen__content">
+      {storyVisible && <section className="ending-screen__content">
         <p className="ending-screen__eyebrow">{victory ? "A LENDA DE VALEDOURO" : "O FIM DE UMA ERA"}</p>
         <div className="ending-screen__emblem" aria-hidden="true">{victory ? "✦" : "☠"}</div>
         <h1>{victory ? "O mundo foi salvo" : "A escuridão venceu"}</h1>
@@ -169,7 +170,22 @@ function EndingScreen({ type, characterName, onReturnToMenu }) {
           </>
         )}
         <button className="ending-screen__menu-button" onClick={onReturnToMenu}>Voltar ao menu principal</button>
-      </section>
+      </section>}
+      <div className="ending-screen__controls">
+        <button
+          type="button"
+          className="ending-screen__toggle-button"
+          onClick={() => setStoryVisible((visible) => !visible)}
+          aria-expanded={storyVisible}
+        >
+          {storyVisible ? "Ocultar história" : "Mostrar história"}
+        </button>
+        {!storyVisible && (
+          <button type="button" className="ending-screen__menu-button" onClick={onReturnToMenu}>
+            Voltar ao menu principal
+          </button>
+        )}
+      </div>
     </main>
   );
 }
