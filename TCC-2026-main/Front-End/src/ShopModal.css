@@ -68,28 +68,24 @@
   .shop-item__buy { grid-column: 2; justify-self: end; }
 }
 
-/* Barras de rolagem das listas da loja na paleta escura e dourada. */
+/* Barras de rolagem iguais à ficha do personagem. */
 .shop-items,
 .shop-sell-layout {
   scrollbar-width: thin;
-  scrollbar-color: #a47b35 #1c140d;
+  scrollbar-color: #b8923f #241a10;
 }
 .shop-items::-webkit-scrollbar,
 .shop-sell-layout::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
 }
 .shop-items::-webkit-scrollbar-track,
 .shop-sell-layout::-webkit-scrollbar-track {
-  background: #1c140d;
-  border-radius: 8px;
+  background: #241a10;
+  border: 1px solid #4a3f30;
+  border-radius: 999px;
 }
 .shop-items::-webkit-scrollbar-thumb,
 .shop-sell-layout::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #c6a04e, #8a6428);
-  border: 2px solid #1c140d;
-  border-radius: 8px;
-}
-.shop-items::-webkit-scrollbar-thumb:hover,
-.shop-sell-layout::-webkit-scrollbar-thumb:hover {
-  background: #e8c25a;
+  background: #b8923f;
+  border-radius: 999px;
 }
