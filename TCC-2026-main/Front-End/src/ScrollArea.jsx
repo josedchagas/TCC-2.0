@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./ScrollArea.css";
 
 /** Área rolável com indicador visual próprio, inclusive em navegadores móveis. */
-export default function ScrollArea({ as: Tag = "div", className = "", children, ...props }) {
+export default function ScrollArea({ as: Tag = "div", className = "", children, scrollToBottomKey, ...props }) {
   const viewportRef = useRef(null);
   const [thumb, setThumb] = useState({ height: 100, top: 0, visible: false });
 
@@ -15,6 +15,12 @@ export default function ScrollArea({ as: Tag = "div", className = "", children, 
     const top = visible ? (scrollTop / (scrollHeight - clientHeight)) * (100 - height) : 0;
     setThumb({ height, top, visible });
   }, []);
+
+  useEffect(() => {
+    if (scrollToBottomKey === undefined) return;
+    const element = viewportRef.current;
+    if (element) element.scrollTop = element.scrollHeight;
+  }, [scrollToBottomKey]);
 
   useEffect(() => {
     const element = viewportRef.current;
