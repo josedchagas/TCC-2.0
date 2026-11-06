@@ -682,3 +682,132 @@
     width: 4rem;
   }
 }
+
+
+/* A ficha deixa de ocupar espaço na história em celulares e abre como painel modal. */
+.character-sheet-overlay {
+  display: contents;
+}
+.character-sheet-trigger {
+  display: none;
+}
+.character-sheet-dialog {
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .app-stage {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .character-sheet-overlay {
+    display: none;
+  }
+
+  .character-sheet-overlay.is-open {
+    display: flex;
+    position: fixed;
+    z-index: 80;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgb(8 6 4 / 78%);
+    backdrop-filter: blur(4px);
+  }
+
+  .character-sheet-dialog {
+    position: relative;
+    width: min(100%, 430px);
+    max-height: 88svh;
+    overflow: hidden;
+    border: 2px solid #b8923f;
+    border-radius: 14px;
+    background: #2c2015;
+    box-shadow: 0 20px 70px rgb(0 0 0 / 65%), inset 0 0 24px rgb(184 146 63 / 8%);
+  }
+
+  .character-sheet-dialog .char-panel {
+    display: block;
+    width: 100%;
+    height: 88svh;
+    max-height: 88svh;
+    border: 0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .character-sheet-dialog .char-panel__scroll {
+    height: 100%;
+    max-height: 88svh;
+    padding: 3.5rem 1rem 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .character-sheet-dialog .char-panel__money {
+    margin-top: auto;
+  }
+
+  .character-sheet-close {
+    position: absolute;
+    z-index: 5;
+    top: .55rem;
+    right: .65rem;
+    display: flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #b8923f;
+    border-radius: 8px;
+    color: #f1d98c;
+    background: #241a10;
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .character-sheet-trigger {
+    position: fixed;
+    z-index: 35;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    display: flex;
+    width: 3.65rem;
+    height: 3.65rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #c49b49;
+    border-radius: 50%;
+    color: #f0d58b;
+    background: radial-gradient(circle at 35% 25%, #604827, #2c2015 72%);
+    box-shadow: 0 4px 18px rgb(0 0 0 / 55%), inset 0 0 0 2px rgb(240 213 139 / 12%);
+    cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease, filter .15s ease;
+  }
+
+  .character-sheet-trigger:active {
+    transform: scale(.94);
+  }
+
+  .character-sheet-trigger:hover {
+    border-color: #f0d58b;
+    filter: brightness(1.12);
+  }
+
+  .character-sheet-trigger svg {
+    width: 2rem;
+    height: 2rem;
+    fill: currentColor;
+    stroke: #241a10;
+    stroke-width: 1.5;
+  }
+}
+
+@media (min-width: 769px) {
+  .character-sheet-overlay {
+    display: contents;
+  }
+}
