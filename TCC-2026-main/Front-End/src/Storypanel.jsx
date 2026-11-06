@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+
 import "./Storypanel.css";
 import ScrollArea from "./ScrollArea";
 
