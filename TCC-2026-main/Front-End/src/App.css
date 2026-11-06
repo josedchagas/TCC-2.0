@@ -428,8 +428,10 @@
   }
 
   .game-menu-btn {
-    top: .65rem;
-    left: .65rem;
+    top: 1rem;
+    left: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
   }
 
   .battle-modal__backdrop,
@@ -618,7 +620,40 @@
   }
 }
 
+@media (max-width: 768px) {
+  /* Reserva a faixa dos botões no cabeçalho: o capítulo começa depois deles. */
+  .story-panel__header {
+    padding-left: 6.75rem;
+    min-height: 3.5rem;
+  }
+
+  .story-panel__chapter {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .story-panel__progress {
+    flex: 0 0 auto;
+    width: min(30%, 7rem);
+  }
+}
+
 @media (max-width: 420px) {
+  .story-panel__header {
+    padding-left: 6.25rem;
+    gap: .35rem;
+  }
+
+  .story-panel__chapter {
+    font-size: .68rem;
+  }
+
+  .story-panel__progress {
+    width: 4.5rem;
+    gap: .3rem;
+  }
+
   .story-panel {
     padding: .7rem;
   }
@@ -777,13 +812,13 @@
   .character-sheet-trigger {
     position: fixed;
     z-index: 35;
-    top: calc(1rem + 3.65rem);
-    left: 1rem;
+    top: 1rem;
+    left: calc(1rem + 2.75rem + .5rem);
     right: auto;
     bottom: auto;
     display: flex;
-    width: 3.65rem;
-    height: 3.65rem;
+    width: 2.75rem;
+    height: 2.75rem;
     align-items: center;
     justify-content: center;
     border: 2px solid #c49b49;
@@ -805,8 +840,8 @@
   }
 
   .character-sheet-trigger svg {
-    width: 2rem;
-    height: 2rem;
+    width: 1.65rem;
+    height: 1.65rem;
     fill: currentColor;
     stroke: #241a10;
     stroke-width: 1.5;
