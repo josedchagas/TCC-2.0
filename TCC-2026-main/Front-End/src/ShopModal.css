@@ -67,3 +67,29 @@
   .shop-item__image { width: 60px; height: 60px; }
   .shop-item__buy { grid-column: 2; justify-self: end; }
 }
+
+/* Barras de rolagem das listas da loja na paleta escura e dourada. */
+.shop-items,
+.shop-sell-layout {
+  scrollbar-width: thin;
+  scrollbar-color: #a47b35 #1c140d;
+}
+.shop-items::-webkit-scrollbar,
+.shop-sell-layout::-webkit-scrollbar {
+  width: 10px;
+}
+.shop-items::-webkit-scrollbar-track,
+.shop-sell-layout::-webkit-scrollbar-track {
+  background: #1c140d;
+  border-radius: 8px;
+}
+.shop-items::-webkit-scrollbar-thumb,
+.shop-sell-layout::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c6a04e, #8a6428);
+  border: 2px solid #1c140d;
+  border-radius: 8px;
+}
+.shop-items::-webkit-scrollbar-thumb:hover,
+.shop-sell-layout::-webkit-scrollbar-thumb:hover {
+  background: #e8c25a;
+}
