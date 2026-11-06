@@ -1,5 +1,4 @@
 @reference "tailwindcss";
-@import "./ScrollArea.css";
 .shop-overlay { @apply fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4; }
 .shop-modal { @apply w-full max-w-3xl max-h-[88vh] overflow-hidden rounded-xl border-2 border-[#b8923f] bg-[#2c2015] text-[#e9dcc0] shadow-2xl; }
 .shop-header { @apply flex items-center justify-between border-b border-[#6b4f30] px-5 py-4; }
