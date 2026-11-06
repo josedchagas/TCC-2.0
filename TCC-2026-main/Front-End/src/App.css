@@ -695,6 +695,11 @@
   position: relative;
 }
 
+/* O X só deve existir no modal da ficha em telas pequenas. */
+.character-sheet-close {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .app-stage {
     display: flex;
@@ -772,8 +777,10 @@
   .character-sheet-trigger {
     position: fixed;
     z-index: 35;
-    right: max(1rem, env(safe-area-inset-right));
-    bottom: max(1rem, env(safe-area-inset-bottom));
+    top: calc(1rem + 3.65rem);
+    left: 1rem;
+    right: auto;
+    bottom: auto;
     display: flex;
     width: 3.65rem;
     height: 3.65rem;
