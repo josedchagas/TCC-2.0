@@ -912,7 +912,6 @@ export default function App() {
         <div
           className={`character-sheet-overlay ${characterSheetOpen ? "is-open" : ""}`}
           onClick={() => setCharacterSheetOpen(false)}
-          aria-hidden={!characterSheetOpen}
         >
           <section className="character-sheet-dialog" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Ficha do personagem">
             <button type="button" className="character-sheet-close" onClick={() => setCharacterSheetOpen(false)} aria-label="Fechar ficha">×</button>
