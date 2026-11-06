@@ -349,6 +349,7 @@ function BattleModal({ battle, busy, onRoll, onClose, onDropChoice }) {
 export default function App() {
   const [screen, setScreen] = useState("menu");
   const [statusOpen, setStatusOpen] = useState(false);
+  const [characterSheetOpen, setCharacterSheetOpen] = useState(false);
   const [booting, setBooting] = useState(true);
   const [notice, setNotice] = useState("Conectando ao jogo...");
   const [saves, setSaves] = useState([]);
@@ -908,7 +909,14 @@ export default function App() {
     <div className="app-shell">
       {notice && <p role="status" className="app-notice">{notice}</p>}
       <div className="app-stage">
-        <CharacterPanel
+        <div
+          className={`character-sheet-overlay ${characterSheetOpen ? "is-open" : ""}`}
+          onClick={() => setCharacterSheetOpen(false)}
+          aria-hidden={!characterSheetOpen}
+        >
+          <section className="character-sheet-dialog" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Ficha do personagem">
+            <button type="button" className="character-sheet-close" onClick={() => setCharacterSheetOpen(false)} aria-label="Fechar ficha">×</button>
+            <CharacterPanel
           avatarUrl={getCharacterImage(activeSave?.classRole)}
           xp={{ current: activeSave?.xpCurrent ?? 0, max: activeSave?.xpMax ?? 100 }}
           hp={{ current: Math.min(5, activeSave?.hpCurrent ?? 0), max: 5 }}
@@ -921,8 +929,22 @@ export default function App() {
           onUseItem={useItem}
           onDropItem={dropItem}
           onEquipItem={equipItem}
-          onUnequipItem={unequipItem}
-        />
+              onUnequipItem={unequipItem}
+            />
+          </section>
+        </div>
+        <button
+          type="button"
+          className="character-sheet-trigger"
+          onClick={() => setCharacterSheetOpen(true)}
+          aria-label="Abrir ficha do personagem"
+          title="Ficha do personagem"
+        >
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="19" r="12" />
+            <path d="M7 56c0-15 10-25 25-25s25 10 25 25c0 3-2 5-5 5H12c-3 0-5-2-5-5Z" />
+          </svg>
+        </button>
         <StoryPanel
           chapterLabel={activeSave ? chapterLabel(activeSave, chapterData) : "Capítulo 1 — A Vila Esquecida"}
           progress={{ current: activeSave?.chapterCurrent ?? 1, max: activeSave?.chapterMax ?? 20 }}
