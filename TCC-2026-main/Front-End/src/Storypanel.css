@@ -71,20 +71,7 @@
   @apply px-4 py-2 rounded border border-[#6b4f30] bg-[#3a2a1d] text-[#e9dcc0] hover:bg-[#4a3520] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm cursor-pointer;
 }
 
-/* Barra de rolagem igual à ficha do personagem. */
-.story-panel__text {
-  scrollbar-width: thin;
-  scrollbar-color: #b8923f #241a10;
-}
-.story-panel__text::-webkit-scrollbar {
-  width: 6px;
-}
-.story-panel__text::-webkit-scrollbar-track {
-  background: #241a10;
-  border: 1px solid #4a3f30;
-  border-radius: 999px;
-}
-.story-panel__text::-webkit-scrollbar-thumb {
-  background: #b8923f;
-  border-radius: 999px;
+.story-panel > .custom-scroll-area {
+  flex: 1 1 0%;
+  min-height: 0;
 }
