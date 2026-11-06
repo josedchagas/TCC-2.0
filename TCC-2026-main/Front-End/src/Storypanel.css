@@ -70,3 +70,24 @@
 .story-panel__action-btn {
   @apply px-4 py-2 rounded border border-[#6b4f30] bg-[#3a2a1d] text-[#e9dcc0] hover:bg-[#4a3520] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm cursor-pointer;
 }
+
+/* Barra de rolagem da história na paleta de pergaminho e dourado. */
+.story-panel__text {
+  scrollbar-width: thin;
+  scrollbar-color: #a47b35 #d9c69a;
+}
+.story-panel__text::-webkit-scrollbar {
+  width: 10px;
+}
+.story-panel__text::-webkit-scrollbar-track {
+  background: #d9c69a;
+  border-radius: 8px;
+}
+.story-panel__text::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c6a04e, #8a6428);
+  border: 2px solid #d9c69a;
+  border-radius: 8px;
+}
+.story-panel__text::-webkit-scrollbar-thumb:hover {
+  background: #74501f;
+}
