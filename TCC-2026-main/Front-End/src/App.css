@@ -409,10 +409,24 @@
     width: min(100%, 10rem);
   }
 
-  .story-panel__text {
+  /* Mantém a área rolável da história com altura definida no celular,
+     para o indicador personalizado do ScrollArea ocupar toda a lateral. */
+  .story-panel > .custom-scroll-area {
+    flex: 0 0 32svh;
+    width: 100%;
+    height: 32svh;
     min-height: 32svh;
+    max-height: 48svh;
+  }
+
+  .story-panel__text {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     padding: 1rem;
     gap: .85rem;
+    overflow-y: auto;
     overflow-wrap: anywhere;
   }
 
