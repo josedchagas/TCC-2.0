@@ -92,3 +92,30 @@
   width: 0 !important;
   height: 0 !important;
 }
+
+/* Garante que a história use somente o indicador personalizado do ScrollArea,
+   inclusive nos navegadores móveis (sem exibir a barra nativa cinza). */
+.story-panel > .custom-scroll-area > .custom-scroll-area__viewport {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.story-panel > .custom-scroll-area > .custom-scroll-area__viewport::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.story-panel > .custom-scroll-area > .custom-scroll-area__track {
+  display: block !important;
+  width: 6px;
+  border: 1px solid #4a3f30;
+  border-radius: 999px;
+  background: #241a10;
+  pointer-events: none;
+}
+
+.story-panel > .custom-scroll-area > .custom-scroll-area__track > .custom-scroll-area__thumb {
+  background: #b8923f;
+  border-radius: 999px;
+}
