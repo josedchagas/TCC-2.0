@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./ShopModal.css";
 import { getItemImage } from "./itemImages";
+import ScrollArea from "./ScrollArea";
 
 export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventory = [], money = 0, busy = false }) {
   const [tab, setTab] = useState("buy");
@@ -34,7 +35,7 @@ export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventor
           <button className={tab === "buy" ? "shop-tab shop-tab--active" : "shop-tab"} onClick={() => setTab("buy")}>Comprar</button>
           <button className={tab === "sell" ? "shop-tab shop-tab--active" : "shop-tab"} onClick={() => setTab("sell")}>Vender itens</button>
         </nav>
-        {tab === "buy" ? <div className="shop-items">
+        {tab === "buy" ? <ScrollArea className="shop-items">
           {shop.items.map((item) => (
             <article className="shop-item" key={item.code}>
               <div className="shop-item__image">{getItemImage(item) ? <img src={getItemImage(item)} alt={item.name} /> : <span aria-label={item.name}>◆</span>}</div>
@@ -47,7 +48,7 @@ export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventor
               <div className="shop-item__buy"><span>🪙 {item.price}</span><button disabled={busy || item.price <= 0} onClick={() => onBuy(item)}>Comprar</button></div>
             </article>
           ))}
-        </div> : <div className="shop-sell-layout">
+        </ScrollArea> : <ScrollArea className="shop-sell-layout">
           <div className="shop-sell-list">
             {sellableItems.length === 0 ? <p className="shop-empty">Você não tem itens que este comerciante possa comprar.</p> : sellableItems.map((item) => (
               <button key={item.id} type="button" className={selectedItem?.id === item.id ? "shop-sell-choice shop-sell-choice--active" : "shop-sell-choice"} onClick={() => { setSelectedId(item.id); setQuantity(1); }}>
@@ -75,7 +76,7 @@ export default function ShopModal({ shop, open, onClose, onBuy, onSell, inventor
               <button className="shop-sell-submit" type="button" disabled={busy || quantity < 1} onClick={() => onSell(selectedItem, quantity)}>Vender {quantity} {quantity === 1 ? "unidade" : "unidades"}</button>
             </> : <p className="shop-empty">Selecione um item vendável do inventário.</p>}
           </section>
-        </div>}
+        </ScrollArea>}
       </section>
     </div>
   );
