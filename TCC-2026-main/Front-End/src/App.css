@@ -349,17 +349,19 @@
 /* Ajustes gerais para tablets e celulares. */
 @media (max-width: 768px) {
   .app-shell {
+    width: 100%;
     min-height: 100svh;
-    height: auto;
-    overflow: visible;
+    height: 100svh;
+    overflow: hidden;
   }
 
   .app-stage {
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: auto;
-    min-height: 100svh;
+    height: 100svh;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .char-panel {
@@ -386,9 +388,10 @@
   .story-panel {
     width: 100%;
     min-width: 0;
-    min-height: 62svh;
-    height: auto;
-    flex: 1 0 auto;
+    min-height: 0;
+    height: 100%;
+    flex: 1 1 0%;
+    overflow: hidden;
     padding: 1rem;
     gap: .75rem;
   }
@@ -409,14 +412,34 @@
     width: min(100%, 10rem);
   }
 
-  /* Mantém a área rolável da história com altura definida no celular,
-     para o indicador personalizado do ScrollArea ocupar toda a lateral. */
+  /* A história ocupa todo o espaço restante da tela no celular. */
   .story-panel > .custom-scroll-area {
-    flex: 0 0 32svh;
+    position: relative;
+    display: block;
+    flex: 1 1 0%;
     width: 100%;
-    height: 32svh;
-    min-height: 32svh;
-    max-height: 48svh;
+    height: 0;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .story-panel > .custom-scroll-area > .custom-scroll-area__track {
+    display: block !important;
+    position: absolute;
+    z-index: 5;
+    top: 8px;
+    right: 6px;
+    bottom: 8px;
+    width: 6px;
+    border: 1px solid #4a3f30;
+    border-radius: 999px;
+    background: #241a10;
+    pointer-events: none;
+  }
+
+  .story-panel > .custom-scroll-area > .custom-scroll-area__track > .custom-scroll-area__thumb {
+    background: #b8923f;
+    border-radius: 999px;
   }
 
   .story-panel__text {
