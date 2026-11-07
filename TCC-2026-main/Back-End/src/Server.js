@@ -13,8 +13,8 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || "https://tcc-2-0-8ew9uwayb-acs-125a.vercel.app/")
-  .split(",").map((origin) => origin.trim()).filter(Boolean);
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "https://tcc-2-0-8ew9uwayb-acs-125a.vercel.app")
+  .split(",").map((origin) => origin.trim().replace(/\/$/, "")).filter(Boolean);
 
 app.use(cors({
   origin(origin, callback) {
