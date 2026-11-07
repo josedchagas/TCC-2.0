@@ -1,4 +1,29 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "https://tcc-2-0.onrender.com").replace(/\/$/, "");
+const DEFAULT_API_URL = "https://tcc-2-0.onrender.com";
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
+
+function isLocalApiUrl(value) {
+  if (!value) return false;
+
+  try {
+    const hostname = new URL(value).hostname.replace(/^\\[|\\]$/g, "");
+    return ["localhost", "127.0.0.1", "::1"].includes(hostname);
+  } catch {
+    return true;
+  }
+}
+
+const pageHostname = typeof window !== "undefined"
+  ? window.location.hostname.replace(/^\\[|\\]$/g, "")
+  : "localhost";
+const isDeployedPage = !["localhost", "127.0.0.1", "::1"].includes(pageHostname);
+
+// Uma variável VITE_API_URL local não pode fazer o site publicado chamar
+// o localhost do computador de quem está jogando.
+const API_BASE_URL = (
+  isDeployedPage && isLocalApiUrl(configuredApiUrl)
+    ? DEFAULT_API_URL
+    : configuredApiUrl || DEFAULT_API_URL
+).replace(/\\/$/, "");
 
 export async function apiFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
