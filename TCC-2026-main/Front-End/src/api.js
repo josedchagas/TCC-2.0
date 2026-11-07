@@ -5,25 +5,33 @@ function isLocalApiUrl(value) {
   if (!value) return false;
 
   try {
-    const hostname = new URL(value).hostname.replace(/^\\[|\\]$/g, "");
-    return ["localhost", "127.0.0.1", "::1"].includes(hostname);
+    const hostname = new URL(value).hostname;
+    return ["localhost", "127.0.0.1", "::1", "[::1]"].includes(hostname);
   } catch {
     return true;
   }
 }
 
 const pageHostname = typeof window !== "undefined"
-  ? window.location.hostname.replace(/^\\[|\\]$/g, "")
+  ? window.location.hostname
   : "localhost";
-const isDeployedPage = !["localhost", "127.0.0.1", "::1"].includes(pageHostname);
+const isDeployedPage = !["localhost", "127.0.0.1", "::1", "[::1]"].includes(pageHostname);
 
 // Uma variável VITE_API_URL local não pode fazer o site publicado chamar
 // o localhost do computador de quem está jogando.
-const API_BASE_URL = (
+const selectedApiUrl = (
   isDeployedPage && isLocalApiUrl(configuredApiUrl)
     ? DEFAULT_API_URL
     : configuredApiUrl || DEFAULT_API_URL
-).replace(/\\/$/, "");
+);
+
+function removeTrailingSlashes(value) {
+  let result = value;
+  while (result.endsWith("/")) result = result.slice(0, -1);
+  return result;
+}
+
+const API_BASE_URL = removeTrailingSlashes(selectedApiUrl);
 
 export async function apiFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
