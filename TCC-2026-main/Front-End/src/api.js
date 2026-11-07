@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "https://tcc-2-0-8ew9uwayb-acs-125a.vercel.app").replace(/\/$/, "");
 
 export async function apiFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
