@@ -13,7 +13,7 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "https://tcc-2-0-8ew9uwayb-acs-125a.vercel.app/")
   .split(",").map((origin) => origin.trim()).filter(Boolean);
 
 app.use(cors({
